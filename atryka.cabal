@@ -1,0 +1,24 @@
+Name:                Atryka
+Version:             0.1
+Description:         2D fantasy sidescroller game
+Category:            Games
+License:             MIT
+License-file:        LICENSE
+Author:              Ben Foppa and Alexander Mistakidis
+Maintainer:          benjamin.foppa@gmail.com
+Build-Type:          Simple
+Cabal-Version:       >= 1.9.2
+
+Executable Atryka
+    hs-source-dirs:    src/
+    Main-is:           Main.hs
+    GHC-Options:       -Wall -threaded -rtsopts=all -fllvm
+    Extensions:        NoImplicitPrelude
+
+    Build-Depends: 
+                       OpenGL,
+                       GLFW,
+                       SDL,
+                       SDL-ttf,
+                       SDL-gfx,
+                       base
