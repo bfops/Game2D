@@ -3,15 +3,16 @@ module Main (main) where
 import Data.Eq
 import Data.Function
 import Data.Functor
+import Data.Maybe
 import System.IO
 
 import Util.Bool
 import Util.Monad
 
-import Graphics.UI.SDL as SDL
+import Wrappers.SDL as SDL
 
 checkQuit :: IO Bool
-checkQuit = (== Quit) <$> pollEvent
+checkQuit = (== Just Quit) <$> pollEvent
 
 main :: IO ()
 main = do
