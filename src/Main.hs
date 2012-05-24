@@ -16,6 +16,10 @@ checkQuit = (== Just Quit) <$> pollEvent
 
 main :: IO ()
 main = do
-    init [ InitVideo ]
-    _ <- setVideoMode 800 600 32 [ HWSurface, ASyncBlit, NoFrame, DoubleBuf ]
-    loop $ not <$> checkQuit
+        init [ InitVideo ]
+        s <- setVideoMode 800 600 32 [ HWSurface, ASyncBlit, NoFrame, DoubleBuf ]
+        drawToScreen s
+        doWhile (not <$> checkQuit) $ updateRect s $ Rect 0 0 0 0
+    where
+        drawToScreen s = mapRGB (surfaceGetPixelFormat s) 255 0 0
+                       >>= fillRect s (Just $ Rect 0 0 16 16)
