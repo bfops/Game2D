@@ -9,8 +9,6 @@ module Game.Logic ( GameObject (..)
 import Prelude ()
 import Util.Prelewd
 
-import Data.Tuple
-
 import Util.Types
 
 type Position = Vector Double
@@ -50,58 +48,52 @@ collisionHandler :: GameObject       -- ^ Object to update
                  -> GameObject       -- ^ Object it collided with
                  -> Vector Collision -- ^ Description of the specific collision
                  -> GameObject       -- ^ Updated object
-collisionHandler g1 g2 vc
-        | objType g2 == Platform
-            = bump fixV g2
-        | otherwise
-            = g1
-    where
-        fixV = if snd (vc!1)
-               then g1 { vcty = Vector (vcty g1!0) 0 }
-               else g1
+collisionHandler g1 g2 _ = if' (objType g2 == Platform) (`bump` g2) g1
 
--- | `bump p q` returns `p`, readjusted to not overlap `q`.
+-- | `bump p q` returns `p`, readjusted in position to not overlap `q`.
 bump :: GameObject -> GameObject -> GameObject
-bump p1 p2 = p1 { posn = p' }
+bump p1 p2 = let
+                allBumps = bumps1 <$> posn p1 <*> size p1 <*> posn p2 <*> size p2
+                -- The bumps as vectors
+                vBumps = concat $ fmap . singleV <$> fromList [0..] <*> allBumps
+                bumpVector = foldr1 shorter $ filter ((>= 0) . dot (vcty p1)) vBumps
+             in p1 { posn = posn p1 <&> (-) <*> bumpVector
+                   -- Velocity in the bumped direction becomes 0
+                   , vcty = (\b k -> iff (b == 0) k 0) <$> bumpVector <*> vcty p1
+                   }
     where
-        p' = if magLess bx by
-             then Vector (x - bx) y
-             else Vector x (y - by)
-        Vector x y = posn p1
-        (Vector bx by) = (\a b -> iff (magLess a b) a b) <$> lowDiff <*> highDiff
-        pDiff = (-) <$> posn p1 <*> posn p2
-        lowDiff = (-) <$> pDiff <*> size p2
-        highDiff = (+) <$> pDiff <*> size p1
+        bumps1 :: Double -> Double -> Double -> Double -> [Double]
+        bumps1 x1 w1 x2 w2 = [ (x1 + w1) - x2, x1 - (x2 + w2) ]
 
 type Collision = (Bool, Bool) -- ^ Overlap on low and high object borders, respectively.
 
 collision :: GameObject -> GameObject -> Maybe (Vector Collision)
 collision g1 g2 = sequenceA $ collision1 <$> posn g1 <*> size g1 <*> posn g2 <*> size g2
     where
+        -- 1D collision info
+        collision1 :: Double -> Double -> Double -> Double -> Maybe Collision
         collision1 x1 w1 x2 w2 = (x1 <= x2, x1 + w1 >= x2 + w2) `mcond` colliding x1 w1 x2 w2
+
+        colliding :: Double -> Double -> Double -> Double -> Bool
         colliding x1 w1 x2 w2 =  x1 + w1 >= x2
                               && x2 + w2 >= x1
 
 tryCollide :: GameObject -- ^ Object to update
            -> GameObject -- ^ Object it collided with
            -> GameObject -- ^ Updated object
-tryCollide g1 g2 = maybe g1 (collisionHandler g1 g2) $ collision g1 g2
-
--- | Like (<), but compares on magnitude
-magLess :: (Num a, Ord a) => a -> a -> Bool
-magLess = (<) `on` abs
+tryCollide = maybe $$ const $* collisionHandler $* collision
 
 updatePhysics :: [Input] -> DeltaT -> GameObject -> GameObject
 updatePhysics inputs t = if' ((`any` inputs) (== MoveUp))
                              (updateMove .)
                              (updateVcty . updatePosn)
     where
-        updatePosn g = g { posn = (+) <$> posn g <*> fmap (*t) (vcty g) }
+        updatePosn g = g { posn = posn g <&> (+) <*> fmap (*t) (vcty g) }
         updateMove g = if objType g == Platform
-                        then g { posn = (+) <$> posn g <*> Vector 0 0.3 }
-                        else g
+                       then g { posn = posn g <&> (+) <*> Vector 0 0.3 }
+                       else g
         updateVcty g
-            | objType g == Block    = g { vcty = (+) <$> vcty g <*> fmap (*t) a_g }
+            | objType g == Block    = g { vcty = vcty g <&> (+) <*> fmap (*t) a_g }
             | otherwise             = g
         a_g = Vector 0 (-9.81)
 
