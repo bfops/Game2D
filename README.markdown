@@ -1,15 +1,12 @@
 # Setting Up
 
-To build and run Atryka, you will need:
+To build and run the game, you will need:
 
  * Haskell
  * cabal
  * llvm
  * OpenGL
- * SDL
- * SDL\_ttf
- * SDL\_gfx
- * SDL\_mixer
+ * GLFW
 
 To set up cabal dependencies:
 
@@ -18,12 +15,16 @@ To set up cabal dependencies:
 
 And then run `cabal install [package ..]` for each unsatisfied dependency.
 
-# Running
+# Does it work?
 
 To build the package, simply run
 
     cabal build
 
+Run the test suite with
+
+    cabal test
+
 After a successful build, the game can be run from
 
-    dist/build/Atryka/Atryka
+    dist/build/Game2D/Game2D
