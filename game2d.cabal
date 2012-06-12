@@ -1,4 +1,4 @@
-Name:                Atryka
+Name:                Game2D
 Version:             0.1
 Description:         2D fantasy sidescroller game
 Category:            Games
@@ -8,7 +8,7 @@ Maintainer:          benjamin.foppa@gmail.com
 Build-Type:          Simple
 Cabal-Version:       >= 1.9.2
 
-Executable Atryka
+Executable Game2D
     hs-source-dirs:    src/
     Main-is:           Main.hs
     GHC-Options:       -Wall -threaded -rtsopts=all -fllvm
