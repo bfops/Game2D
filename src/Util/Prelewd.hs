@@ -25,6 +25,10 @@ module Util.Prelewd ( module Prelude
                     , ifm
                     , mcond
                     , (!)
+                    , (<&>)
+                    , ($$)
+                    , ($*)
+                    , (.$)
                     , null
                     , reverse
                     , intersperse
@@ -229,3 +233,22 @@ ifm :: MonadPlus m
       -> m a    -- ^ Monad to filter
       -> m a
 ifm = (>>) . guard
+
+infixl 4 <&>, $$, $*
+infixr 9 .$
+
+-- | `(<$>)` with arguments interchanged
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+(<&>) = flip (<$>)
+
+-- | `fmap` for functors-within-functors
+($$) :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
+($$) = (<$>).(<$>)
+
+-- | `(f $* g) x y = f x y $ g x y`
+($*) :: (a -> b -> c -> d) -> (a -> b -> c) -> a -> b -> d
+($*) f g x y = f x y $ g x y
+
+-- | `(f .$ g) x y = f x (g y)
+(.$) :: (a -> b -> c) -> (r -> b) -> a -> r -> c
+(.$) f g x = f x . g
