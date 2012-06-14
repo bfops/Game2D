@@ -204,15 +204,20 @@ infixl 9 !
         go x 0 = Left x
         go _ k = Right (k - 1)
 
+-- | Split a list into a pair of lists
 partition :: (a -> Either b c) -> [a] -> ([b], [c])
 partition f = partitionEithers . fmap f
 
+-- | Length of a foldable structure
+-- O(n)
 length :: (Integral i, Foldable t) => t a -> i
 length = foldr (const (+1)) 0
 
+-- | Division with integral result
 div :: (Real a, Integral b) => a -> a -> b
 div = div'
 
+-- | `divMod a b = (div a b, mod a b)`
 divMod :: (Real a, Integral b) => a -> a -> (b, a)
 divMod = divMod'
 
@@ -249,6 +254,6 @@ infixr 9 .$
 ($*) :: (a -> b -> c -> d) -> (a -> b -> c) -> a -> b -> d
 ($*) f g x y = f x y $ g x y
 
--- | `(f .$ g) x y = f x (g y)
+-- | `(f .$ g) x y = f x (g y)`
 (.$) :: (a -> b -> c) -> (r -> b) -> a -> r -> c
 (.$) f g x = f x . g

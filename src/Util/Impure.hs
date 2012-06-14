@@ -1,3 +1,4 @@
+-- | Functions for dealing with non-pure or non-lazy computations
 module Util.Impure ( module IO
                    , seq
                    , ($!)

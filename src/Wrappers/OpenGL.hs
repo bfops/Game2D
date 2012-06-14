@@ -1,3 +1,4 @@
+-- | OpenGL with some extensions for color
 module Wrappers.OpenGL ( module OGL
                        , ColorDef (..)
                        , magenta
@@ -6,8 +7,14 @@ module Wrappers.OpenGL ( module OGL
                        , drawColored
                        ) where
 
+import Prelude ()
+import Util.Prelewd
+
+import Util.Impure
+
 import Graphics.Rendering.OpenGL as OGL
 
+-- | Class of types which can be used to define colors
 class ColorDef c where
     red, blue, lime, green, orange, yellow, cyan, pink, purple, white, black, transparent :: c
 
@@ -25,12 +32,18 @@ instance ColorDef (Color4 GLdouble) where
     black = Color4 0 0 0 0
     transparent = Color4 0 0 0 1
 
+-- | Color aliases
 magenta, forest :: ColorDef c => c
 magenta = pink
 forest = green
 
-toGLColor :: Integral a => Color4 a -> Color4 GLclampf
-toGLColor (Color4 r g b a) = Color4 (realToFrac r / 255) (realToFrac g / 255) (realToFrac b / 255) (realToFrac a / 255)
+-- | Colors which can be used to color OpenGL's rendering
+class GLColor c where
+    toGLColor :: c -> Color4 GLclampf
 
+instance GLColor (Color4 GLubyte) where
+    toGLColor c = (/ 255) . realToFrac <$> c
+
+-- | Set the OpenGL color, then call `vertex` on each vertex
 drawColored :: (Color c, Vertex v) => c -> [v] -> IO ()
 drawColored c vs = color c >> mapM_ vertex vs

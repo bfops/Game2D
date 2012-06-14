@@ -14,8 +14,10 @@ import Util.Prelewd
 
 import Util.Impure
 
+-- | Measuring elapsed time
 type DeltaT = Double
 
+-- | Homogenous vector
 data Vector a = Vector a a 
     deriving (Eq)
 
@@ -35,6 +37,7 @@ instance Foldable Vector where
 instance Traversable Vector where
     sequenceA (Vector x y) = Vector <$> x <*> y
 
+-- | Construct a vector from a list
 fromList :: [a] -> Vector a
 fromList (x:y:_) = Vector x y
 fromList _ = error "List too small"

@@ -23,6 +23,7 @@ import Wrappers.STM
 
 import qualified Graphics.UI.GLFW as GLFW
 
+-- | Event data structure dictates what events we can accept
 data Event = ButtonEvent Button ButtonState
            | MouseMoveEvent Position
            | ResizeEvent Size
@@ -30,10 +31,12 @@ data Event = ButtonEvent Button ButtonState
            | CloseEvent
     deriving (Eq, Show)
 
+-- | Buttons can be keys or mouse presses
 data Button = KeyButton GLFW.Key
             | MouseButton GLFW.MouseButton
     deriving (Eq, Show)
 
+-- | Filters to use when getting events with `poll`
 data EventConstraint = ButtonEvents (Maybe Button) (Maybe ButtonState)
                      | MouseMoveEvents
                      | ResizeEvents
@@ -45,6 +48,7 @@ type ButtonState = GLFW.KeyButtonState
 
 type EventPoller = [EventConstraint] -- ^ Event types to filter for
                  -> IO [Event]
+
 type Events = TVar (Queue Event)
 
 -- Push an event into the shared variable.
