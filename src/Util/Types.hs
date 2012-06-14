@@ -1,7 +1,7 @@
 -- | Common types used in various places
 module Util.Types ( Vector (..)
                   , DeltaT
-                  , fromList
+                  , VectorLike (..)
                   , setV
                   , singleV
                   , shorter
@@ -37,14 +37,16 @@ instance Foldable Vector where
 instance Traversable Vector where
     sequenceA (Vector x y) = Vector <$> x <*> y
 
--- | Construct a vector from a list
-fromList :: [a] -> Vector a
-fromList (x:y:_) = Vector x y
-fromList _ = error "List too small"
+class VectorLike v where
+    vector :: v a -> Vector a
+
+instance VectorLike [] where
+    vector (x:y:_) = Vector x y
+    vector _ = error "List too small"
 
 -- | Update one index in a vector
 setV :: Integer -> a -> Vector a -> Vector a
-setV i x v = replaceI <$> v <*> fromList [0..]
+setV i x v = replaceI <$> v <*> vector [0..]
     where
         -- Replace only the ith index with x
         replaceI = bool x .$ (/= i)

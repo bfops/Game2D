@@ -59,7 +59,7 @@ bump :: GameObject -> GameObject -> GameObject
 bump p1 p2 = let
                 allBumps = bumps1 <$> posn p1 <*> size p1 <*> posn p2 <*> size p2
                 -- The bumps as vectors
-                vBumps = concat $ fmap . singleV <$> fromList [0..] <*> allBumps
+                vBumps = concat $ fmap . singleV <$> vector [0..] <*> allBumps
                 bumpVector = foldr1 shorter $ filter ((>= 0) . dot (vcty p1)) vBumps
              in p1 { posn = posn p1 <&> (-) <*> bumpVector
                    -- Velocity in the bumped direction becomes 0
