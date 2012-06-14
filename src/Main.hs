@@ -68,12 +68,28 @@ getInputs :: EventPoller -> IO [Input]
 getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, MouseMoveEvents ]
     where
         rawToInput :: Event -> Maybe Input
-        rawToInput (ButtonEvent (KeyButton (SpecialKey UP)) Press) = Just MoveUp
+        rawToInput (ButtonEvent (KeyButton key) Press) = lookup key keys
         rawToInput _ = Nothing
+
+        addCtor :: (k -> c) -> [(k, a)] -> [(c, a)]
+        addCtor c = fmap $ \(a, b) -> (c a, b)
+
+        keys = addCtor SpecialKey
+                [ (UP,    Move Platform Up)
+                , (LEFT,  Move Platform Left)
+                , (RIGHT, Move Platform Right)
+                , (DOWN,  Move Platform Down)
+                ]
+             ++ addCtor CharKey
+                [ ('W', Move Block Up)
+                , ('A', Move Block Left)
+                , ('S', Move Block Right)
+                , ('D', Move Block Down)
+                ]
 
 updateState :: State -> [Input] -> Double -> State
 updateState s is t = s { lastUpdate = t
-                       , game = update (game s) is $ t - (lastUpdate s)
+                       , game = update is (t - lastUpdate s) $ game s
                        }
 
 mainLoop :: EventPoller -> State -> IO ()

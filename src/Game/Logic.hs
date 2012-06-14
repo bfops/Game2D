@@ -2,6 +2,7 @@ module Game.Logic ( GameObject (..)
                   , ObjectType (..)
                   , GameState (..)
                   , Input (..)
+                  , Direction(..)
                   , initState
                   , update
                   ) where
@@ -28,7 +29,10 @@ data GameObject = GameObject { objType :: ObjectType
 data GameState = GameState { objects :: [GameObject]
                            }
 
-data Input = MoveUp
+data Direction = Up | Down | Left | Right
+    deriving (Eq)
+
+data Input = Move ObjectType Direction
     deriving (Eq)
 
 -- | Fold right-to-left and generate a list.
@@ -83,23 +87,39 @@ tryCollide :: GameObject -- ^ Object to update
            -> GameObject -- ^ Updated object
 tryCollide = maybe $$ const $* collisionHandler $* collision
 
-updatePhysics :: [Input] -> DeltaT -> GameObject -> GameObject
-updatePhysics inputs t = if' ((`any` inputs) (== MoveUp))
-                             (updateMove .)
-                             (updateVcty . updatePosn)
+step :: DeltaT -> GameObject -> GameObject
+step t = updateVcty . updatePosn
     where
         updatePosn g = g { posn = posn g <&> (+) <*> fmap (*t) (vcty g) }
-        updateMove g = if objType g == Platform
-                       then g { posn = posn g <&> (+) <*> Vector 0 0.3 }
-                       else g
         updateVcty g
             | objType g == Block    = g { vcty = vcty g <&> (+) <*> fmap (*t) a_g }
             | otherwise             = g
         a_g = Vector 0 (-9.81)
 
-update :: GameState -> [Input] -> DeltaT -> GameState
-update gs is t = gs { objects = foldr (bumpCons . updatePhysics is t) [] $ objects gs }
+updatePhysics :: DeltaT -> GameState -> GameState
+updatePhysics t g = g { objects = step t <$> objects g }
+
+updateInputs :: [Input] -> GameState -> GameState
+updateInputs is g = g { objects = foldr updateInput (objects g) is }
+    where
+        updateInput :: Input -> [GameObject] -> [GameObject]
+        updateInput (Move t d) = fmap $ bool <*> moveObj d <*> (==t) . objType
+        updateInput _ = id
+
+        moveObj :: Direction -> GameObject -> GameObject
+        moveObj d o = o { posn = move d <&> (+) <*> posn o }
+
+        move Up = Vector 0 0.3
+        move Right = Vector 0.3 0
+        move Down = negate <$> move Up
+        move Left = negate <$> move Right
+
+updateBumps :: GameState -> GameState
+updateBumps g = g { objects = foldr bumpCons [] $ objects g }
     where
         -- | Cons the object on to the list, as well as bump every other object with it.
         bumpCons obj = (\(x, l) -> x : l) . foldCons collide2 obj
         collide2 o1 o2 = (tryCollide o1 o2, tryCollide o2 o1)
+
+update :: [Input] -> DeltaT -> GameState -> GameState
+update is t = updateBumps . updateInputs is . updatePhysics t
