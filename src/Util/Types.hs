@@ -37,6 +37,7 @@ instance Foldable Vector where
 instance Traversable Vector where
     sequenceA (Vector x y) = Vector <$> x <*> y
 
+-- | Constant-size, homogenous types
 class VectorLike v where
     vector :: v a -> Vector a
 

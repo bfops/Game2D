@@ -23,6 +23,7 @@ import Control.Concurrent.STM.TMVar
 import Control.Concurrent.STM.TChan
 import Control.Concurrent.STM.TArray
 
+-- | Write a value and return it
 writeTVar' :: T.TVar a -> a -> STM a
 writeTVar' tv v = v <$ writeTVar tv v
 

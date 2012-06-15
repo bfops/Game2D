@@ -176,20 +176,20 @@ iff b t f = if b then t else f
 if' :: Bool -> (a -> a) -> a -> a
 if' b f = f >>= iff b 
 
--- | Mimic Prelude's `head` with Maybes
+-- | First element of a list
 head :: [a] -> Maybe a
 head = listToMaybe
 
--- | Mimic Prelude's `last` with Maybes
+-- | Last element of a finite list
 last :: [a] -> Maybe a
 last = Util.Prelewd.head . reverse
 
--- | Mimic Prelude's `tail` with Maybes
+-- | All but the first element of a list
 tail :: [a] -> Maybe [a]
 tail [] = Nothing
 tail (_:xs) = Just xs
 
--- | Mimic Prelude's `init` with Maybes
+-- | All but the last element of a list
 init :: [a] -> Maybe [a]
 init = Util.Prelewd.tail . reverse
 

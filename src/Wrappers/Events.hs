@@ -1,7 +1,9 @@
 module Wrappers.Events ( Event (..)
                        , Button (..)
                        , GLFW.Key (..)
+                       , GLFW.SpecialKey (..)
                        , GLFW.MouseButton (..)
+                       , GLFW.KeyButtonState (..)
                        , EventConstraint (..)
                        , Size (..)
                        , ButtonState
@@ -22,6 +24,8 @@ import Wrappers.OpenGL
 import Wrappers.STM
 
 import qualified Graphics.UI.GLFW as GLFW
+
+type ButtonState = GLFW.KeyButtonState
 
 -- | Event data structure dictates what events we can accept
 data Event = ButtonEvent Button ButtonState
@@ -44,15 +48,11 @@ data EventConstraint = ButtonEvents (Maybe Button) (Maybe ButtonState)
                      | CloseEvents
     deriving (Eq, Show)
 
-type ButtonState = GLFW.KeyButtonState
-
 type EventPoller = [EventConstraint] -- ^ Event types to filter for
                  -> IO [Event]
 
-type Events = TVar (Queue Event)
-
 -- Push an event into the shared variable.
-addEvent :: Events -> Event -> IO ()
+addEvent :: TVar (Queue Event) -> Event -> IO ()
 addEvent es s = void $ atomically $ modifyTVar es $ enq s
 
 -- | Set up a queued event system.
@@ -74,7 +74,7 @@ matchesMaybe :: Eq a => a -> Maybe a -> Bool
 matchesMaybe = maybe True . (==)
 
 -- | Get a list of events matching any of the constraints.
-poll :: Events -> EventPoller
+poll :: TVar (Queue Event) -> EventPoller
 poll es constraints = atomically $ do
         (es', ret) <- partition constraintMatch . toList <$> readTVar es
         ret <$ writeTVar es (fromList es')

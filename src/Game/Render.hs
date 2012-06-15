@@ -32,7 +32,7 @@ drawQuad c o = renderPrimitive Quads $ drawColored c [ Vertex2 x  y
                                                      ]
         where
             (Vertex2 x y) = toGLVertex (posn o)
-            (Vertex2 x' y') = (+) <$> toGLVertex (posn o) <*> toGLVertex (size o)
+            (Vertex2 x' y') = toGLVertex (posn o) <&> (+) <*> toGLVertex (size o)
 
 instance Drawable GameObject where
     draw g
