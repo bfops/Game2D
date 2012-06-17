@@ -44,7 +44,7 @@ drawFrame g = do
 
         draw g
 
-        -- Write it all to screen
+        -- Write it all to the buffer
         flush
 
 -- | Resize OpenGL view
@@ -58,8 +58,6 @@ resize s@(Size w h) = do
 
     matrixMode $= Modelview 0
     loadIdentity
-
-    flush
 
 -- | Is the window open?
 isOpen :: EventPoller -> IO Bool
@@ -114,10 +112,10 @@ mainLoop poll s0 = isOpen poll >>= bool (return ()) runLoop
         visualize = do
             -- Since we're drawing, all the window refresh events are taken care of
             _ <- poll [RefreshEvents]
+            handleResize poll
             drawFrame $ game s0
             -- Double buffering
             GLFW.swapBuffers
-            handleResize poll
 
 -- | Create initial program state
 getInitState :: IO State

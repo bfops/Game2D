@@ -13,7 +13,7 @@ import Types
 import Wrappers.OpenGL
 
 -- | Convert the game's vector to an OpenGL coordinate
-toGLVertex :: (Fractional a, Real a) => Vector a -> Vertex2 GLdouble
+toGLVertex :: Real a => Vector a -> Vertex2 GLdouble
 toGLVertex (Vector x y) = on Vertex2 realToFrac x y
 
 -- | Things which can be drawn
