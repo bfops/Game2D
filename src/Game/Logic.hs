@@ -48,8 +48,8 @@ foldCons f x0 = foldr (\x (b, l) -> (:l) <$> f b x) (x0, [])
 
 -- | Start state of the game world
 initState :: GameState
-initState = GameState [ GameObject Block (Vector 0 0) (Vector 0 10) (Vector 1 1)
-                      , GameObject Platform (Vector 0 (-1.5)) (Vector 0 0) (Vector 4 1)
+initState = GameState [ GameObject Block (Vector 1 1) (Vector 0 0) (Vector 0 10)
+                      , GameObject Platform (Vector 4 1) (Vector 0 (-1)) (Vector 0 0)
                       ]
 
 collisionHandler :: GameObject       -- ^ Object to update
