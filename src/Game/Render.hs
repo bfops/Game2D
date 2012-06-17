@@ -7,7 +7,8 @@ import Util.Prelewd
 import Game.Logic
 
 import Util.Impure
-import Util.Types
+
+import Types
 
 import Wrappers.OpenGL
 

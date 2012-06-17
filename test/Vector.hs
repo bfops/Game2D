@@ -5,7 +5,7 @@ import Util.Prelewd
 
 import Text.Show
 
-import Util.Types
+import Types
 
 import Test.Framework
 import Test.Framework.TH

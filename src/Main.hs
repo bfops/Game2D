@@ -7,7 +7,8 @@ import Control.Arrow
 import Control.Concurrent
 
 import Util.Impure
-import Util.Types
+
+import Types
 
 import Wrappers.Events
 import Wrappers.OpenGL as OGL hiding (windowPos)

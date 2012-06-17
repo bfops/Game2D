@@ -1,13 +1,13 @@
 -- | Common types used in various places
-module Util.Types ( Vector (..)
-                  , DeltaT
-                  , VectorLike (..)
-                  , setV
-                  , singleV
-                  , shorter
-                  , magnitude
-                  , dot
-                  ) where
+module Types ( Vector (..)
+             , DeltaT
+             , VectorLike (..)
+             , setV
+             , singleV
+             , shorter
+             , magnitude
+             , dot
+             ) where
 
 import Prelude ()
 import Util.Prelewd

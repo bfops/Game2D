@@ -10,7 +10,7 @@ module Game.Logic ( GameObject (..)
 import Prelude ()
 import Util.Prelewd
 
-import Util.Types
+import Types
 
 type Position = Vector Double
 type Size = Vector Double
@@ -23,9 +23,9 @@ data ObjectType = Block
 
 -- | An object in the game world, with physical properties
 data GameObject = GameObject { objType :: ObjectType
+                             , size :: Size
                              , posn :: Position
                              , vcty :: Velocity
-                             , size :: Size
                              }
 
 data GameState = GameState { objects :: [GameObject]
@@ -56,7 +56,7 @@ collisionHandler :: GameObject       -- ^ Object to update
                  -> GameObject       -- ^ Object it collided with
                  -> Vector Collision -- ^ Description of the specific collision
                  -> GameObject       -- ^ Updated object
-collisionHandler g1 g2 _ = if' (objType g2 == Platform) (`bump` g2) g1
+collisionHandler g1 g2 _ = if' (objType g2 == Platform || objType g1 == Block) (`bump` g2) g1
 
 -- | `bump p q` returns `p`, readjusted in position to not overlap `q`.
 bump :: GameObject -> GameObject -> GameObject
