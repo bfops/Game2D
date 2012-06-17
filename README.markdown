@@ -28,3 +28,8 @@ Run the test suite with
 After a successful build, the game can be run from
 
     dist/build/Game2D/Game2D
+
+# Code Standards #
+
+The `Util` and `Wrappers` folders are for code which is *not project-specific*:
+Direct library wraps go into `Wrappers/`, and useful generic functions and modules go in `Util/`.
