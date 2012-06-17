@@ -1,5 +1,5 @@
 module Game.Logic ( GameObject (..)
-                  , ObjectType (..)
+                  , Object (..)
                   , GameState (..)
                   , Input (..)
                   , Direction(..)
@@ -17,12 +17,12 @@ type Size = Vector Double
 type Velocity = Vector Double
 
 -- | Which objects can exist in the game world
-data ObjectType = Block
-                | Platform
+data Object = Block
+            | Platform
     deriving (Eq)
 
 -- | An object in the game world, with physical properties
-data GameObject = GameObject { objType :: ObjectType
+data GameObject = GameObject { object  :: Object
                              , size :: Size
                              , posn :: Position
                              , vcty :: Velocity
@@ -36,7 +36,7 @@ data Direction = Up | Down | Left | Right
     deriving (Eq)
 
 -- | Input events understood by the game
-data Input = Move ObjectType Direction
+data Input = Move Object Direction
     deriving (Eq)
 
 -- | Fold right-to-left and generate a list
@@ -56,7 +56,7 @@ collisionHandler :: GameObject       -- ^ Object to update
                  -> GameObject       -- ^ Object it collided with
                  -> Vector Collision -- ^ Description of the specific collision
                  -> GameObject       -- ^ Updated object
-collisionHandler g1 g2 _ = if' (objType g2 == Platform || objType g1 == Block) (`bump` g2) g1
+collisionHandler g1 g2 _ = if' (object g2 == Platform || object g1 == Block) (`bump` g2) g1
 
 -- | `bump p q` returns `p`, readjusted in position to not overlap `q`.
 bump :: GameObject -> GameObject -> GameObject
@@ -109,8 +109,8 @@ step t = updateVcty . updatePosn
         updatePosn g = g { posn = posn g <&> (+) <*> fmap (*t) (vcty g) }
 
         updateVcty g
-            | objType g == Block    = g { vcty = gravity $ vcty g }
-            | otherwise             = g
+            | object g == Block = g { vcty = gravity $ vcty g }
+            | otherwise         = g
 
         a_g = Vector 0 (-9.81)
         gravity v = v <&> (+) <*> (a_g <&> (*t))
@@ -123,7 +123,7 @@ updateInputs is g = g { objects = foldr updateInput (objects g) is }
     where
         -- Update a list of gameobjects with an input
         updateInput :: Input -> [GameObject] -> [GameObject]
-        updateInput (Move typ d) = fmap $ bool <*> moveObj d <*> (== typ) . objType
+        updateInput (Move typ d) = fmap $ bool <*> moveObj d <*> (== typ) . object
         updateInput _ = id
 
         moveObj :: Direction -> GameObject -> GameObject
