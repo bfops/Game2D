@@ -110,8 +110,8 @@ tryCollide :: GameObject -- ^ Object to update
 tryCollide = maybe $$ const $* collisionHandler $* collision
 
 -- | One advancement of physics
-step :: DeltaT -> GameObject -> GameObject
-step t = updateVcty . updatePosn
+updatePhysics :: DeltaT -> GameObject -> GameObject
+updatePhysics t = updateVcty . updatePosn
     where
         updatePosn g = g { posn = posn g <&> (+) <*> fmap (*t) (vcty g) }
 
@@ -121,8 +121,13 @@ step t = updateVcty . updatePosn
         a_g = Vector 0 (-9.81)
         gravity v = v <&> (+) <*> (a_g <&> (*t))
 
-updatePhysics :: DeltaT -> GameState -> GameState
-updatePhysics t g = g { objects = step t <$> objects g }
+updateObject :: DeltaT -> GameObject -> GameObject
+updateObject dt p@(Platform { moveT = Just t }) = p { moveT = mfilter (< 0.25) $ Just $ t + dt }
+updateObject _ p@(Platform { moveT = Nothing }) = p { vcty = pure 0 }
+updateObject _ o = o
+
+updateObjects :: DeltaT -> GameState -> GameState
+updateObjects t g@(GameState { objects = o }) = g { objects = updateObject t . updatePhysics t <$> o }
 
 updateInputs :: [Input] -> GameState -> GameState
 updateInputs is g = g { objects = foldr updateInput (objects g) is }
@@ -133,11 +138,12 @@ updateInputs is g = g { objects = foldr updateInput (objects g) is }
         updateInput _ = id
 
         moveObj :: Direction -> GameObject -> GameObject
-        moveObj d o = o { posn = moveVector d <&> (+) <*> posn o
+        moveObj d o = o { vcty = moveVector d <&> (+) <*> vcty o
+                        , moveT = Just 0
                         }
 
-        moveVector Up = Vector 0 0.3
-        moveVector Right = Vector 0.3 0
+        moveVector Up = Vector 0 2
+        moveVector Right = Vector 3 0
         moveVector Down = negate <$> moveVector Up
         moveVector Left = negate <$> moveVector Right
 
@@ -150,4 +156,4 @@ updateBumps g = g { objects = foldr bumpCons [] $ objects g }
         collide2 o1 o2 = (tryCollide o1 o2, tryCollide o2 o1)
 
 update :: [Input] -> DeltaT -> GameState -> GameState
-update is t = updateBumps . updateInputs is . updatePhysics t
+update is t = updateBumps . updateInputs is . updateObjects t
