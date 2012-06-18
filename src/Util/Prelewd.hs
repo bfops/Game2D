@@ -223,13 +223,11 @@ divMod = divMod'
 
 -- | Conditionally create a monad
 mcond :: MonadPlus m
-      => a
-      -- ^ Value to make into a monad.
-      -> Bool
-      -- ^ If this condition is false, mzero.
-      -- Otherwise, return the value.
+      => Bool   -- ^ If this condition is false, mzero.
+                -- Otherwise, return the value.
+      -> a      -- ^ Value to make into a monad.
       -> m a
-mcond x b = guard b >> return x
+mcond = ifm .$ return
 
 -- | Conditionally nullify a monad
 ifm :: MonadPlus m

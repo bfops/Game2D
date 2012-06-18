@@ -97,7 +97,7 @@ collision g1 g2 = sequenceA $ collision1 <$> posn g1 <*> size g1 <*> posn g2 <*>
     where
         -- 1D collision info
         collision1 :: Double -> Double -> Double -> Double -> Maybe Collision
-        collision1 x1 w1 x2 w2 = (x1 <= x2, x1 + w1 >= x2 + w2) `mcond` colliding x1 w1 x2 w2
+        collision1 x1 w1 x2 w2 = colliding x1 w1 x2 w2 `mcond` (x1 <= x2, x1 + w1 >= x2 + w2)
 
         colliding :: Double -> Double -> Double -> Double -> Bool
         colliding x1 w1 x2 w2 =  x1 + w1 >= x2
