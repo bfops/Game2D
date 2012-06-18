@@ -1,5 +1,4 @@
 module Game.Logic ( GameObject (..)
-                  , Object (..)
                   , GameState (..)
                   , Input (..)
                   , Direction(..)
@@ -12,21 +11,29 @@ import Util.Prelewd
 
 import Types
 
-type Position = Vector Double
 type Size = Vector Double
+type Position = Vector Double
 type Velocity = Vector Double
 
--- | Which objects can exist in the game world
-data Object = Block
-            | Platform
-    deriving (Eq)
+-- | An object in the game world
+data GameObject
+    = Block { size     :: Size
+            , posn     :: Position
+            , vcty     :: Velocity
+            }
+    | Platform { size   :: Size
+               , posn   :: Position
+               , vcty   :: Velocity
+               , moveT  :: Maybe DeltaT -- ^ Time spent moving; Nothing if not moving
+               }
 
--- | An object in the game world, with physical properties
-data GameObject = GameObject { object  :: Object
-                             , size :: Size
-                             , posn :: Position
-                             , vcty :: Velocity
-                             }
+isBlock :: GameObject -> Bool
+isBlock (Block {}) = True
+isBlock _ = False
+
+isPlatform :: GameObject -> Bool
+isPlatform (Platform {}) = True
+isPlatform _ = False
 
 data GameState = GameState { objects :: [GameObject]
                            }
@@ -36,7 +43,7 @@ data Direction = Up | Down | Left | Right
     deriving (Eq)
 
 -- | Input events understood by the game
-data Input = Move Object Direction
+data Input = Move Direction
     deriving (Eq)
 
 -- | Fold right-to-left and generate a list
@@ -48,15 +55,15 @@ foldCons f x0 = foldr (\x (b, l) -> (:l) <$> f b x) (x0, [])
 
 -- | Start state of the game world
 initState :: GameState
-initState = GameState [ GameObject Block (Vector 1 1) (Vector 0 0) (Vector 0 10)
-                      , GameObject Platform (Vector 4 1) (Vector 0 (-1)) (Vector 0 0)
+initState = GameState [ Block (Vector 1 1) (Vector 0 0) (Vector 1 10)
+                      , Platform (Vector 4 1) (Vector 0 (-1)) (Vector 0 0) Nothing
                       ]
 
 collisionHandler :: GameObject       -- ^ Object to update
                  -> GameObject       -- ^ Object it collided with
                  -> Vector Collision -- ^ Description of the specific collision
                  -> GameObject       -- ^ Updated object
-collisionHandler g1 g2 _ = if' (object g2 == Platform || object g1 == Block) (`bump` g2) g1
+collisionHandler g1 g2 _ = if' (isBlock g1 || isPlatform g2) (`bump` g2) g1
 
 -- | `bump p q` returns `p`, readjusted in position to not overlap `q`.
 bump :: GameObject -> GameObject -> GameObject
@@ -108,9 +115,8 @@ step t = updateVcty . updatePosn
     where
         updatePosn g = g { posn = posn g <&> (+) <*> fmap (*t) (vcty g) }
 
-        updateVcty g
-            | object g == Block = g { vcty = gravity $ vcty g }
-            | otherwise         = g
+        updateVcty b@(Block { vcty = v }) = b { vcty = gravity $ v }
+        updateVcty g = g
 
         a_g = Vector 0 (-9.81)
         gravity v = v <&> (+) <*> (a_g <&> (*t))
@@ -123,7 +129,7 @@ updateInputs is g = g { objects = foldr updateInput (objects g) is }
     where
         -- Update a list of gameobjects with an input
         updateInput :: Input -> [GameObject] -> [GameObject]
-        updateInput (Move typ d) = fmap $ bool <*> moveObj d <*> (== typ) . object
+        updateInput (Move d) = fmap $ bool <*> moveObj d <*> isPlatform
         updateInput _ = id
 
         moveObj :: Direction -> GameObject -> GameObject

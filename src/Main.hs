@@ -81,16 +81,10 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
         rawToInput _ = Nothing
 
         keys = fmap (first SpecialKey)
-                [ (UP,    Move Platform Up)
-                , (LEFT,  Move Platform Left)
-                , (DOWN,  Move Platform Down)
-                , (RIGHT, Move Platform Right)
-                ]
-             ++ fmap (first CharKey)
-                [ ('W', Move Block Up)
-                , ('A', Move Block Left)
-                , ('S', Move Block Down)
-                , ('D', Move Block Right)
+                [ (UP,    Move Up)
+                , (LEFT,  Move Left)
+                , (DOWN,  Move Down)
+                , (RIGHT, Move Right)
                 ]
 
 -- | Update the program state with input and time elapsed
