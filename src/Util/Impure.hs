@@ -1,13 +1,15 @@
 -- | Functions for dealing with non-pure or non-lazy computations
-module Util.Impure ( module IO
+module Util.Impure ( module T
                    , seq
                    , ($!)
                    , error
-                   , undefined
-                   , void
-                   , forever
+                   , withTrace
                    ) where
 
-import Prelude (seq, ($!), error, undefined)
-import System.IO as IO
-import Control.Monad
+import Prelude (seq, ($!), error)
+
+import Debug.Trace as T hiding (putTraceMsg)
+import Text.Show
+
+withTrace :: Show a => a -> a
+withTrace x = traceShow x x

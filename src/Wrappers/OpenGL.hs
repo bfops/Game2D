@@ -10,7 +10,7 @@ module Wrappers.OpenGL ( module OGL
 import Prelude ()
 import Util.Prelewd
 
-import Util.Impure
+import Util.IO
 
 import Graphics.Rendering.OpenGL as OGL
 

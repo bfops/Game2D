@@ -17,7 +17,7 @@ import Util.Prelewd
 import Data.Either
 import Text.Show
 
-import Util.Impure
+import Util.IO
 import Util.Queue
 
 import Wrappers.OpenGL

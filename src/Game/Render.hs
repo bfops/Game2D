@@ -5,8 +5,7 @@ import Prelude ()
 import Util.Prelewd
 
 import Game.Logic
-
-import Util.Impure
+import Util.IO
 
 import Types
 

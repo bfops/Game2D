@@ -7,6 +7,7 @@ import Control.Arrow
 import Control.Concurrent
 
 import Util.Impure
+import Util.IO
 
 import Types
 

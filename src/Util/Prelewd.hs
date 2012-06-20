@@ -159,8 +159,9 @@ import Data.Ord
 import Data.Traversable
 import Data.Word
 
-import Util.Impure
 import Text.Show
+
+import Util.Impure
 
 -- | Process conditionals in the same form as `maybe` and `either` 
 bool :: a    -- ^ Return if false
