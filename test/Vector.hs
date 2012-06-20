@@ -12,9 +12,6 @@ import Test.Framework.TH
 import Test.QuickCheck hiding (vector)
 import Test.Framework.Providers.QuickCheck2
 
-instance Show a => Show (Vector a) where
-    show v = "Vector" ++ foldr (\x y -> " " ++ show x ++ y) "" v
-
 instance Arbitrary a => Arbitrary (Vector a) where
     arbitrary = Vector <$> arbitrary <*> arbitrary
 

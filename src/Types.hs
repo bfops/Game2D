@@ -12,6 +12,8 @@ module Types ( Vector (..)
 import Prelude ()
 import Util.Prelewd
 
+import Text.Show
+
 import Util.Impure
 
 -- | Measuring elapsed time
@@ -19,7 +21,7 @@ type DeltaT = Double
 
 -- | Homogenous vector
 data Vector a = Vector a a 
-    deriving (Eq)
+    deriving (Eq, Show)
 
 instance Real a => Ord (Vector a) where
     compare = (compare :: Double -> Double -> Ordering) `on` magnitude
