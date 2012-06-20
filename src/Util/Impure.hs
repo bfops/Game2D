@@ -4,7 +4,10 @@ module Util.Impure ( module IO
                    , ($!)
                    , error
                    , undefined
+                   , void
+                   , forever
                    ) where
 
 import Prelude (seq, ($!), error, undefined)
 import System.IO as IO
+import Control.Monad

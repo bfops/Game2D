@@ -22,8 +22,9 @@ module Util.Prelewd ( module Prelude
                     , length
                     , div
                     , divMod
-                    , ifm
+                    , mcast
                     , mcond
+                    , ifm
                     , (!)
                     , (<&>)
                     , ($$)
@@ -143,7 +144,7 @@ import Prelude ( Int
                )
 
 import Control.Applicative hiding (Alternative (..), optional)
-import Control.Monad hiding (mapM, mapM_, sequence, sequence_, msum, forM, forM_)
+import Control.Monad hiding (mapM, mapM_, sequence, sequence_, msum, forM, forM_, forever, void)
 import Data.Bool
 import Data.Either
 import Data.Eq
@@ -220,6 +221,13 @@ div = div'
 -- | `divMod a b = (div a b, mod a b)`
 divMod :: (Real a, Integral b) => a -> a -> (b, a)
 divMod = divMod'
+
+-- | Interpret something as a monad
+mcast :: MonadPlus m
+      => (a -> Bool)    -- ^ Casting function
+      -> a              -- ^ Value to cast
+      -> m a            -- ^ `return value` if cast succeeded, `mzero` otherwise
+mcast = (mcond =<<)
 
 -- | Conditionally create a monad
 mcond :: MonadPlus m

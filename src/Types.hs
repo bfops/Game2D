@@ -21,8 +21,8 @@ type DeltaT = Double
 data Vector a = Vector a a 
     deriving (Eq)
 
-instance (Num a, Ord a, Floating a) => Ord (Vector a) where
-    compare = compare `on` magnitude
+instance Real a => Ord (Vector a) where
+    compare = (compare :: Double -> Double -> Ordering) `on` magnitude
 
 instance Functor Vector where
     fmap f v = pure f <*> v
@@ -63,8 +63,8 @@ shorter v1 v2 = if on (<) (dot <*> id) v1 v2
                 else v2
 
 -- | Magnitude of a vector
-magnitude :: Floating a => Vector a -> a
-magnitude v = sqrt $ dot v v
+magnitude :: (Real a, Floating b) => Vector a -> b
+magnitude v = sqrt $ realToFrac $ dot v v
 
 -- | Dot product
 dot :: Num a => Vector a -> Vector a -> a
