@@ -10,8 +10,6 @@ import Prelude ()
 import Util.Prelewd
 
 import Data.Tuple
-import Text.Show
-import Util.Impure
 
 import Types
 
