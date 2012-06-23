@@ -5,6 +5,7 @@ import Prelude ()
 import Util.Prelewd
 
 import Game.Logic
+import Game.Physics
 import Util.IO
 
 import Types
@@ -31,8 +32,9 @@ drawQuad c o = renderPrimitive Quads $ drawColored c [ Vertex2 x  y
                                                      , Vertex2 x' y
                                                      ]
         where
-            (Vertex2 x y) = toGLVertex (posn o)
-            (Vertex2 x' y') = toGLVertex (posn o) <&> (+) <*> toGLVertex (size o)
+            p = posn $ phys o
+            (Vertex2 x y) = toGLVertex p
+            (Vertex2 x' y') = toGLVertex p <&> (+) <*> toGLVertex (size $ phys o)
 
 instance Drawable GameObject where
     draw b@(Block {}) = drawQuad blue b
