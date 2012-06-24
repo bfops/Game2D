@@ -2,6 +2,7 @@ module Game.Physics ( Size
                     , Position
                     , Velocity
                     , Acceleration
+                    , Time
                     , Propulsion (..)
                     , TimedPropulsion
                     , Physics (..)
@@ -19,17 +20,21 @@ module Game.Physics ( Size
 import Prelude ()
 import Util.Prelewd
 
+import Data.Fixed
 import Data.Tuple
 
 import Types
 
-type Size = Vector Double
-type Position = Vector Double
-type Velocity = Vector Double
-type Acceleration = Vector Double
+type Coord = Milli
+type Time = Coord
+
+type Size = Vector Coord
+type Position = Vector Coord
+type Velocity = Vector Coord
+type Acceleration = Vector Coord
 data Propulsion t = Propel Acceleration t
 
-type TimedPropulsion = Propulsion (Maybe DeltaT)
+type TimedPropulsion = Propulsion (Maybe Time)
 
 instance Functor Propulsion where
     fmap f (Propel a m) = Propel a (f m)
@@ -71,7 +76,7 @@ minBy f x y = if f x y == GT
               then y
               else x
 
-bump :: DeltaT     -- ^ Time duration of bump
+bump :: Time     -- ^ Time duration of bump
      -> Position   -- ^ Original position of next parameter
      -> Physics    -- ^ Object with which to bump
      -> Position   -- ^ Original position of next parameter
@@ -99,12 +104,12 @@ overlaps :: Physics -> Physics -> Bool
 overlaps p1 p2 = and $ collision1 <$> posn p1 <*> size p1 <*> posn p2 <*> size p2
     where
         -- 1D collision info
-        collision1 :: Double -> Double -> Double -> Double -> Bool
+        collision1 :: Coord -> Coord -> Coord -> Coord -> Bool
         collision1 x1 w1 x2 w2 =  x1 + w1 >= x2
                                && x2 + w2 >= x1
 
 -- | One advancement of physics
-updatePhysics :: DeltaT -> Physics -> Physics
+updatePhysics :: Time -> Physics -> Physics
 updatePhysics t = updatePropels . updateVcty . updatePosn
     where
         updatePosn p = p { posn = posn p <&> (+) <*> fmap (*t) (vcty p) }
@@ -117,5 +122,5 @@ updatePhysics t = updatePropels . updateVcty . updatePosn
 
         -- Decrement the time by `t`
         -- Returns Nothing on nonpositive values
-        decTime :: DeltaT -> Maybe DeltaT
+        decTime :: Time -> Maybe Time
         decTime t0 = mcast (> 0) (t0 - t)

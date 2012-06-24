@@ -16,7 +16,7 @@ import Types
 
 import Game.Physics
 
-type TimedPropel = Propulsion (Maybe DeltaT)
+type TimedPropel = Propulsion (Maybe Time)
 
 -- | An object in the game world
 data GameObject
@@ -62,7 +62,7 @@ initState = GameState [ Block $ Physics (Vector 1 1) (Vector 0 0) (Vector 1 10) 
                       , Platform $ Physics (Vector 1 4) (Vector (-8) (-4)) (Vector 0 0) [Propel (Vector 1 0) (Just 3)]
                       ]
 
-collisionHandler :: DeltaT           -- ^ Time interval of collision
+collisionHandler :: Time           -- ^ Time interval of collision
                  -> Position         -- ^ Original position of first object
                  -> Position         -- ^ Original position of second object
                  -> GameObject       -- ^ Object to update
@@ -70,11 +70,11 @@ collisionHandler :: DeltaT           -- ^ Time interval of collision
                  -> GameObject       -- ^ Updated object
 collisionHandler t p1 p2 g1 g2 = if' (isBlock g1 || isPlatform g2) (bumpObj t p2 g2 p1) g1
 
-bumpObj :: DeltaT -> Position -> GameObject -> Position -> GameObject -> GameObject
+bumpObj :: Time -> Position -> GameObject -> Position -> GameObject -> GameObject
 bumpObj t p2 g2 p1 = phys' $ bump t p2 (phys g2) p1
 
 -- | If the objects collide, call the appropriate handlers; otherwise just return
-tryCollide :: DeltaT     -- ^ Time interval of collision
+tryCollide :: Time     -- ^ Time interval of collision
            -> Position   -- ^ Original position of the object to bump
            -> Position   -- ^ Original position of the object it collided with
            -> GameObject -- ^ Object to bump
@@ -97,7 +97,7 @@ updateInputs is = objects' $ \o -> foldr updateInput o is
         move _ = []
         
 -- | Ensure no objects are colliding
-updateBumps :: DeltaT
+updateBumps :: Time
             -> [(Position, GameObject)] -- ^ [(originalPos, obj)]
             -> [GameObject]             -- ^ Updated objects
 updateBumps t = (snd <$>) . foldr bumpCons []
@@ -106,7 +106,7 @@ updateBumps t = (snd <$>) . foldr bumpCons []
         bumpCons obj = (\(x, l) -> x : l) . foldCons collide2 obj
         collide2 (p1, o1) (p2, o2) = ((p1, tryCollide t p1 p2 o1 o2), (p2, tryCollide t p2 p1 o2 o1))
 
-update :: [Input] -> DeltaT -> GameState -> GameState
+update :: [Input] -> Time -> GameState -> GameState
 update is t = updateInputs is . objects' bumpObjects
     where
         bumpObjects :: [GameObject] -> [GameObject]

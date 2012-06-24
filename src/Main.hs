@@ -9,8 +9,6 @@ import Control.Concurrent
 import Util.Impure
 import Util.IO
 
-import Types
-
 import Wrappers.Events
 import Wrappers.OpenGL as OGL hiding (windowPos)
 import qualified Graphics.UI.GLFW as GLFW
@@ -22,7 +20,7 @@ import Config
 
 -- | Program state
 data State = State { game       :: GameState
-                   , lastUpdate :: DeltaT
+                   , lastUpdate :: Double
                    }
 
 initOpenGL :: IO ()
@@ -89,9 +87,9 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
                 ]
 
 -- | Update the program state with input and time elapsed
-updateState :: State -> [Input] -> DeltaT -> State
+updateState :: State -> [Input] -> Double -> State
 updateState s is t = s { lastUpdate = t
-                       , game = update is (t - lastUpdate s) $ game s
+                       , game = update is (realToFrac $ t - lastUpdate s) $ game s
                        }
 
 mainLoop :: EventPoller -> State -> IO ()

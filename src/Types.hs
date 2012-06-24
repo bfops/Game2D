@@ -1,6 +1,5 @@
 -- | Common types used in various places
 module Types ( Vector (..)
-             , DeltaT
              , VectorLike (..)
              , setV
              , singleV
@@ -15,9 +14,6 @@ import Util.Prelewd
 import Text.Show
 
 import Util.Impure
-
--- | Measuring elapsed time
-type DeltaT = Double
 
 -- | Homogenous vector
 data Vector a = Vector a a 
