@@ -20,8 +20,9 @@ module Game.Physics ( Size
 import Prelude ()
 import Util.Prelewd
 
-import Data.Fixed
+import Data.Fixed hiding (div')
 import Data.Tuple
+import Text.Show
 
 import Types
 
@@ -33,6 +34,10 @@ type Position = Vector Coord
 type Velocity = Vector Coord
 type Acceleration = Vector Coord
 data Propulsion t = Propel Acceleration t
+    deriving (Show)
+
+instance Eq a => Eq (Propulsion a) where
+    (Propel a t) == (Propel a' t') = a == a' && t == t'
 
 type TimedPropulsion = Propulsion (Maybe Time)
 
@@ -45,6 +50,7 @@ data Physics = Physics
         , vcty      :: Velocity
         , propels   :: [TimedPropulsion]
         }
+    deriving (Show)
 
 size' :: (Size -> Size) -> Physics -> Physics
 size' f p = p { size = f (size p) }
@@ -66,47 +72,50 @@ accl p = foldr (liftA2 (+)) (pure 0) $ withoutT <$> propels p
 gravity :: TimedPropulsion
 gravity = Propel (Vector 0 (-9.81)) Nothing
 
--- | Index of the smallest element
-smallestIndex :: (Num a, Ord a) => Vector a -> Integer
-smallestIndex v = fst $ minimumBy (compare `on` abs.snd) $ (,) <$> vector [0..] <*> v
+-- | Index of the smallest Just element (by magnitude)
+minExtantIndex :: (Num a, Ord a) => Vector (Maybe a) -> Integer
+minExtantIndex v = fst $ minimumBy (compare `on` weight) $ (,) <$> vector [0..] <*> v
+    where
+        weight (_, mw) = abs <$> mw
 
--- | Minimum parameter, if equal return the first
-minBy :: Ord a => (a -> a -> Ordering) -> a -> a -> a
-minBy f x y = if f x y == GT
-              then y
-              else x
+-- | Division, but returns Nothing if the second parameter is 0
+div' :: (Eq a, Fractional a) => a -> a -> Maybe a
+div' x y = (x/) <$> mcast (/= 0) y
 
-bump :: Time     -- ^ Time duration of bump
-     -> Position   -- ^ Original position of next parameter
+bump :: Position   -- ^ Original position of next parameter
      -> Physics    -- ^ Object with which to bump
      -> Position   -- ^ Original position of next parameter
      -> Physics    -- ^ Object to bump
      -> Physics
-bump t r2 obj2 r1 obj1 = obj1
+bump r1 obj2 r1 obj1 = obj1
         { posn = posn obj1 <&> (+) <*> bumpVector
-        -- Velocity changed, since we shifted position
-        , vcty = vcty obj1 <&> (+) <*> fmap (/t) bumpVector
+        -- Set velocity to that of the object we're pushed by
+        , vcty = setV bumpDim (vcty obj2!bumpDim) $ vcty obj1
         }
     where
-        bumpVector = singleV bumpDim $ overlap!bumpDim
+        bumpVector = singleV bumpDim $ bumps!bumpDim
 
-        bumpDim = smallestIndex bumpFactors
-        bumpFactors = overlap <&> (/) <*> moveVector
-        moveVector = (r1 <&> (-) <*> posn obj1) <&> (+) <*> (r2 <&> (-) <*> posn obj2)
+        -- Which dimension to bump in
+        bumpDim = minExtantIndex timeBumps
+        -- Vector of times denoting how long the objects have been overlapping in each dimension
+        timeBumps = bumps <&> div' <*> relativeDisp
+        -- Relative displacement between the objects, since the beginning of the frame
+        relativeDisp = (posn obj2 <&> (-) <*> r2) <&> (-) <*> (posn obj1 <&> (-) <*> r1)
 
-        -- Shortest overlap vector (i.e. from the corner of one rectangle to the opposite corner of another)
-        overlap = overlap1 <$> posn obj1 <*> size obj1 <*> posn obj2 <*> size obj2
-        -- The shortest overlap in 1D
-        overlap1 x1 w1 x2 w2 = preferShorter ((x2 + w2) - x1) (x2 - (x1 + w1))
-        preferShorter = minBy (compare `on` abs)
+        -- Vector of minimum bumps in each dimension
+        bumps = overlap <$> posn obj1 <*> size obj1 <*> posn obj2 <*> size obj2 <*> relativeDisp
+        -- The 1D overlap between two lines
+        overlap x1 w1 x2 w2 d = if d > 0
+                                then x2 + w2 - x1
+                                else x1 + w1 - x2
 
 overlaps :: Physics -> Physics -> Bool
 overlaps p1 p2 = and $ collision1 <$> posn p1 <*> size p1 <*> posn p2 <*> size p2
     where
         -- 1D collision info
         collision1 :: Coord -> Coord -> Coord -> Coord -> Bool
-        collision1 x1 w1 x2 w2 =  x1 + w1 >= x2
-                               && x2 + w2 >= x1
+        collision1 x1 w1 x2 w2 =  x1 + w1 > x2
+                               && x2 + w2 > x1
 
 -- | One advancement of physics
 updatePhysics :: Time -> Physics -> Physics

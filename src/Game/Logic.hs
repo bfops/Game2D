@@ -52,28 +52,26 @@ data Input = Move Direction
 initState :: GameState
 initState = GameState [ Block $ Physics (Vector 1 1) (Vector 0 0) (Vector 1 10) [gravity]
                       , Platform $ Physics (Vector 4 1) (Vector (-3) (-1)) (Vector 2 0) []
-                      , Platform $ Physics (Vector 1 4) (Vector (-8) (-4)) (Vector 0 0) [Propel (Vector 1 0) (Just 3)]
+                      , Platform $ Physics (Vector 1 4) (Vector (-6) (-4)) (Vector 0 0) [Propel (Vector 1 0) (Just 3)]
                       ]
 
-collisionHandler :: Time           -- ^ Time interval of collision
-                 -> Position         -- ^ Original position of first object
+collisionHandler :: Position         -- ^ Original position of first object
                  -> Position         -- ^ Original position of second object
                  -> GameObject       -- ^ Object to update
                  -> GameObject       -- ^ Object it collided with
                  -> GameObject       -- ^ Updated object
-collisionHandler t p1 p2 g1 g2 = if' (isBlock g1 || isPlatform g2) (bumpObj t p2 g2 p1) g1
+collisionHandler p1 p2 g1 g2 = if' (isBlock g1 || isPlatform g2) (bumpObj p2 g2 p1) g1
 
-bumpObj :: Time -> Position -> GameObject -> Position -> GameObject -> GameObject
-bumpObj t p2 g2 p1 = phys' $ bump t p2 (phys g2) p1
+bumpObj :: Position -> GameObject -> Position -> GameObject -> GameObject
+bumpObj p2 g2 p1 = phys' $ bump p2 (phys g2) p1
 
 -- | If the objects collide, call the appropriate handlers; otherwise just return
-tryCollide :: Time     -- ^ Time interval of collision
-           -> Position   -- ^ Original position of the object to bump
+tryCollide :: Position   -- ^ Original position of the object to bump
            -> Position   -- ^ Original position of the object it collided with
            -> GameObject -- ^ Object to bump
            -> GameObject -- ^ Object it collided with
            -> GameObject -- ^ Updated object
-tryCollide t p1 p2 g1 g2 = bool g1 (collisionHandler t p1 p2 g1 g2) $ overlaps (phys g1) (phys g2)
+tryCollide p1 p2 g1 g2 = bool g1 (collisionHandler p1 p2 g1 g2) $ overlaps (phys g1) (phys g2)
 
 updateInputs :: [Input] -> GameState -> GameState
 updateInputs is = objects' $ \o -> foldr updateInput o is
@@ -90,17 +88,16 @@ updateInputs is = objects' $ \o -> foldr updateInput o is
         move _ = []
         
 -- | Ensure no objects are colliding
-updateBumps :: Time
-            -> [(Position, GameObject)] -- ^ [(originalPos, obj)]
+updateBumps :: [(Position, GameObject)] -- ^ [(originalPos, obj)]
             -> [GameObject]             -- ^ Updated objects
-updateBumps t = (snd <$>) . foldr bumpCons []
+updateBumps = (snd <$>) . foldr bumpCons []
     where
         -- | Cons the object on to the list, as well as bump every other object with it.
-        collide2 (p1, o1) (p2, o2) = ((p1, tryCollide t p1 p2 o1 o2), (p2, tryCollide t p2 p1 o2 o1))
         bumpCons obj = (\(x, l) -> x : l) . mapAccumR collide2 obj
+        collide2 (p1, o1) (p2, o2) = ((p1, tryCollide p1 p2 o1 o2), (p2, tryCollide p2 p1 o2 o1))
 
 update :: [Input] -> Time -> GameState -> GameState
 update is t = updateInputs is . objects' bumpObjects
     where
         bumpObjects :: [GameObject] -> [GameObject]
-        bumpObjects o = updateBumps t $ zip (posn . phys <$> o) $ phys' (updatePhysics t) <$> o
+        bumpObjects o = updateBumps $ zip (posn . phys <$> o) $ phys' (updatePhysics t) <$> o
