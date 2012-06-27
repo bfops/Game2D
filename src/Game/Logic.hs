@@ -48,13 +48,6 @@ data Direction = Up | Down | Left | Right
 data Input = Move Direction
     deriving (Eq, Show)
 
--- | Fold right-to-left and generate a list
-foldCons :: (b -> a -> (b, a))
-         -> b
-         -> [a]
-         -> (b, [a])
-foldCons f x0 = foldr (\x (b, l) -> (:l) <$> f b x) (x0, []) 
-
 -- | Start state of the game world
 initState :: GameState
 initState = GameState [ Block $ Physics (Vector 1 1) (Vector 0 0) (Vector 1 10) [gravity]
@@ -103,8 +96,8 @@ updateBumps :: Time
 updateBumps t = (snd <$>) . foldr bumpCons []
     where
         -- | Cons the object on to the list, as well as bump every other object with it.
-        bumpCons obj = (\(x, l) -> x : l) . foldCons collide2 obj
         collide2 (p1, o1) (p2, o2) = ((p1, tryCollide t p1 p2 o1 o2), (p2, tryCollide t p2 p1 o2 o1))
+        bumpCons obj = (\(x, l) -> x : l) . mapAccumR collide2 obj
 
 update :: [Input] -> Time -> GameState -> GameState
 update is t = updateInputs is . objects' bumpObjects

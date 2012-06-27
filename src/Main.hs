@@ -87,20 +87,20 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
                 ]
 
 -- | Update the program state with input and time elapsed
-updateState :: State -> [Input] -> Double -> State
-updateState s is t = s { lastUpdate = t
+newState :: State -> [Input] -> Double -> State
+newState s is t = s { lastUpdate = t
                        , game = update is (realToFrac $ t - lastUpdate s) $ game s
                        }
 
 mainLoop :: EventPoller -> State -> IO ()
 mainLoop poll s0 = isOpen poll >>= bool (return ()) runLoop
     where
-        runLoop = do
-            threadDelay 10000
-            visualize
-            mainLoop poll =<< newState
+        runLoop =   visualize
+                >>  updateState
+                <*  threadDelay 10000
+                >>= mainLoop poll
 
-        newState = updateState s0 <$> getInputs poll <*> get GLFW.time
+        updateState = newState s0 <$> getInputs poll <*> get GLFW.time
 
         visualize = do
             -- Since we're drawing, all the window refresh events are taken care of
@@ -120,7 +120,7 @@ main = do
         True <- GLFW.openWindow (Size 800 600) [] GLFW.Window
 
         GLFW.windowPos $= Position 0 0
-        GLFW.windowTitle $= "Eria"
+        GLFW.windowTitle $= "Window"
 
         initOpenGL
         -- Set background color
