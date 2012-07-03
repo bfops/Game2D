@@ -90,7 +90,7 @@ bump :: Position   -- ^ Original position of next parameter
      -> Position   -- ^ Original position of next parameter
      -> Physics    -- ^ Object to bump
      -> Physics
-bump r1 obj2 r1 obj1 = obj1
+bump r2 obj2 r1 obj1 = obj1
         { posn = posn obj1 <&> (+) <*> bumpVector
         -- Set velocity to that of the object we're pushed by
         , vcty = setV bumpDim (vcty obj2!bumpDim) $ vcty obj1
