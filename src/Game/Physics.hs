@@ -2,6 +2,7 @@ module Game.Physics ( Size
                     , Position
                     , Velocity
                     , Acceleration
+                    , Coord
                     , Time
                     , Propulsion (..)
                     , TimedPropulsion
@@ -10,7 +11,6 @@ module Game.Physics ( Size
                     , posn'
                     , vcty'
                     , propels'
-                    , accl
                     , gravity
                     , bump
                     , overlaps
@@ -64,10 +64,13 @@ vcty' f p = p { vcty = f (vcty p) }
 propels' :: ([TimedPropulsion] -> [TimedPropulsion]) -> Physics -> Physics
 propels' f p = p { propels = f (propels p) }
 
-accl :: Physics -> Acceleration
-accl p = foldr (liftA2 (+)) (pure 0) $ withoutT <$> propels p
+deltaV :: Physics -> Time -> Velocity
+deltaV p t = sum <$> sequenceA deltaVs
     where
-        withoutT (Propel a _) = a
+        deltaVs = deltaV' <$> propels p
+        deltaV' (Propel a pt) = a <&> (* chopT pt)
+        -- The amount of time an acceleration applies for
+        chopT pt = fromMaybe t $ min t <$> pt
 
 gravity :: TimedPropulsion
 gravity = Propel (Vector 0 (-9.81)) Nothing
@@ -122,7 +125,7 @@ updatePhysics :: Time -> Physics -> Physics
 updatePhysics t = updatePropels . updateVcty . updatePosn
     where
         updatePosn p = p { posn = posn p <&> (+) <*> fmap (*t) (vcty p) }
-        updateVcty p = p { vcty = vcty p <&> (+) <*> fmap (*t) (accl p) }
+        updateVcty p = p { vcty = vcty p <&> (+) <*> deltaV p t }
         updatePropels p = p { propels = mapMaybe stepPropel $ propels p }
 
         stepPropel :: TimedPropulsion -> Maybe TimedPropulsion
