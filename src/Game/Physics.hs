@@ -20,6 +20,7 @@ module Game.Physics ( Size
 import Prelude ()
 import Util.Prelewd
 
+import Control.Applicative
 import Data.Fixed hiding (div')
 import Data.Tuple
 import Text.Show
@@ -77,9 +78,19 @@ gravity = Propel (Vector 0 (-9.81)) Nothing
 
 -- | Index of the smallest Just element (by magnitude)
 minExtantIndex :: (Num a, Ord a) => Vector (Maybe a) -> Integer
-minExtantIndex v = fst $ minimumBy (compare `on` weight) $ (,) <$> vector [0..] <*> v
+minExtantIndex v = fst $ minimumBy (compare' `on` weight) $ (,) <$> vector [0..] <*> v
     where
         weight (_, mw) = abs <$> mw
+        compare' x y
+            = (ifBothExist compare x y
+            <|> LT `ifExists` x
+            <|> GT `ifExists` y)
+            `base` EQ
+
+        ifBothExist = liftA2
+        infix 6 `ifExists`
+        ifExists = (<$)
+        base = flip fromMaybe
 
 -- | Division, but returns Nothing if the second parameter is 0
 div' :: (Eq a, Fractional a) => a -> a -> Maybe a
