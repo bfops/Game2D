@@ -1,5 +1,10 @@
 module Game.Logic ( GameObject (..)
+                  , phys'
+                  , isPlatform
+                  , isBlock
+                  , isPlayer
                   , GameState (..)
+                  , objects'
                   , Input (..)
                   , Direction(..)
                   , initState
@@ -22,6 +27,7 @@ type TimedPropel = Propulsion (Maybe Time)
 data GameObject
     = Block    { phys :: Physics }
     | Platform { phys :: Physics }
+    | Player   { phys :: Physics }
 
 phys' :: (Physics -> Physics) -> GameObject -> GameObject
 phys' f g = g { phys = f (phys g) }
@@ -34,6 +40,10 @@ isPlatform :: GameObject -> Bool
 isPlatform (Platform {}) = True
 isPlatform _ = False
 
+isPlayer :: GameObject -> Bool
+isPlayer (Player {}) = True
+isPlayer _ = False
+
 data GameState = GameState { objects :: [GameObject]
                            }
 
@@ -45,14 +55,14 @@ data Direction = Up | Down | Left | Right
     deriving (Eq, Show)
 
 -- | Input events understood by the game
-data Input = Move Direction
+data Input = Jump
     deriving (Eq, Show)
 
 -- | Start state of the game world
 initState :: GameState
-initState = GameState [ Block $ Physics (Vector 1 1) (Vector 0 0) (Vector 1 10) [gravity]
-                      , Platform $ Physics (Vector 4 1) (Vector (-3) (-1)) (Vector 2 0) []
-                      , Platform $ Physics (Vector 1 4) (Vector (-6) (-4)) (Vector 0 0) [Propel (Vector 1 0) (Just 3)]
+initState = GameState [ Block $ Physics (Vector 1 1) (Vector 0 0) (Vector 0 0) [gravity]
+                      , Platform $ Physics (Vector 4 1) (Vector (-3) (-1)) (Vector 0 0) []
+                      , Player $ Physics (Vector 1 2) (Vector (-3) 0) (Vector 0 0) [gravity]
                       ]
 
 collisionHandler :: Position         -- ^ Original position of first object
@@ -78,14 +88,13 @@ updateInputs is = objects' $ \o -> foldr updateInput o is
     where
         -- Update a list of gameobjects with an input
         updateInput :: Input -> [GameObject] -> [GameObject]
-        updateInput (Move d) = fmap $ moveObj d
-        updateInput _ = id
+        updateInput Jump = fmap jumpPlayer
 
-        moveObj :: Direction -> GameObject -> GameObject
-        moveObj d = bool <*> phys' (propels' (move d ++)) <*> isPlatform
+        jumpPlayer :: GameObject -> GameObject
+        jumpPlayer g = if' (isPlayer g) (phys' $ propels' (jump ++)) g
 
-        move :: Direction -> [TimedPropel]
-        move _ = []
+        jump :: [TimedPropel]
+        jump = [Propel (Vector 0 100) (Just 0.1)]
         
 -- | Ensure no objects are colliding
 updateBumps :: [(Position, GameObject)] -- ^ [(originalPos, obj)]

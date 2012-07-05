@@ -37,5 +37,9 @@ drawQuad c o = renderPrimitive Quads $ drawColored c [ Vertex2 x  y
             (Vertex2 x' y') = toGLVertex p <&> (+) <*> toGLVertex (size $ phys o)
 
 instance Drawable GameObject where
-    draw b@(Block {}) = drawQuad blue b
-    draw g = drawQuad red g
+    draw g = drawQuad objColor g
+        where
+            objColor
+                | isBlock g = blue
+                | isPlayer g = green
+                | otherwise = red
