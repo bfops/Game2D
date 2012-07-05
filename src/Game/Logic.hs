@@ -21,8 +21,6 @@ import Types
 
 import Game.Physics
 
-type TimedPropel = Propulsion (Maybe Time)
-
 -- | An object in the game world
 data GameObject
     = Block    { phys :: Physics }
@@ -56,6 +54,7 @@ data Direction = Up | Down | Left | Right
 
 -- | Input events understood by the game
 data Input = Jump
+           | Move Direction
     deriving (Eq, Show)
 
 -- | Start state of the game world
@@ -84,17 +83,24 @@ tryCollide :: Position   -- ^ Original position of the object to bump
 tryCollide p1 p2 g1 g2 = bool g1 (collisionHandler p1 p2 g1 g2) $ overlaps (phys g1) (phys g2)
 
 updateInputs :: [Input] -> GameState -> GameState
-updateInputs is = objects' $ \o -> foldr updateInput o is
+updateInputs is = objects' $ \o -> foldr (fmap . updateInput) o is
     where
-        -- Update a list of gameobjects with an input
-        updateInput :: Input -> [GameObject] -> [GameObject]
-        updateInput Jump = fmap jumpPlayer
+        -- Update a game object with a given input command
+        updateInput :: Input -> GameObject -> GameObject
+        updateInput Jump = jumpIfPlayer
+        updateInput (Move d) = moveIfPlayer d
 
-        jumpPlayer :: GameObject -> GameObject
-        jumpPlayer g = if' (isPlayer g) (phys' $ propels' (jump ++)) g
+        jumpIfPlayer :: GameObject -> GameObject
+        jumpIfPlayer g = if' (isPlayer g) (phys' $ propels' (jump ++)) g
 
-        jump :: [TimedPropel]
-        jump = [Propel (Vector 0 100) (Just 0.1)]
+        moveIfPlayer :: Direction -> GameObject -> GameObject
+        moveIfPlayer d g = if' (isPlayer g) (phys' $ propels' (move d ++)) g
+
+        jump = [Propel (Vector 0 80) (Just 0.1)]
+
+        move Left  = [Propel (Vector (-40) 0) (Just 0.1)]
+        move Right = [Propel (Vector   40  0) (Just 0.1)]
+        move _ = []
         
 -- | Ensure no objects are colliding
 updateBumps :: [(Position, GameObject)] -- ^ [(originalPos, obj)]

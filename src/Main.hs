@@ -82,6 +82,9 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
         keys :: [(Key, Input)]
         keys = fmap (first CharKey)
                 [ (' ', Jump)
+                , ('W', Jump)
+                , ('A', Move Left)
+                , ('D', Move Right)
                 ]
 
 -- | Update the program state with input and time elapsed
