@@ -15,10 +15,10 @@ Executable Game2D
     Extensions:        FlexibleInstances
 
     Build-Depends: 
-                       OpenGL,
-                       GLFW,
-                       stm,
-                       base
+                    OpenGL,
+                    GLFW,
+                    stm,
+                    base
 
 test-suite Tests
     type:           exitcode-stdio-1.0
