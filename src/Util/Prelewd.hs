@@ -11,6 +11,8 @@ module Util.Prelewd ( module Prelude
                     , module Data.Ord
                     , module Data.Traversable
                     , module Data.Word
+                    , minBy
+                    , maxBy
                     , bool
                     , iff
                     , if'
@@ -28,7 +30,6 @@ module Util.Prelewd ( module Prelude
                     , (!)
                     , (<&>)
                     , ($$)
-                    , ($*)
                     , (.$)
                     , null
                     , reverse
@@ -141,17 +142,18 @@ import Prelude ( Int
                , (^^)
                , fromIntegral
                , realToFrac
+               , String
                )
 
-import Control.Applicative hiding (Alternative (..), optional)
+import Control.Applicative hiding (optional, some, many)
 import Control.Monad hiding (mapM, mapM_, sequence, sequence_, msum, forM, forM_, forever, void)
 import Data.Bool
 import Data.Either
 import Data.Eq
 import Data.Fixed
 import Data.Foldable
-import Data.Function
-import Data.List as List hiding (head, last, init, tail, partition, length, foldl, foldr)
+import Data.Function hiding (fix)
+import Data.List as List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy)
 import Data.Int
 import Data.Maybe
 import Data.Monoid
@@ -162,6 +164,12 @@ import Data.Word
 import Text.Show
 
 import Util.Impure
+
+minBy :: (a -> a -> Ordering) -> a -> a -> a
+minBy f x y = minimumBy f [x, y]
+
+maxBy :: (a -> a -> Ordering) -> a -> a -> a
+maxBy f x y = maximumBy f [x, y]
 
 -- | Process conditionals in the same form as `maybe` and `either` 
 bool :: a    -- ^ Return if false
@@ -246,7 +254,7 @@ ifm :: MonadPlus m
       -> m a
 ifm = (>>) . guard
 
-infixl 4 <&>, $$, $*
+infixl 4 <&>, $$
 infixr 9 .$
 
 -- | `(<$>)` with arguments interchanged
@@ -256,10 +264,6 @@ infixr 9 .$
 -- | `fmap` for functors-within-functors
 ($$) :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
 ($$) = (<$>).(<$>)
-
--- | `(f $* g) x y = f x y $ g x y`
-($*) :: (a -> b -> c -> d) -> (a -> b -> c) -> a -> b -> d
-($*) f g x y = f x y $ g x y
 
 -- | `(f .$ g) x y = f x (g y)`
 (.$) :: (a -> b -> c) -> (r -> b) -> a -> r -> c

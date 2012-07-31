@@ -1,5 +1,6 @@
 -- | Functions for dealing with non-pure or non-lazy computations
 module Util.Impure ( module T
+                   , module E
                    , seq
                    , ($!)
                    , error
@@ -8,6 +9,7 @@ module Util.Impure ( module T
 
 import Prelude (seq, ($!), error)
 
+import Control.Exception as E
 import Debug.Trace as T hiding (putTraceMsg)
 import Text.Show
 
