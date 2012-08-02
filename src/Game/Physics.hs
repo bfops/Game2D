@@ -11,20 +11,16 @@ module Game.Physics ( Size
                     , posn'
                     , vcty'
                     , propels'
+                    , space
                     , gravity
-                    , bump
                     , overlaps
-                    , updatePhysics
                     ) where
 
 import Prelude ()
 import Util.Prelewd
 
-import Control.Applicative
-import Data.Fixed hiding (div')
-import Data.Tuple
+import Data.Fixed
 import Text.Show
-import Util.Impure
 
 import Types
 
@@ -66,94 +62,17 @@ vcty' f p = p { vcty = f (vcty p) }
 propels' :: ([TimedPropulsion] -> [TimedPropulsion]) -> Physics -> Physics
 propels' f p = p { propels = f (propels p) }
 
-deltaV :: Physics -> Time -> Velocity
-deltaV p t = sum <$> sequenceA deltaVs
-    where
-        deltaVs = deltaV' <$> propels p
-        deltaV' (Propel a pt) = a <&> (* chopT pt)
-        -- The amount of time an acceleration applies for
-        chopT pt = fromMaybe t $ min t <$> pt
+-- | Get the space occupied by an object
+space :: Physics -> (Position, Size)
+space = posn <&> (,) <*> size
 
 gravity :: TimedPropulsion
 gravity = Propel (Vector 0 (-9.81)) Nothing
 
--- | Index of the smallest Just element (by magnitude)
-smallestExtantIndex :: (Num a, Ord a) => Vector (Maybe a) -> Integer
-smallestExtantIndex v = fst $ minimumBy (compare' `on` weight) $ (,) <$> vector [0..] <*> v
-    where
-        weight (_, mw) = abs <$> mw
-        compare' x y
-            = (ifBothExist compare x y
-            <|> LT `ifExists` x
-            <|> GT `ifExists` y)
-            `base` EQ
-
-        ifBothExist = liftA2
-        infix 6 `ifExists`
-        ifExists = (<$)
-        base = flip fromMaybe
-
--- | Division, but returns Nothing if the second parameter is 0
-div' :: (Eq a, Fractional a) => a -> a -> Maybe a
-div' x y = (x/) <$> mcast (/= 0) y
-
-bump :: Position   -- ^ Original position of next parameter
-     -> Physics    -- ^ Object with which to bump
-     -> Position   -- ^ Original position of next parameter
-     -> Physics    -- ^ Object to bump
-     -> Physics
-bump r2 obj2 r1 obj1 =
-        if overlaps obj2 bumpedObj
-        then trace "Bad bump! Details:"
-             $ traceShow r2
-             $ traceShow obj2
-             $ traceShow r1
-             $ traceShow obj1
-             $ trace (show bumpedObj ++ "\n") bumpedObj
-        else bumpedObj
-    where
-        bumpedObj = obj1
-            { posn = posn obj1 <&> (+) <*> bumpVector
-            -- Set velocity to that of the object we're pushed by
-            , vcty = setV bumpDim (vcty obj2!bumpDim) $ vcty obj1
-            }
-        bumpVector = singleV bumpDim $ bumps!bumpDim
-
-        -- Which dimension to bump in
-        bumpDim = smallestExtantIndex timeBumps
-        -- Vector of times denoting how long the objects have been overlapping in each dimension
-        timeBumps = bumps <&> div' <*> relativeDisp
-        -- Relative displacement between the objects, since the beginning of the frame
-        relativeDisp = (posn obj2 <&> (-) <*> r2) <&> (-) <*> (posn obj1 <&> (-) <*> r1)
-
-        -- Vector of minimum bumps in each dimension
-        bumps = overlap <$> posn obj1 <*> size obj1 <*> posn obj2 <*> size obj2 <*> relativeDisp
-        -- The 1D overlap between two lines
-        overlap x1 w1 x2 w2 d = if d > 0
-                                then (x2 + w2) - x1
-                                else x2 - (x1 + w1)
-
-overlaps :: Physics -> Physics -> Bool
-overlaps p1 p2 = and $ collision1 <$> posn p1 <*> size p1 <*> posn p2 <*> size p2
+overlaps :: (Position, Size) -> (Position, Size) -> Bool
+overlaps (p1, s1) (p2, s2) = and $ collision1 <$> p1 <*> s1 <*> p2 <*> s2
     where
         -- 1D collision info
         collision1 :: Coord -> Coord -> Coord -> Coord -> Bool
         collision1 x1 w1 x2 w2 =  x1 + w1 > x2
                                && x2 + w2 > x1
-
--- | One advancement of physics
-updatePhysics :: Time -> Physics -> Physics
-updatePhysics t = updatePropels . updateVcty . updatePosn
-    where
-        updatePosn p = p { posn = posn p <&> (+) <*> fmap (*t) (vcty p) }
-        updateVcty p = p { vcty = vcty p <&> (+) <*> deltaV p t }
-        updatePropels p = p { propels = mapMaybe stepPropel $ propels p }
-
-        stepPropel :: TimedPropulsion -> Maybe TimedPropulsion
-        stepPropel (Propel a (Just t0)) = Propel a . Just <$> decTime t0
-        stepPropel p = Just p
-
-        -- Decrement the time by `t`
-        -- Returns Nothing on nonpositive values
-        decTime :: Time -> Maybe Time
-        decTime t0 = mcast (> 0) (t0 - t)

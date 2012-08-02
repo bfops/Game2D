@@ -22,7 +22,7 @@ class Drawable d where
     draw :: d -> IO ()
 
 instance Drawable GameState where
-    draw (GameState objs) = mapM_ draw objs
+    draw (GameState { objects = objs }) = mapM_ (draw . val) objs
 
 -- | `draw c o` draws `o` as a quadrilateral, based on its position and size.
 drawQuad :: Color4 GLdouble -> GameObject -> IO ()
