@@ -11,6 +11,10 @@ module Util.Prelewd ( module Prelude
                     , module Data.Ord
                     , module Data.Traversable
                     , module Data.Word
+                    , InfNum (..)
+                    , apmap
+                    , ordEquals
+                    , concat
                     , minBy
                     , maxBy
                     , bool
@@ -21,6 +25,7 @@ module Util.Prelewd ( module Prelude
                     , last
                     , init
                     , tail
+                    , deleteBy
                     , length
                     , div
                     , divMod
@@ -151,9 +156,9 @@ import Data.Bool
 import Data.Either
 import Data.Eq
 import Data.Fixed
-import Data.Foldable
+import Data.Foldable hiding (concat)
 import Data.Function hiding (fix)
-import Data.List as List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy)
+import Data.List as List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy, concat, deleteBy)
 import Data.Int
 import Data.Maybe
 import Data.Monoid
@@ -164,6 +169,48 @@ import Data.Word
 import Text.Show
 
 import Util.Impure
+
+data InfNum a = Numb a
+              | Infinite
+    deriving (Show, Eq)
+
+instance Ord a => Ord (InfNum a) where
+    compare (Numb _) Infinite = LT
+    compare Infinite Infinite = EQ
+    compare Infinite (Numb _) = GT
+    compare (Numb x) (Numb y) = compare x y
+
+instance Monad InfNum where
+    return = Numb
+    Infinite >>= _ = Infinite
+    (Numb x) >>= f = f x
+
+instance MonadPlus InfNum where
+    mzero = empty
+    mplus = (<|>)
+
+instance Functor InfNum where
+    fmap = apmap
+
+instance Applicative InfNum where
+    pure = return
+    (<*>) = ap
+
+instance Alternative InfNum where
+    empty = Infinite
+    Infinite <|> x = x
+    x <|> _ = x
+
+-- Default == implementation for Ords
+ordEquals :: Ord a => a -> a -> Bool
+ordEquals x y = compare x y == EQ
+
+-- Default fmap inmplementation for Monads
+apmap :: Applicative f => (a -> b) -> f a -> f b
+apmap = (<*>) . pure
+
+concat :: (Foldable t, Monoid m) => t m -> m
+concat = foldr (<>) mempty
 
 minBy :: (a -> a -> Ordering) -> a -> a -> a
 minBy f x y = minimumBy f [x, y]
@@ -203,6 +250,10 @@ tail (_:xs) = Just xs
 init :: [a] -> Maybe [a]
 init = Util.Prelewd.tail . reverse
 
+deleteBy :: (a -> Bool) -> [a] -> Maybe [a]
+deleteBy _ [] = Nothing
+deleteBy p (x:xs) = iff (p x) (Just xs) $ (x:) <$> deleteBy p xs
+
 infixl 9 !
 
 -- | `x ! i` is the `ith` element of `x`
@@ -224,12 +275,12 @@ length :: (Integral i, Foldable t) => t a -> i
 length = foldr (const (+1)) 0
 
 -- | Division with integral result
-div :: (Real a, Integral b) => a -> a -> b
-div = div'
+div :: (Real a, Integral b) => a -> a -> InfNum b
+div x y = mcond (y /= 0) $ div' x y
 
 -- | `divMod a b = (div a b, mod a b)`
-divMod :: (Real a, Integral b) => a -> a -> (b, a)
-divMod = divMod'
+divMod :: (Real a, Integral b) => a -> a -> InfNum (b, a)
+divMod x y = mcond (y /= 0) $ divMod' x y
 
 -- | Interpret something as a monad
 mcast :: MonadPlus m

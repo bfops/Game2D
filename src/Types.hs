@@ -23,7 +23,7 @@ instance Real a => Ord (Vector a) where
     compare = (compare :: Double -> Double -> Ordering) `on` magnitude
 
 instance Functor Vector where
-    fmap f v = pure f <*> v
+    fmap = apmap
 
 instance Applicative Vector where
     pure x = Vector x x 
