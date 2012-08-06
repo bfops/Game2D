@@ -1,19 +1,18 @@
 module Game.Physics ( Size
                     , Position
                     , Velocity
-                    , Acceleration
+                    , DynamicVelocity
                     , Coord
                     , Time
-                    , Propulsion (..)
-                    , TimedPropulsion
                     , Physics (..)
+                    , vcty
+                    , vcty'
                     , size'
                     , posn'
-                    , vcty'
-                    , propels'
-                    , space
+                    , dvctys'
+                    , nextV
                     , gravity
-                    , overlaps
+                    , timedVcty
                     ) where
 
 import Prelude ()
@@ -30,25 +29,23 @@ type Time = Coord
 type Size = Vector Coord
 type Position = Vector Coord
 type Velocity = Vector Coord
-type Acceleration = Vector Coord
-data Propulsion t = Propel Acceleration t
-    deriving (Show)
+data DynamicVelocity = DynVcty Velocity (Time -> Maybe DynamicVelocity)
 
-instance Eq a => Eq (Propulsion a) where
-    (Propel a t) == (Propel a' t') = a == a' && t == t'
-
-type TimedPropulsion = Propulsion (Maybe Time)
-
-instance Functor Propulsion where
-    fmap f (Propel a m) = Propel a (f m)
+instance Show DynamicVelocity where
+    show (DynVcty v _) = "DynVcty (" ++ show v ++ ")"
 
 data Physics = Physics
         { size      :: Size
         , posn      :: Position
-        , vcty      :: Velocity
-        , propels   :: [TimedPropulsion]
+        , dvctys    :: [DynamicVelocity]
         }
     deriving (Show)
+
+vcty :: DynamicVelocity -> Velocity
+vcty (DynVcty v _) = v
+
+vcty' :: (Velocity -> Velocity) -> DynamicVelocity -> DynamicVelocity
+vcty' f (DynVcty v u) = DynVcty (f v) u
 
 size' :: (Size -> Size) -> Physics -> Physics
 size' f p = p { size = f (size p) }
@@ -56,23 +53,20 @@ size' f p = p { size = f (size p) }
 posn' :: (Position -> Position) -> Physics -> Physics
 posn' f p = p { posn = f (posn p) }
 
-vcty' :: (Velocity -> Velocity) -> Physics -> Physics
-vcty' f p = p { vcty = f (vcty p) }
+dvctys' :: ([DynamicVelocity] -> [DynamicVelocity]) -> Physics -> Physics
+dvctys' f p = p { dvctys = f (dvctys p) }
 
-propels' :: ([TimedPropulsion] -> [TimedPropulsion]) -> Physics -> Physics
-propels' f p = p { propels = f (propels p) }
+nextV :: Time -> DynamicVelocity -> Maybe DynamicVelocity
+nextV t (DynVcty _ fv) = fv t
 
--- | Get the space occupied by an object
-space :: Physics -> (Position, Size)
-space = posn <&> (,) <*> size
-
-gravity :: TimedPropulsion
-gravity = Propel (Vector 0 (-9.81)) Nothing
-
-overlaps :: (Position, Size) -> (Position, Size) -> Bool
-overlaps (p1, s1) (p2, s2) = and $ collision1 <$> p1 <*> s1 <*> p2 <*> s2
+gravity :: Velocity -> DynamicVelocity
+gravity = (`gravity'` 0)
     where
-        -- 1D collision info
-        collision1 :: Coord -> Coord -> Coord -> Coord -> Bool
-        collision1 x1 w1 x2 w2 =  x1 + w1 > x2
-                               && x2 + w2 > x1
+        gravity' v t = let dv = Vector 0 (-9.81) <&> (*t)
+                           v' = v <&> (+) <*> dv
+                       in DynVcty v' $ Just . gravity' v'
+
+timedVcty :: Time -> Velocity -> DynamicVelocity
+timedVcty t' = DynVcty <*> timedVcty' t'
+    where
+        timedVcty' t v dt = mcond (dt < t) $ DynVcty v $ timedVcty' (t - dt) v
