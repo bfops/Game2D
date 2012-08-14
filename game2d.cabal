@@ -12,7 +12,7 @@ Executable Game2D
     hs-source-dirs:    src/
     Main-is:           Main.hs
     GHC-Options:       -Wall -threaded -rtsopts=all -fllvm
-    Extensions:        FlexibleInstances
+    Extensions:        FlexibleInstances, TupleSections
 
     Build-Depends: 
                     OpenGL,
