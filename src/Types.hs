@@ -1,8 +1,8 @@
 -- | Common types used in various places
 module Types ( Vector (..)
              , VectorLike (..)
-             , setV
-             , singleV
+             , Dimension
+             , dimensions
              , shorter
              , magnitude
              , dot
@@ -14,6 +14,12 @@ import Util.Prelewd
 import Text.Show
 
 import Util.Impure
+
+data Dimension = Width | Height
+    deriving (Eq, Enum, Bounded, Show)
+
+dimensions :: Vector Dimension
+dimensions = vector [minBound..maxBound]
 
 -- | Homogenous vector
 data Vector a = Vector a a 
@@ -43,17 +49,6 @@ instance VectorLike [] where
     vector (x:y:_) = Vector x y
     vector _ = error "List too small"
 
--- | Update one index in a vector
-setV :: Integer -> a -> Vector a -> Vector a
-setV i x v = replaceI <$> v <*> vector [0..]
-    where
-        -- Replace only the ith index with x
-        replaceI = bool x .$ (/= i)
-
--- | Create a vector with a single nonzero element
-singleV :: Num a => Integer -> a -> Vector a
-singleV i x = setV i x $ pure 0
-
 -- | Return the shorter of the two vectors
 shorter :: (Num a, Ord a) => Vector a -> Vector a -> Vector a
 shorter v1 v2 = if on (<) (dot <*> id) v1 v2
@@ -66,4 +61,4 @@ magnitude v = sqrt $ realToFrac $ dot v v
 
 -- | Dot product
 dot :: Num a => Vector a -> Vector a -> a
-dot = foldr (+) 0 $$ liftA2 (*)
+dot = foldr (+) 0 .: liftA2 (*)

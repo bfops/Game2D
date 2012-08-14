@@ -27,21 +27,6 @@ prop_index v = and $ fmap try $ indices v
         try :: Integer -> Bool
         try i = (v ! fromIntegral i) == (toList v ! fromIntegral i)
 
-prop_set :: Vector Integer -> Bool
-prop_set v = and $ fmap updateWorks $ indices v
-    where
-        -- To make sure it's not the same value
-        x i = v!i - 1
-        updateWorks i = and $ indexMatches i <$> setV i (x i) v <*> vector [0..]
-        indexMatches i k j = (i == j && k == x i) || (i /= j && k == v!j)
-
-prop_single :: Integer -> Bool
-prop_single x = and $ fmap isSingle $ indices $ pure 0
-    where
-        v i = singleV i x
-        isSingle i = and $ p i <$> vector [0..] <*> v i
-        p i t a = (i == t && a == x) || (i /= t && a == 0)
-
 prop_shortAssoc :: (Vector Integer, Vector Integer, Vector Integer) -> Bool
 prop_shortAssoc (x, y, z) = shorter (shorter x y) z == shorter x (shorter y z)
 
