@@ -10,8 +10,8 @@ import Test.Framework.TH
 import Test.QuickCheck
 import Test.Framework.Providers.QuickCheck2
 
-instance (Eq a, Num a, Arbitrary a) => Arbitrary (Fraction a) where
-    arbitrary = Frac <$> arbitrary <*> (nonzeroDenominator <$> arbitrary)
+instance (Real a, Arbitrary a) => Arbitrary (Fraction a) where
+    arbitrary = frac .$ nonzeroDenominator <$> arbitrary <*> arbitrary
         where
             nonzeroDenominator t = iff (t == 0) 1 t
 
@@ -24,6 +24,3 @@ compare' = compare
 -- Preserve comparison upon casting to Fraction
 prop_convertCompare :: (Integer, Integer) -> Bool
 prop_convertCompare (x, y) = compare x y == (compare' `on` realToFrac) x y
-
-prop_eq :: (Fraction Integer, Fraction Integer) -> Bool
-prop_eq (x, y) = (compare x y /= EQ && x /= y) || (compare x y == EQ && x == y)

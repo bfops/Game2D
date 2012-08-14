@@ -16,9 +16,8 @@ module Game.Logic ( GameObject (..)
                   ) where
 
 import Prelude ()
-import Util.Prelewd hiding (id)
+import Util.Prelewd hiding (id, empty)
 
-import Data.Tuple
 import Text.Show
 
 import Util.Fraction
@@ -100,13 +99,13 @@ addObject _ (GameState { ids = [] }) = error "Ran out of IDs"
 
 deleteObj :: ID -> GameState -> Maybe GameState
 deleteObj i (GameState { ids = is, objects = objs })
-           = (\os -> GameState { ids = i:is, objects = os }) <$> deleteBy (id <&> (==i)) objs
+           = (\os -> GameState { ids = i:is, objects = os }) <$> deleteBy (id <&> (== i)) objs
 
 -- | Start state of the game world
 initState :: GameState
 initState = let emptyState = GameState { ids = [0..], objects = [] }
-            in foldr addObject emptyState [ Platform $ Physics (Vector 4 1) (Vector (-3) (-1)) []
-                                          , Player $ Physics (Vector 1 2) (Vector (-3) 0) [gravity $ Vector 1 8]
+            in foldr addObject emptyState [ Platform $ Physics (Vector 4 1) (Vector (-3) (-1)) (Vector 0 0) (Vector 0 0)
+                                          , Player $ Physics (Vector 1 2) (Vector (-3) 0) (Vector 0 0) gravity
                                           ]
 
 collide :: GameObject       -- ^ GameObject to update
@@ -114,52 +113,74 @@ collide :: GameObject       -- ^ GameObject to update
         -> GameObject       -- ^ Updated object
 collide = const
 
-collideShift :: Position -> GameObject -> GameObject -> Fraction Coord
-collideShift d o1 o2 = let
-                        shift = realToFrac <$> d
-                        p1 = realToFrac <$> posn (phys o1)
-                        s1 = realToFrac <$> size (phys o1)
-                        p2 = realToFrac <$> posn (phys o2)
-                        s2 = realToFrac <$> size (phys o2)
-                       in chopShift $ collideShift1 <$> shift <*> p1 <*> s1 <*> p2 <*> s2
+data TaggedRange a b = TaggedRange a (Range b)
+    deriving Show
+
+infToMaybe :: InfNum a -> Maybe a
+infToMaybe Infinite = Nothing
+infToMaybe (Numb x) = Just x
+
+taggedOverlap :: (Show a, Show b, Ord b, Monoid a) => TaggedRange a b -> TaggedRange a b -> TaggedRange a b
+taggedOverlap (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
+                                                          tag = if rng == empty
+                                                                then mempty
+                                                                -- This quite rightly causes an error when it fails
+                                                                else fromJust $ overlap <$> start r1 <*> start r2
+                                                      in TaggedRange tag rng
+        where
+            overlap s1 s2 = case (compare `on` infToMaybe) s1 s2 of
+                                LT -> y
+                                EQ -> x <> y
+                                GT -> x
+
+collideShift :: Position -> GameObject -> GameObject -> ([Dimension], Fraction Coord)
+collideShift deltaP o1 o2 = let
+                                shift = realToFrac <$> deltaP
+                                p1 = realToFrac <$> posn (phys o1)
+                                s1 = realToFrac <$> size (phys o1)
+                                p2 = realToFrac <$> posn (phys o2)
+                                s2 = realToFrac <$> size (phys o2)
+                                -- Collisions individually in each dimension
+                                collides1 = collideShift1 <$> dimensions <*> shift <*> p1 <*> s1 <*> p2 <*> s2
+                                TaggedRange dims rng = foldr1 taggedOverlap $ normalize <$> collides1
+                            in maybe ([], 1) ((dims,) . recast) $ start rng
     where
-        chopShift :: Vector (Range (Fraction Coord)) -> Fraction Coord
-        chopShift = maybe 1 confineTime . start . foldr (<>) (range (Numb 0) (Numb 1))
+        recast (Numb x) = x
+        recast Infinite = error "recast parameter should be finite"
 
-        confineTime Infinite = 1
-        confineTime (Numb x) = x
+        -- Chop all time ranges to [0, 1]
+        normalize (TaggedRange t r) = let r' = range (Numb 0) (Numb 1) <> r
+                                      in if r' == empty
+                                         then TaggedRange mempty empty
+                                         else TaggedRange t r'
 
-        collideShift1 shift x1 w1 x2 w2 = pass1 shift (x1 + w1) x2 <> pass1 (negate shift) (x2 + w2) x1
+        collideShift1 d shift x1 w1 x2 w2 = TaggedRange [d] $ pass1 shift (x1 + w1) x2 <> pass1 (negate shift) (x2 + w2) x1
 
         pass1 v x0 x = let t = (x - x0) / v
                        in case compare v 0 of
-                            LT -> range Infinite (Numb t)
-                            EQ -> iff (x0 <= x) mempty $ range Infinite Infinite
-                            GT -> range (Numb t) Infinite
+                        LT -> range Infinite (Numb t)
+                        EQ -> iff (x0 <= x) empty $ range Infinite Infinite
+                        GT -> range (Numb t) Infinite
 
-mult :: Fractional a => Fraction a -> a -> a
-mult (Frac n d) x = (n * x) / d
+upd1 :: (a -> r) -> (a, b, c) -> (r, b, c)
+upd1 f (a, b, c) = (f a, b, c)
 
-move :: Position                    -- The movement to make (i.e. delta P)
-     -> GameObject                  -- Object to move
-     -> ObjectGroup                 -- Rest of the objects
-     -> (GameObject, ObjectGroup)   -- The object moved to where appropriate, and the necessary collision handlers invoked
-move deltaP x = unify . foldr bumpList (Infinite, [], [])
+move :: Position                        -- The movement to make (i.e. delta P)
+     -> GameObject                      -- Object to move
+     -> ObjectGroup                     -- Rest of the objects
+     -> (Position, [ID], [Dimension])   -- The amount the object can be moved, the IDs it collides with, and how it collides
+move deltaP x = upd1 resolveT . foldr bumpList (Infinite, [], [])
     where
-        unify (Infinite, _, _) = error "Something went infinitely wrong"
-        unify (Numb t, cs, others) = mapAccumR mutualCollision (phys' (posn' $ makeMove t) x) cs <&> (++ others)
+        resolveT Infinite = error "Something went infinitely wrong"
+        resolveT (Numb t) = assert (t >= 0 && t <= 1) $ (realToFrac . (realToFrac t *)) <$> deltaP
 
-        mutualCollision o1 uo2 = (o1 `collide` val uo2, (`collide` o1) `val'` uo2)
+        bumpList iobj acc = keepEarlyColisns iobj acc $ collideShift deltaP x $ val iobj
 
-        makeMove t p = let shift = mult t <$> deltaP
-                       in p <&> (+) <*> shift
-
-        bumpList iobj acc = keepEarlyColisns iobj acc $ Numb $ collideShift deltaP x $ val iobj
-
-        keepEarlyColisns obj (c1, collides, others) c2 = case compare c1 c2 of
-                LT -> (c1, collides, obj:others)
-                EQ -> (c1, obj:collides, others)
-                GT -> (c2, [obj], collides ++ others)
+        keepEarlyColisns obj (c1, collides, dims) (ds, k) = let c2 = Numb k
+                                                            in case compare c1 c2 of
+                                                                LT -> (c1, collides, dims)
+                                                                EQ -> (c2, id obj:collides, ds ++ dims)
+                                                                GT -> (c2, [id obj], ds)
 
 updateInputs :: [Input] -> GameState -> GameState
 updateInputs is = objects' updateObjInputs
@@ -169,8 +190,8 @@ updateInputs is = objects' updateObjInputs
 
         -- The object update function for a given input
         updateF :: Input -> GameObject -> GameObject
-        updateF Jump = ifPlayer $ addDynVcty 0.2 $ Vector 0 8
-        updateF (Move d) = ifPlayer $ addDynVcty 0.2 $ moveVcty d
+        updateF Jump = ifPlayer $ addVcty $ Vector 0 8
+        updateF (Move d) = ifPlayer $ addVcty $ moveVcty d
 
         ifPlayer f obj = if' (isPlayer obj) f obj
 
@@ -178,15 +199,42 @@ updateInputs is = objects' updateObjInputs
         moveVcty Left = negate <$> moveVcty Right
         moveVcty _ = pure 0
 
-        addDynVcty :: Time -> Velocity -> GameObject -> GameObject
-        addDynVcty t v = phys' $ dvctys' (timedVcty t v :)
+        addVcty :: Velocity -> GameObject -> GameObject
+        addVcty v = phys' $ vcty' $ liftA2 (+) v
+
+extract :: ID -> ObjectGroup -> Maybe (UniqueObject, ObjectGroup)
+extract _ [] = Nothing
+extract i (obj:objs) = if i == id obj
+                       then Just (obj, objs)
+                       else ((obj:) <$>)<$> extract i objs
+
+isolate :: a -> Vector a -> Vector (Vector a)
+isolate zero = liftA2 (\d x -> setV d x $ pure zero) dimensions
+
+setV :: Dimension -> a -> Vector a -> Vector a
+setV d1 x = liftA2 (\d2 -> iff (d1 == d2) x) dimensions
 
 -- | One advancement of physics
 updateObjPhysics :: Time -> ObjectGroup -> GameObject -> (GameObject, ObjectGroup)
-updateObjPhysics t objs = updatePosn . phys' (dvctys' $ mapMaybe $ nextV t)
+updateObjPhysics t others = updatePosn others . phys' updateVcty
     where
-        updatePosn obj = foldr makeMove (obj, objs) $ vcty <$> dvctys (phys obj)
-        makeMove v = uncurry $ move $ (*t) <$> v
+        updateVcty p = p { vcty = accl p <&> (*t) <&> (+) <*> vcty p }
+        updatePosn objs obj = unify $ mapAccumR moveAndCollide (obj, objs) $ isolate 0 $ vcty $ phys obj
+
+        unify ((obj, objs), vs) = (phys' (vcty' $ const $ foldr (liftA2 (+)) (pure 0) vs) obj, objs)
+        moveAndCollide (obj, objs) v = let (deltaP, collides, dims) = move ((*t) <$> v) obj objs
+                                       in (enactCollides obj objs deltaP collides, foldr (`setV` 0) v dims)
+
+        enactCollides :: GameObject -> ObjectGroup -> Position -> [ID] -> (GameObject, ObjectGroup)
+        enactCollides obj objs deltaP collides = foldr findAndHit (makeMove deltaP obj, objs) collides
+        
+        findAndHit i (obj, objs) = maybe (error $ "Couldn't find object " ++ show i) (collideCons obj) $ extract i objs
+        collideCons o1 (o2, objs) = mutualCollide o1 o2 <&> (:objs)
+
+        makeMove :: Position -> GameObject -> GameObject
+        makeMove = phys' . posn' . liftA2 (+)
+
+        mutualCollide o1 o2 = (o1 `collide` val o2, val' (`collide` o1) o2)
 
 updatePhysics :: Time -> GameState -> GameState
 updatePhysics t = foldr tryUpdate <*> fmap id . objects

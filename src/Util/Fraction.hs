@@ -1,4 +1,5 @@
-module Util.Fraction ( Fraction (..)
+module Util.Fraction ( Fraction
+                     , frac
                      ) where
 
 import Prelude ()
@@ -12,6 +13,10 @@ import Util.Impure
 data Fraction a = Frac a a
     deriving (Show)
 
+frac :: (Eq a, Num a) => a -> a -> Fraction a
+frac _ 0 = error "Cannot reciprocate 0"
+frac x y = Frac x y
+
 instance Num a => Num (Fraction a) where
     (Frac n1 d1) + (Frac n2 d2) = Frac (n1*d2 + n2*d1) (d1 * d2)
     (Frac n1 d1) * (Frac n2 d2) = Frac (n1 * n2) (d1 * d2)
@@ -21,8 +26,7 @@ instance Num a => Num (Fraction a) where
     fromInteger i = Frac (fromInteger i) 1
 
 instance (Eq a, Num a) => Fractional (Fraction a) where
-    recip (Frac 0 _) = error "Cannot reciprocate 0"
-    recip (Frac a b) = Frac b a
+    recip (Frac a b) = frac b a
     fromRational = (Frac `on` fromInteger) <$> numerator <*> denominator
 
 instance (Num a, Real a) => Real (Fraction a) where
@@ -31,7 +35,7 @@ instance (Num a, Real a) => Real (Fraction a) where
                             in (numerator rn * denominator rd) % (denominator rn * numerator rd)
 
 instance (Num a, Eq a) => Eq (Fraction a) where
-    (Frac n1 d1) == (Frac n2 d2) = (n1 * d2) == (n2 * d1)
+    (==) = (0 ==) .: (-)
 
 flipOrd :: Ordering -> Ordering
 flipOrd LT = GT

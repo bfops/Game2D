@@ -13,8 +13,8 @@ module Util.Prelewd ( module Prelude
                     , module Data.Word
                     , InfNum (..)
                     , apmap
-                    , ordEquals
-                    , concat
+                    , ordEq
+                    , mconcat
                     , minBy
                     , maxBy
                     , bool
@@ -34,8 +34,8 @@ module Util.Prelewd ( module Prelude
                     , ifm
                     , (!)
                     , (<&>)
-                    , ($$)
                     , (.$)
+                    , (.:)
                     , null
                     , reverse
                     , intersperse
@@ -79,66 +79,20 @@ import Prelude ( Int
                , Float
                , Double
                , Rational
-               , Num
-               , Real
+               , Enum (..)
+               , Bounded (..)
+               , Num (..)
+               , Real (..)
                , Integral
-               , Fractional
-               , Floating
-               , RealFrac
-               , RealFloat
-               , (+)
-               , (-)
-               , (*)
-               , negate
-               , abs
-               , signum
-               , fromInteger
-               , toRational
+               , Fractional (..)
+               , Floating (..)
+               , RealFrac (..)
+               , RealFloat (..)
                , quot
                , rem
                , mod
                , quotRem
                , toInteger
-               , (/)
-               , recip
-               , fromRational
-               , pi
-               , exp
-               , sqrt
-               , log
-               , (**)
-               , logBase
-               , sin
-               , tan
-               , cos
-               , asin
-               , atan
-               , acos
-               , sinh
-               , tanh
-               , cosh
-               , asinh
-               , atanh
-               , acosh
-               , properFraction
-               , truncate
-               , round
-               , ceiling
-               , floor
-               , floatRadix
-               , floatDigits
-               , floatRange
-               , decodeFloat
-               , encodeFloat
-               , exponent
-               , significand
-               , scaleFloat
-               , isNaN
-               , isInfinite
-               , isDenormalized
-               , isNegativeZero
-               , isIEEE
-               , atan2
                , subtract
                , even, odd
                , gcd
@@ -158,10 +112,10 @@ import Data.Eq
 import Data.Fixed
 import Data.Foldable hiding (concat)
 import Data.Function hiding (fix)
-import Data.List as List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy, concat, deleteBy)
+import Data.List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy, concat, deleteBy, foldr1)
 import Data.Int
 import Data.Maybe
-import Data.Monoid
+import Data.Monoid hiding (mconcat)
 import Data.Ord
 import Data.Traversable
 import Data.Word
@@ -201,16 +155,16 @@ instance Alternative InfNum where
     Infinite <|> x = x
     x <|> _ = x
 
--- Default == implementation for Ords
-ordEquals :: Ord a => a -> a -> Bool
-ordEquals x y = compare x y == EQ
-
 -- Default fmap inmplementation for Monads
 apmap :: Applicative f => (a -> b) -> f a -> f b
 apmap = (<*>) . pure
 
-concat :: (Foldable t, Monoid m) => t m -> m
-concat = foldr (<>) mempty
+-- Default == implementation for Ords
+ordEq :: Ord a => a -> a -> Bool
+ordEq x y = compare x y == EQ
+
+mconcat :: (Foldable t, Monoid m) => t m -> m
+mconcat = foldr (<>) mempty
 
 minBy :: (a -> a -> Ordering) -> a -> a -> a
 minBy f x y = minimumBy f [x, y]
@@ -218,11 +172,8 @@ minBy f x y = minimumBy f [x, y]
 maxBy :: (a -> a -> Ordering) -> a -> a -> a
 maxBy f x y = maximumBy f [x, y]
 
--- | Process conditionals in the same form as `maybe` and `either` 
-bool :: a    -- ^ Return if false
-     -> a    -- ^ Return if true
-     -> Bool
-     -> a
+-- | Process conditionals in the same form as `maybe` and `either`
+bool :: a -> a -> Bool -> a
 bool f t b = iff b t f
 
 -- | Function synonym for `if.. then.. else ..` 
@@ -305,17 +256,16 @@ ifm :: MonadPlus m
       -> m a
 ifm = (>>) . guard
 
-infixl 4 <&>, $$
-infixr 9 .$
+infixl 4 <&>
+infixr 9 .$, .:
 
 -- | `(<$>)` with arguments interchanged
 (<&>) :: Functor f => f a -> (a -> b) -> f b
 (<&>) = flip (<$>)
 
--- | `fmap` for functors-within-functors
-($$) :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
-($$) = (<$>).(<$>)
-
 -- | `(f .$ g) x y = f x (g y)`
 (.$) :: (a -> b -> c) -> (r -> b) -> a -> r -> c
 (.$) f g x = f x . g
+
+(.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
+(.:) = (.).(.)
