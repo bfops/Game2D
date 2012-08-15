@@ -18,6 +18,7 @@ Executable Game2D
                     OpenGL,
                     GLFW,
                     stm,
+                    tuple,
                     base
 
 test-suite Tests

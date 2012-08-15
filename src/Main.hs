@@ -5,17 +5,18 @@ import Util.Prelewd
 
 import Control.Arrow
 import Control.Concurrent
+import Data.Tuple.Curry
 
+import Game.Render
+import Game.State
+import Game.Types
+import Game.Update
 import Util.Impure
 import Util.IO
 
 import Wrappers.Events
 import Wrappers.OpenGL as OGL hiding (windowPos)
 import qualified Graphics.UI.GLFW as GLFW
-
-import Game.Render
-import Game.Types
-import Game.Update
 
 import Config
 
@@ -119,14 +120,14 @@ getInitState = State initState <$> get GLFW.time
 main :: IO ()
 main = do
         True <- GLFW.initialize
-        True <- GLFW.openWindow (Size 800 600) [] GLFW.Window
+        True <- GLFW.openWindow (uncurryN Size windowDimensions) [] GLFW.Window
 
         GLFW.windowPos $= Position 0 0
-        GLFW.windowTitle $= "Window"
+        GLFW.windowTitle $= windowTitle
 
         initOpenGL
-        -- Set background color
-        clearColor $= toGLColor (Color4 0 175 200 0 :: Color4 GLubyte)
+        let glColor = uncurryN Color4 bgColor
+        clearColor $= toGLColor (glColor :: Color4 GLubyte)
 
         poll <- createEventPoller
 

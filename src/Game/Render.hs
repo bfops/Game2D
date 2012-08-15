@@ -4,8 +4,10 @@ module Game.Render ( Drawable (..)
 import Prelude ()
 import Util.Prelewd
 
+import Game.Object
+import Game.ObjectGroup
 import Game.Physics
-import Game.Types
+import Game.State
 
 import Util.IO
 

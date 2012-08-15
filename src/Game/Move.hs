@@ -10,8 +10,9 @@ import Util.Fraction
 import Util.Impure
 import Util.Range
 
+import Game.Object
+import Game.ObjectGroup
 import Game.Physics
-import Game.Types
 
 data TaggedRange a b = TaggedRange a (Range b)
     deriving Show

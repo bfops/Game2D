@@ -10,7 +10,10 @@ import Util.Impure
 
 import Game.Collision
 import Game.Move
+import Game.Object
+import Game.ObjectGroup
 import Game.Physics
+import Game.State
 import Game.Types
 
 import Config

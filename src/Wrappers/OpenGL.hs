@@ -3,8 +3,8 @@ module Wrappers.OpenGL ( module OGL
                        , ColorDef (..)
                        , magenta
                        , forest
-                       , toGLColor
                        , drawColored
+                       , toGLColor
                        ) where
 
 import Prelude ()
@@ -37,13 +37,16 @@ magenta, forest :: ColorDef c => c
 magenta = pink
 forest = green
 
--- | Colors which can be used to color OpenGL's rendering
+-- | Set the OpenGL color, then call `vertex` on each vertex
+drawColored :: (Color c, Vertex v) => c -> [v] -> IO ()
+drawColored c vs = color c >> mapM_ vertex vs
+ 
+--- | Colors which can be used to color OpenGL's rendering
 class GLColor c where
     toGLColor :: c -> Color4 GLclampf
 
 instance GLColor (Color4 GLubyte) where
-    toGLColor c = (/ 255) . realToFrac <$> c
+    toGLColor c = realToFrac <$> c <&> (/ 255)
 
--- | Set the OpenGL color, then call `vertex` on each vertex
-drawColored :: (Color c, Vertex v) => c -> [v] -> IO ()
-drawColored c vs = color c >> mapM_ vertex vs
+instance GLColor (Color4 GLdouble) where
+    toGLColor c= realToFrac <$> c

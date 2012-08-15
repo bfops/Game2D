@@ -4,7 +4,7 @@ module Game.Collision ( collide
 import Prelude ()
 import Util.Prelewd
 
-import Game.Types
+import Game.Object
 
 collide :: GameObject       -- ^ GameObject to update
         -> GameObject       -- ^ GameObject it collided with
