@@ -11,23 +11,25 @@ To build and run the game, you will need:
 To set up cabal dependencies:
 
     cabal install --only-dependencies
-    cabal configure --enable-tests
+    cabal configure
 
-And then run `cabal install [package ..]` for each unsatisfied dependency.
+If need be, run `cabal install [package ..]` for any unsatisfied dependencies.
 
-# Does it work?
+# Running
 
-To build the package, simply run
+To build the package, run
 
     cabal build
-
-Run the test suite with
-
-    cabal test
 
 After a successful build, the game can be run from
 
     dist/build/Game2D/Game2D
+
+# Tests
+
+To compile with tests, simply add the `--enable-test` flag when configuring. To run the tests, run
+
+    cabal test
 
 # Code Standards #
 
