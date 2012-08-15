@@ -7,6 +7,7 @@ import qualified Physics
 import qualified Indeterminate
 import qualified Fraction
 import qualified Movement
+import qualified Range
 
 main = defaultMain
         [ Queue.test
@@ -14,4 +15,5 @@ main = defaultMain
         , Indeterminate.test
         , Fraction.test
         , Movement.test
+        , Range.test
         ]

@@ -2,15 +2,15 @@ module Instances ( Arbitrary (..)
                  ) where
 
 import Prelude ()
-import Util.Prelewd
+import Util.Prelewd hiding (empty)
 
 import Data.Fixed
 
+import Game.Physics
 import Util.Fraction
+import Util.Range
 
 import Test.QuickCheck hiding (Fixed)
-
-import Game.Physics
 
 instance Arbitrary a => Arbitrary (Vector a) where
     arbitrary = Vector <$> arbitrary <*> arbitrary
@@ -31,3 +31,6 @@ instance Arbitrary Physics where
         where
             arbitrarysize :: (Arbitrary a, Num a) => Gen (Vector a)
             arbitrarysize = (abs <$>)<$> arbitrary
+
+instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
+    arbitrary = maybe empty (\(x, y) -> range (min x y) (max x y)) <$> arbitrary
