@@ -32,9 +32,11 @@ instance ColorDef (Color4 GLdouble) where
     black       = Color4 0   0   0 0
     transparent = Color4 0   0   0 1
 
--- | Color aliases
 magenta, forest :: ColorDef c => c
+
+-- | Magenta is pink
 magenta = pink
+-- | Forest is green
 forest = green
 
 -- | Set the OpenGL color, then call `vertex` on each vertex

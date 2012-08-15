@@ -16,9 +16,9 @@ import Game.Physics
 data TaggedRange a b = TaggedRange a (Range b)
     deriving Show
 
-infToMaybe :: InfNum a -> Maybe a
+infToMaybe :: Indeterminate a -> Maybe a
 infToMaybe Infinite = Nothing
-infToMaybe (Numb x) = Just x
+infToMaybe (Finite x) = Just x
 
 taggedOverlap :: (Show a, Show b, Ord b, Monoid a) => TaggedRange a b -> TaggedRange a b -> TaggedRange a b
 taggedOverlap (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
@@ -45,11 +45,11 @@ collideShift deltaP ph1 ph2 = let
                                 TaggedRange dims rng = foldr1 taggedOverlap $ normalize <$> collides1
                             in maybe ([], 1) ((dims,) . recast) $ start rng
     where
-        recast (Numb x) = x
+        recast (Finite x) = x
         recast Infinite = error "recast parameter should be finite"
 
         -- Chop all time ranges to [0, 1]
-        normalize (TaggedRange t r) = let r' = range (Numb 0) (Numb 1) <> r
+        normalize (TaggedRange t r) = let r' = range (Finite 0) (Finite 1) <> r
                                       in if r' == empty
                                          then TaggedRange mempty empty
                                          else TaggedRange t r'
@@ -58,9 +58,9 @@ collideShift deltaP ph1 ph2 = let
 
         pass1 v x0 x = let t = (x - x0) / v
                        in case compare v 0 of
-                        LT -> range Infinite (Numb t)
+                        LT -> range Infinite (Finite t)
                         EQ -> iff (x0 <= x) empty $ range Infinite Infinite
-                        GT -> range (Numb t) Infinite
+                        GT -> range (Finite t) Infinite
 
 upd1 :: (a -> r) -> (a, b, c) -> (r, b, c)
 upd1 f (a, b, c) = (f a, b, c)
@@ -72,11 +72,11 @@ move :: Position                        -- The movement to make (i.e. delta P)
 move deltaP p = upd1 resolveT . foldr bumpList (Infinite, [], [])
     where
         resolveT Infinite = deltaP
-        resolveT (Numb t) = assert (t >= 0 && t <= 1) $ (realToFrac . (realToFrac t *)) <$> deltaP
+        resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (realToFrac . (realToFrac t *)) <$> deltaP
 
         bumpList iobj acc = keepEarlyColisns iobj acc $ collideShift deltaP p $ val iobj
 
-        keepEarlyColisns obj (c1, collides, dims) (ds, k) = let c2 = Numb k
+        keepEarlyColisns obj (c1, collides, dims) (ds, k) = let c2 = Finite k
                                                             in case compare c1 c2 of
                                                                 LT -> (c1, collides, dims)
                                                                 EQ -> (c2, id obj:collides, ds ++ dims)

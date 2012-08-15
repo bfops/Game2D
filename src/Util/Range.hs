@@ -13,7 +13,7 @@ import Text.Show
 
 import Util.Impure
 
-newtype Range a = Range (Maybe (InfNum a, InfNum a))
+newtype Range a = Range (Maybe (Indeterminate a, Indeterminate a))
     deriving (Eq, Show)
 
 instance Ord a => Monoid (Range a) where
@@ -26,7 +26,7 @@ instance Ord a => Monoid (Range a) where
             overlapExtant r1 r2 = assert (validRange r1 && validRange r2)
                                 $ mcast validRange ((onBoth max `on` fst) r1 r2, (onBoth min `on` snd) r1 r2)
 
-validRange :: Ord a => (InfNum a, InfNum a) -> Bool
+validRange :: Ord a => (Indeterminate a, Indeterminate a) -> Bool
 validRange (t1, t2) = liftA2 (>=) t1 t2 /= pure True
 
 -- | Apply a function across both parameters only if both exist;
@@ -37,11 +37,11 @@ onBoth f x y = (f <$> x <*> y) <|> x <|> y
 empty :: Range a
 empty = Range Nothing
 
-range :: Ord a => InfNum a -> InfNum a -> Range a
+range :: Ord a => Indeterminate a -> Indeterminate a -> Range a
 range x y = Range $ mcast validRange (x, y)
 
-start :: Range a -> Maybe (InfNum a)
+start :: Range a -> Maybe (Indeterminate a)
 start (Range r) = fst <$> r
 
-end :: Range a -> Maybe (InfNum a)
+end :: Range a -> Maybe (Indeterminate a)
 end (Range r) = snd <$> r

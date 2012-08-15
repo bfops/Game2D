@@ -20,8 +20,8 @@ instance (Eq a, Num a, Arbitrary a) => Arbitrary (Fraction a) where
         where
             nonzeroDenominator t = iff (t == 0) 1 t
 
-instance Arbitrary a => Arbitrary (InfNum a) where
-    arbitrary = maybe Infinite Numb <$> arbitrary
+instance Arbitrary a => Arbitrary (Indeterminate a) where
+    arbitrary = maybe Infinite Finite <$> arbitrary
 
 instance HasResolution a => Arbitrary (Fixed a) where
     arbitrary = realToFrac <$> (arbitrary :: Gen Double)

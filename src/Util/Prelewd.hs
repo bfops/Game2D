@@ -1,3 +1,5 @@
+-- | Prelude replacement
+-- Remember to import Prelude () if using this
 module Util.Prelewd ( module Prelude
                     , module Control.Applicative
                     , module Control.Monad
@@ -11,7 +13,7 @@ module Util.Prelewd ( module Prelude
                     , module Data.Ord
                     , module Data.Traversable
                     , module Data.Word
-                    , InfNum (..)
+                    , Indeterminate (..)
                     , apmap
                     , ordEq
                     , mconcat
@@ -124,51 +126,55 @@ import Text.Show
 
 import Util.Impure
 
-data InfNum a = Numb a
-              | Infinite
+-- | Objects with Infinity support
+data Indeterminate a = Finite a
+                     | Infinite
     deriving (Show, Eq)
 
-instance Ord a => Ord (InfNum a) where
-    compare (Numb _) Infinite = LT
+instance Ord a => Ord (Indeterminate a) where
+    compare (Finite _) Infinite = LT
     compare Infinite Infinite = EQ
-    compare Infinite (Numb _) = GT
-    compare (Numb x) (Numb y) = compare x y
+    compare Infinite (Finite _) = GT
+    compare (Finite x) (Finite y) = compare x y
 
-instance Monad InfNum where
-    return = Numb
+instance Monad Indeterminate where
+    return = Finite
     Infinite >>= _ = Infinite
-    (Numb x) >>= f = f x
+    (Finite x) >>= f = f x
 
-instance MonadPlus InfNum where
+instance MonadPlus Indeterminate where
     mzero = empty
     mplus = (<|>)
 
-instance Functor InfNum where
+instance Functor Indeterminate where
     fmap = apmap
 
-instance Applicative InfNum where
+instance Applicative Indeterminate where
     pure = return
     (<*>) = ap
 
-instance Alternative InfNum where
+instance Alternative Indeterminate where
     empty = Infinite
     Infinite <|> x = x
     x <|> _ = x
 
--- Default fmap inmplementation for Monads
+-- | Default fmap inmplementation for Monads
 apmap :: Applicative f => (a -> b) -> f a -> f b
 apmap = (<*>) . pure
 
--- Default == implementation for Ords
+-- | Default == implementation for Ords
 ordEq :: Ord a => a -> a -> Bool
 ordEq x y = compare x y == EQ
 
+-- | Generalized `mconcat`
 mconcat :: (Foldable t, Monoid m) => t m -> m
 mconcat = foldr (<>) mempty
 
+-- | `min` with user-supplied ordering
 minBy :: (a -> a -> Ordering) -> a -> a -> a
 minBy f x y = minimumBy f [x, y]
 
+-- | `max` with user-supplied ordering
 maxBy :: (a -> a -> Ordering) -> a -> a -> a
 maxBy f x y = maximumBy f [x, y]
 
@@ -201,6 +207,7 @@ tail (_:xs) = Just xs
 init :: [a] -> Maybe [a]
 init = Util.Prelewd.tail . reverse
 
+-- | Find and remove the first occurance for which the supplied predicate is true
 deleteBy :: (a -> Bool) -> [a] -> Maybe [a]
 deleteBy _ [] = Nothing
 deleteBy p (x:xs) = iff (p x) (Just xs) $ (x:) <$> deleteBy p xs
@@ -226,11 +233,11 @@ length :: (Integral i, Foldable t) => t a -> i
 length = foldr (const (+1)) 0
 
 -- | Division with integral result
-div :: (Real a, Integral b) => a -> a -> InfNum b
+div :: (Real a, Integral b) => a -> a -> Indeterminate b
 div x y = mcond (y /= 0) $ div' x y
 
 -- | `divMod a b = (div a b, mod a b)`
-divMod :: (Real a, Integral b) => a -> a -> InfNum (b, a)
+divMod :: (Real a, Integral b) => a -> a -> Indeterminate (b, a)
 divMod x y = mcond (y /= 0) $ divMod' x y
 
 -- | Interpret something as a monad
@@ -267,5 +274,6 @@ infixr 9 .$, .:
 (.$) :: (a -> b -> c) -> (r -> b) -> a -> r -> c
 (.$) f g x = f x . g
 
+-- | Composition across two arguments
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (.:) = (.).(.)
