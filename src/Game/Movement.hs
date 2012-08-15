@@ -1,5 +1,5 @@
-module Game.Move ( move
-                 ) where
+module Game.Movement ( move
+                     ) where
 
 import Prelude ()
 import Util.Prelewd hiding (id, empty)
@@ -10,7 +10,6 @@ import Util.Fraction
 import Util.Impure
 import Util.Range
 
-import Game.Object
 import Game.ObjectGroup
 import Game.Physics
 
@@ -34,13 +33,13 @@ taggedOverlap (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
                                 EQ -> x <> y
                                 GT -> x
 
-collideShift :: Position -> GameObject -> GameObject -> ([Dimension], Fraction Coord)
-collideShift deltaP o1 o2 = let
+collideShift :: Position -> Physics -> Physics -> ([Dimension], Fraction Coord)
+collideShift deltaP ph1 ph2 = let
                                 shift = realToFrac <$> deltaP
-                                p1 = realToFrac <$> posn (phys o1)
-                                s1 = realToFrac <$> size (phys o1)
-                                p2 = realToFrac <$> posn (phys o2)
-                                s2 = realToFrac <$> size (phys o2)
+                                p1 = realToFrac <$> posn ph1
+                                s1 = realToFrac <$> size ph1
+                                p2 = realToFrac <$> posn ph2
+                                s2 = realToFrac <$> size ph2
                                 -- Collisions individually in each dimension
                                 collides1 = collideShift1 <$> dimensions <*> shift <*> p1 <*> s1 <*> p2 <*> s2
                                 TaggedRange dims rng = foldr1 taggedOverlap $ normalize <$> collides1
@@ -67,15 +66,15 @@ upd1 :: (a -> r) -> (a, b, c) -> (r, b, c)
 upd1 f (a, b, c) = (f a, b, c)
 
 move :: Position                        -- The movement to make (i.e. delta P)
-     -> GameObject                      -- Object to move
-     -> ObjectGroup                     -- Rest of the objects
+     -> Physics                         -- Object to move
+     -> [KeyPair ID Physics]            -- Rest of the objects
      -> (Position, [ID], [Dimension])   -- The amount the object can be moved, the IDs it collides with, and how it collides
-move deltaP x = upd1 resolveT . foldr bumpList (Infinite, [], [])
+move deltaP p = upd1 resolveT . foldr bumpList (Infinite, [], [])
     where
-        resolveT Infinite = error "Something went infinitely wrong"
+        resolveT Infinite = deltaP
         resolveT (Numb t) = assert (t >= 0 && t <= 1) $ (realToFrac . (realToFrac t *)) <$> deltaP
 
-        bumpList iobj acc = keepEarlyColisns iobj acc $ collideShift deltaP x $ val iobj
+        bumpList iobj acc = keepEarlyColisns iobj acc $ collideShift deltaP p $ val iobj
 
         keepEarlyColisns obj (c1, collides, dims) (ds, k) = let c2 = Numb k
                                                             in case compare c1 c2 of

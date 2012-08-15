@@ -10,11 +10,6 @@ import Test.Framework.TH
 import Test.QuickCheck
 import Test.Framework.Providers.QuickCheck2
 
-instance (Real a, Arbitrary a) => Arbitrary (Fraction a) where
-    arbitrary = frac .$ nonzeroDenominator <$> arbitrary <*> arbitrary
-        where
-            nonzeroDenominator t = iff (t == 0) 1 t
-
 test :: Test
 test = $(testGroupGenerator)
 

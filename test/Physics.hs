@@ -12,8 +12,7 @@ import Test.Framework.TH
 import Test.QuickCheck hiding (vector)
 import Test.Framework.Providers.QuickCheck2
 
-instance Arbitrary a => Arbitrary (Vector a) where
-    arbitrary = Vector <$> arbitrary <*> arbitrary
+import Instances
 
 test :: Test
 test = $(testGroupGenerator)

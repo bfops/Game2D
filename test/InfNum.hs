@@ -8,9 +8,6 @@ import Test.Framework.TH
 import Test.QuickCheck
 import Test.Framework.Providers.QuickCheck2
 
-instance Arbitrary a => Arbitrary (InfNum a) where
-    arbitrary = maybe Infinite Numb <$> arbitrary
-
 test :: Test
 test = $(testGroupGenerator)
 

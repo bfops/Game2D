@@ -26,7 +26,7 @@ test-suite Tests
     hs-source-dirs: test/
                     src/
     main-is:        Test.hs
-    extensions:     TemplateHaskell, FlexibleInstances
+    extensions:     TemplateHaskell, FlexibleInstances, TupleSections
 
     build-depends: 
                     QuickCheck >= 2,

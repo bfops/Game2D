@@ -9,7 +9,7 @@ import Text.Show
 import Util.Impure
 
 import Game.Collision
-import Game.Move
+import Game.Movement
 import Game.Object
 import Game.ObjectGroup
 import Game.Physics
@@ -58,7 +58,7 @@ updateObjPhysics t others = updatePosn others . phys' updateVcty
         updatePosn objs obj = unify $ mapAccumR moveAndCollide (obj, objs) $ isolate 0 $ vcty $ phys obj
 
         unify ((obj, objs), vs) = (phys' (vcty' $ const $ foldr (liftA2 (+)) (pure 0) vs) obj, objs)
-        moveAndCollide (obj, objs) v = let (deltaP, collides, dims) = move ((*t) <$> v) obj objs
+        moveAndCollide (obj, objs) v = let (deltaP, collides, dims) = move ((*t) <$> v) (phys obj) $ val' phys <$> objs
                                        in (enactCollides obj objs deltaP collides, foldr (`setV` 0) v dims)
 
         enactCollides :: GameObject -> ObjectGroup -> Position -> [ID] -> (GameObject, ObjectGroup)
