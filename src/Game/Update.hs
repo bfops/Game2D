@@ -8,14 +8,10 @@ import Text.Show
 
 import Util.Impure
 
+import Game.Collision
 import Game.Move
 import Game.Physics
 import Game.Types
-
-collide :: GameObject       -- ^ GameObject to update
-        -> GameObject       -- ^ GameObject it collided with
-        -> GameObject       -- ^ Updated object
-collide = const
 
 updateInputs :: [Input] -> GameState -> GameState
 updateInputs is = objects' updateObjInputs
