@@ -11,9 +11,17 @@ To build and run the game, you will need:
 To set up cabal dependencies:
 
     cabal install --only-dependencies
+
+# Building
+
+First, configure the project with
+
     cabal configure
 
-If need be, run `cabal install [package ..]` for any unsatisfied dependencies.
+If there are unsatisfied dependencies, run `cabal install [dependency ..]` for each one.
+When the project has been successfully configured, it can be built with
+
+    cabal build
 
 # Running
 
@@ -27,7 +35,8 @@ After a successful build, the game can be run from
 
 # Tests
 
-To compile with tests, simply add the `--enable-test` flag when configuring. To run the tests after a successful build, run
+To compile with tests, simply add the `--enable-test` flag when configuring.
+To run the tests after a successful build, run
 
     cabal test
 
