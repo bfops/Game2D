@@ -15,6 +15,7 @@ import Text.Show
 import Util.Impure
 
 -- | Continuous range
+-- Monoid instances selects the overlap of both ranges
 newtype Range a = Range (Maybe (Indeterminate a, Indeterminate a))
     deriving (Eq, Show)
 
