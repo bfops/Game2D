@@ -27,7 +27,7 @@ After a successful build, the game can be run from
 
 # Tests
 
-To compile with tests, simply add the `--enable-test` flag when configuring. To run the tests, run
+To compile with tests, simply add the `--enable-test` flag when configuring. To run the tests after a successful build, run
 
     cabal test
 
