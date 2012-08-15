@@ -13,9 +13,9 @@ import Wrappers.Events
 import Wrappers.OpenGL as OGL hiding (windowPos)
 import qualified Graphics.UI.GLFW as GLFW
 
-import Game.Logic
 import Game.Render
 import Game.Types
+import Game.Update
 
 import Config
 

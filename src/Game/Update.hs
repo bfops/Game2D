@@ -1,25 +1,16 @@
-module Game.Logic ( initState
-                  , update
-                  ) where
+module Game.Update ( update
+                   ) where
 
 import Prelude ()
 import Util.Prelewd hiding (id, empty)
 
 import Text.Show
 
-import Util.Fraction
 import Util.Impure
-import Util.Range
 
 import Game.Move
 import Game.Physics
 import Game.Types
-
--- | Start state of the game world
-initState :: GameState
-initState = foldr addObject emptyState [ Platform $ Physics (Vector 4 1) (Vector (-3) (-1)) (Vector 0 0) (Vector 0 0)
-                                       , Player $ Physics (Vector 1 2) (Vector (-3) 0) (Vector 0 0) gravity
-                                       ]
 
 collide :: GameObject       -- ^ GameObject to update
         -> GameObject       -- ^ GameObject it collided with
