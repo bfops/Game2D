@@ -1,3 +1,4 @@
+-- | Abstract event wrapper
 module Wrappers.Events ( Event (..)
                        , Button (..)
                        , GLFW.Key (..)
@@ -25,6 +26,7 @@ import Wrappers.STM
 
 import qualified Graphics.UI.GLFW as GLFW
 
+-- | The state of an input device button
 type ButtonState = GLFW.KeyButtonState
 
 -- | Event data structure dictates what events we can accept
@@ -48,10 +50,11 @@ data EventConstraint = ButtonEvents (Maybe Button) (Maybe ButtonState)
                      | CloseEvents
     deriving (Eq, Show)
 
+-- | Poll for specific types of events
 type EventPoller = [EventConstraint] -- ^ Event types to filter for
                  -> IO [Event]
 
--- Push an event into the shared variable.
+-- | Push an event into the shared variable.
 addEvent :: TVar (Queue Event) -> Event -> IO ()
 addEvent es s = void $ atomically $ modifyTVar es $ enq s
 
@@ -69,7 +72,7 @@ createEventPoller = atomically (newTVar mempty) >>= go
             GLFW.mouseButtonCallback $= \b -> addEvent events . ButtonEvent (MouseButton b)
             GLFW.mousePosCallback $= addEvent events . MouseMoveEvent
 
--- True if the maybe is Nothing, or the value it holds matches.
+-- | True if the maybe is Nothing, or the value it holds matches.
 matchesMaybe :: Eq a => a -> Maybe a -> Bool
 matchesMaybe = maybe True . (==)
 

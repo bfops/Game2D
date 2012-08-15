@@ -1,3 +1,4 @@
+-- | Game world tranformations over time
 module Game.Update ( update
                    ) where
 
@@ -63,6 +64,7 @@ updatePhysics t = foldr tryUpdate <*> fmap id . objects
         patch :: GameState -> (GameObject, ObjectGroup) -> GameState
         patch g (obj, objs) = addObject obj $ g { objects = objs }
 
+-- | One update "tick"
 update :: [Input] -> Time -> GameState -> GameState
 update is t g = foldr ($) g
                     [ updateInputs is

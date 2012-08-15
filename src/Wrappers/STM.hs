@@ -1,3 +1,4 @@
+-- | STM wrapper, with some extra/modified functions
 module Wrappers.STM ( module Control.Monad.STM
                     , module Control.Concurrent.STM.TMVar
                     , module Control.Concurrent.STM.TChan

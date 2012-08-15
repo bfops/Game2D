@@ -1,3 +1,4 @@
+-- | For dealing with continuous ranges
 module Util.Range ( Range
                   , empty
                   , range
@@ -13,6 +14,7 @@ import Text.Show
 
 import Util.Impure
 
+-- | Continuous range
 newtype Range a = Range (Maybe (Indeterminate a, Indeterminate a))
     deriving (Eq, Show)
 
@@ -34,14 +36,22 @@ validRange (t1, t2) = liftA2 (>=) t1 t2 /= pure True
 onBoth :: Alternative f => (a -> a -> a) -> f a -> f a -> f a
 onBoth f x y = (f <$> x <*> y) <|> x <|> y
 
+-- | Range with nothing in it
 empty :: Range a
 empty = Range Nothing
 
+-- | Create a range out of its endpoints
 range :: Ord a => Indeterminate a -> Indeterminate a -> Range a
 range x y = Range $ mcast validRange (x, y)
 
+-- | Get the beginning of the range.
+-- A return value of Nothing indicates an empty range,
+-- and a return value of Just Infinite indicate the range begins at negative infinity
 start :: Range a -> Maybe (Indeterminate a)
 start (Range r) = fst <$> r
 
+-- | Get the end of the range.
+-- A return value of Nothing indicates an empty range,
+-- and a return value of Just Infinite indicate the range begins at negative infinity
 end :: Range a -> Maybe (Indeterminate a)
 end (Range r) = snd <$> r

@@ -1,3 +1,4 @@
+-- | Physical movement
 module Game.Movement ( move
                      ) where
 
@@ -65,6 +66,7 @@ collideShift deltaP ph1 ph2 = let
 upd1 :: (a -> r) -> (a, b, c) -> (r, b, c)
 upd1 f (a, b, c) = (f a, b, c)
 
+-- | Retrieve information about a potential object movement
 move :: Position                        -- The movement to make (i.e. delta P)
      -> Physics                         -- Object to move
      -> [KeyPair ID Physics]            -- Rest of the objects

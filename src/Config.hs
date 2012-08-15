@@ -3,8 +3,8 @@ module Config ( viewDist
               , initState
               , jumpSpeed
               , moveSpeed
-              , windowTitle
-              , windowDimensions
+              , title
+              , windowSize
               , bgColor
               ) where
 
@@ -22,17 +22,22 @@ initState = foldr addObject emptyState [ Platform $ Physics (Vector 4 1) (Vector
                                        , Player $ Physics (Vector 1 2) (Vector (-3) 0) (Vector 0 0) gravity
                                        ]
 
+-- | Speed boost for a jump
 jumpSpeed :: Coord
 jumpSpeed = 12
 
+-- | Speed boost for movement
 moveSpeed :: Coord
 moveSpeed = 8
 
-windowTitle :: String
-windowTitle = "Game"
+-- | Title of the game window
+title :: String
+title = "Game"
 
-windowDimensions :: Integral a => (a, a)
-windowDimensions = (800, 600)
+-- | Dimensions of the game window
+windowSize :: Integral a => (a, a)
+windowSize = (800, 600)
 
+-- | Background color
 bgColor :: Num a => (a, a, a, a)
 bgColor = (0, 175, 200, 0)

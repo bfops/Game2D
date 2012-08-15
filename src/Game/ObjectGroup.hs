@@ -1,3 +1,4 @@
+-- | Functions and data structures for dealing with a world of objects
 module Game.ObjectGroup ( ObjectGroup
                         , UniqueObject
                         , ID
@@ -19,15 +20,20 @@ data KeyPair a b = KeyPair { id :: a
                            }
     deriving Show
 
+-- | Transform id
 id' :: (a -> r) -> KeyPair a b -> KeyPair r b
 id' f (KeyPair a b) = KeyPair (f a) b
 
+-- | Transform value
 val' :: (b -> r) -> KeyPair a b -> KeyPair a r
 val' f (KeyPair a b) = KeyPair a (f b)
 
 instance (Eq a) => Eq (KeyPair a b) where
     (==) = (==) `on` id
 
+-- | Unique identifier
 type ID = Integer
+-- | Uniquely identified object
 type UniqueObject = KeyPair ID GameObject
+-- | World of objects
 type ObjectGroup = [UniqueObject]

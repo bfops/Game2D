@@ -1,3 +1,4 @@
+-- | Less restrictive than Data.Ratio
 module Util.Fraction ( Fraction
                      , frac
                      ) where
@@ -10,9 +11,11 @@ import Text.Show
 
 import Util.Impure
 
+-- | Numerator and denominator
 data Fraction a = Frac a a
     deriving (Show)
 
+-- | Construct a numeric fraction with a nonzero denominator
 frac :: (Eq a, Num a) => a -> a -> Fraction a
 frac _ 0 = error "Cannot reciprocate 0"
 frac x y = Frac x y

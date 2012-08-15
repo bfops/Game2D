@@ -1,3 +1,4 @@
+-- | Main module, entry point
 module Main (main) where
 
 import Prelude ()
@@ -117,13 +118,14 @@ mainLoop poll s0 = isOpen poll >>= bool (return ()) runLoop
 getInitState :: IO State
 getInitState = State initState <$> get GLFW.time
 
+-- | Run the program
 main :: IO ()
 main = do
         True <- GLFW.initialize
-        True <- GLFW.openWindow (uncurryN Size windowDimensions) [] GLFW.Window
+        True <- GLFW.openWindow (uncurryN Size windowSize) [] GLFW.Window
 
         GLFW.windowPos $= Position 0 0
-        GLFW.windowTitle $= windowTitle
+        GLFW.windowTitle $= title
 
         initOpenGL
         let glColor = uncurryN Color4 bgColor

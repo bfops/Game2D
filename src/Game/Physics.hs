@@ -53,24 +53,31 @@ data Physics = Physics
         }
     deriving (Show)
 
+-- | Transform size
 size' :: (Size -> Size) -> Physics -> Physics
 size' f p = p { size = f (size p) }
 
+-- | Transform position
 posn' :: (Position -> Position) -> Physics -> Physics
 posn' f p = p { posn = f (posn p) }
 
+-- | Transform velocity
 vcty' :: (Velocity -> Velocity) -> Physics -> Physics
 vcty' f p = p { vcty = f (vcty p) }
 
+-- | Transform acceleration
 accl' :: (Acceleration -> Acceleration) -> Physics -> Physics
 accl' f p = p { accl = f (accl p) }
 
+-- | Acceleration due to gravity
 gravity :: Acceleration
 gravity = Vector 0 (-32)
 
+-- | Physical dimensions in the game
 data Dimension = Width | Height
     deriving (Eq, Enum, Bounded, Show)
 
+-- | Vector associating each dimension to a vector index
 dimensions :: Vector Dimension
 dimensions = vector [minBound..maxBound]
 
@@ -96,6 +103,7 @@ instance Traversable Vector where
 
 -- | Constant-size, homogenous types
 class VectorLike v where
+    -- | Convert to a vector
     vector :: v a -> Vector a
 
 instance VectorLike [] where
