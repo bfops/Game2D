@@ -15,6 +15,7 @@ import qualified Graphics.UI.GLFW as GLFW
 
 import Game.Logic
 import Game.Render
+import Game.Types
 
 import Config
 

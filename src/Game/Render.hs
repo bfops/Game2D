@@ -4,11 +4,10 @@ module Game.Render ( Drawable (..)
 import Prelude ()
 import Util.Prelewd
 
-import Game.Logic
 import Game.Physics
-import Util.IO
+import Game.Types
 
-import Types
+import Util.IO
 
 import Wrappers.OpenGL
 
@@ -22,7 +21,7 @@ class Drawable d where
     draw :: d -> IO ()
 
 instance Drawable GameState where
-    draw (GameState { objects = objs }) = mapM_ (draw . val) objs
+    draw = mapM_ (draw . val) . objects
 
 -- | `draw c o` draws `o` as a quadrilateral, based on its position and size.
 drawQuad :: Color4 GLdouble -> GameObject -> IO ()

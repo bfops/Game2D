@@ -1,11 +1,11 @@
-module Vector (test) where
+module Physics (test) where
 
 import Prelude ()
 import Util.Prelewd
 
 import Text.Show
 
-import Types
+import Game.Physics
 
 import Test.Framework
 import Test.Framework.TH
