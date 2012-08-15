@@ -32,11 +32,9 @@ instance ColorDef (Color4 GLdouble) where
     black       = Color4 0   0   0 0
     transparent = Color4 0   0   0 1
 
+-- | Color renames
 magenta, forest :: ColorDef c => c
-
--- | Magenta is pink
 magenta = pink
--- | Forest is green
 forest = green
 
 -- | Set the OpenGL color, then call `vertex` on each vertex
@@ -45,6 +43,7 @@ drawColored c vs = color c >> mapM_ vertex vs
  
 --- | Colors which can be used to color OpenGL's rendering
 class GLColor c where
+    -- | Convert to an OpenGL color
     toGLColor :: c -> Color4 GLclampf
 
 instance GLColor (Color4 GLubyte) where

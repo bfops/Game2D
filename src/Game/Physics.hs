@@ -1,3 +1,4 @@
+-- | Functions and data structures for dealing with physical game aspects
 module Game.Physics ( Size
                     , Position
                     , Velocity
@@ -29,14 +30,21 @@ import Text.Show
 
 import Util.Impure
 
+-- | Coordinate type
 type Coord = Milli
+-- | Time measurement
 type Time = Coord
 
+-- | Object size
 type Size = Vector Coord
+-- | Object position
 type Position = Vector Coord
+-- | Object velocity
 type Velocity = Vector Coord
+-- | Object acceleration
 type Acceleration = Vector Coord
 
+-- | Collection of physical properties for an object
 data Physics = Physics
         { size  :: Size
         , posn  :: Position
