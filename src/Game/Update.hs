@@ -45,10 +45,7 @@ extract i (obj:objs) = if i == id obj
                        else ((obj:) <$>)<$> extract i objs
 
 isolate :: a -> Vector a -> Vector (Vector a)
-isolate zero = liftA2 (\d x -> setV d x $ pure zero) dimensions
-
-setV :: Dimension -> a -> Vector a -> Vector a
-setV d1 x = liftA2 (\d2 -> iff (d1 == d2) x) dimensions
+isolate zero = liftA2 (singleV zero) dimensions
 
 -- | One advancement of physics
 updateObjPhysics :: Time -> ObjectGroup -> GameObject -> (GameObject, ObjectGroup)

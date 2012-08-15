@@ -10,10 +10,12 @@ module Game.Physics ( Size
                     , vcty'
                     , accl'
                     , gravity
+                    , Dimension (..)
+                    , dimensions
                     , Vector (..)
                     , VectorLike (..)
-                    , Dimension
-                    , dimensions
+                    , setV
+                    , singleV
                     , shorter
                     , magnitude
                     , dot
@@ -91,6 +93,14 @@ class VectorLike v where
 instance VectorLike [] where
     vector (x:y:_) = Vector x y
     vector _ = error "List too small"
+
+-- | Set one dimension of a vector
+setV :: Dimension -> a -> Vector a -> Vector a
+setV d x = liftA2 (\d' -> iff (d == d') x) dimensions
+
+-- | Construct a vector with one element different from the others
+singleV :: a -> Dimension -> a -> Vector a
+singleV zero d x = setV d x $ pure zero
 
 -- | Return the shorter of the two vectors
 shorter :: (Num a, Ord a) => Vector a -> Vector a -> Vector a
