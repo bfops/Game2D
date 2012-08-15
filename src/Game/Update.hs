@@ -13,6 +13,8 @@ import Game.Move
 import Game.Physics
 import Game.Types
 
+import Config
+
 updateInputs :: [Input] -> GameState -> GameState
 updateInputs is = objects' updateObjInputs
     where
@@ -21,12 +23,12 @@ updateInputs is = objects' updateObjInputs
 
         -- The object update function for a given input
         updateF :: Input -> GameObject -> GameObject
-        updateF Jump = ifPlayer $ addVcty $ Vector 0 8
+        updateF Jump = ifPlayer $ addVcty $ Vector 0 jumpSpeed
         updateF (Move d) = ifPlayer $ addVcty $ moveVcty d
 
         ifPlayer f obj = if' (isPlayer obj) f obj
 
-        moveVcty Right = Vector 8 0
+        moveVcty Right = Vector moveSpeed 0
         moveVcty Left = negate <$> moveVcty Right
         moveVcty _ = pure 0
 

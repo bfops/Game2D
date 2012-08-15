@@ -1,6 +1,8 @@
 -- | Settings are stored in this module
 module Config ( viewDist
               , initState
+              , jumpSpeed
+              , moveSpeed
               ) where
 
 import Game.Physics
@@ -15,3 +17,9 @@ initState :: GameState
 initState = foldr addObject emptyState [ Platform $ Physics (Vector 4 1) (Vector (-3) (-1)) (Vector 0 0) (Vector 0 0)
                                        , Player $ Physics (Vector 1 2) (Vector (-3) 0) (Vector 0 0) gravity
                                        ]
+
+jumpSpeed :: Coord
+jumpSpeed = 12
+
+moveSpeed :: Coord
+moveSpeed = 8
