@@ -7,9 +7,9 @@ import Control.Arrow
 import Control.Concurrent
 import Data.Tuple.Curry
 
+import Game.Input
 import Game.Render
 import Game.State
-import Game.Types
 import Game.Update
 import Util.Impure
 import Util.IO
@@ -85,8 +85,8 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
         keys = fmap (first CharKey)
                 [ (' ', Jump)
                 , ('W', Jump)
-                , ('A', Move Left)
-                , ('D', Move Right)
+                , ('A', Left)
+                , ('D', Right)
                 ]
 
 -- | Update the program state with input and time elapsed

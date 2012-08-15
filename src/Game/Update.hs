@@ -9,34 +9,18 @@ import Text.Show
 import Util.Impure
 
 import Game.Collision
+import Game.Input
 import Game.Movement
 import Game.Object
 import Game.ObjectGroup
 import Game.Physics
 import Game.State
-import Game.Types
-
-import Config
 
 updateInputs :: [Input] -> GameState -> GameState
 updateInputs is = objects' updateObjInputs
     where
         updateObjInputs objs = foldr updateInputAll objs is
-        updateInputAll i objs = val' (updateF i) <$> objs
-
-        -- The object update function for a given input
-        updateF :: Input -> GameObject -> GameObject
-        updateF Jump = ifPlayer $ addVcty $ Vector 0 jumpSpeed
-        updateF (Move d) = ifPlayer $ addVcty $ moveVcty d
-
-        ifPlayer f obj = if' (isPlayer obj) f obj
-
-        moveVcty Right = Vector moveSpeed 0
-        moveVcty Left = negate <$> moveVcty Right
-        moveVcty _ = pure 0
-
-        addVcty :: Velocity -> GameObject -> GameObject
-        addVcty v = phys' $ vcty' $ liftA2 (+) v
+        updateInputAll i objs = val' (objInput i) <$> objs
 
 extract :: ID -> ObjectGroup -> Maybe (UniqueObject, ObjectGroup)
 extract _ [] = Nothing
