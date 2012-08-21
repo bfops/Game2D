@@ -74,6 +74,7 @@ module Util.Prelewd ( module Prelude
                     , zipWith
                     , (++)
                     , unzip
+                    , sequence
                     ) where
 
 import Prelude ( Int
@@ -119,7 +120,7 @@ import Data.Int
 import Data.Maybe
 import Data.Monoid hiding (mconcat)
 import Data.Ord
-import Data.Traversable
+import Data.Traversable hiding (sequence)
 import Data.Word
 
 import Test.QuickCheck hiding (Fixed)
@@ -284,3 +285,6 @@ infixr 9 .$, .:
 -- | Composition across two arguments
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (.:) = (.).(.)
+
+sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
+sequence = sequenceA

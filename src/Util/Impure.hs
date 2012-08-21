@@ -6,13 +6,14 @@ module Util.Impure ( module T
                    , error
                    , withTrace
                    , force
+                   , assert'
                    ) where
 
-import Prelude (seq, ($!), error)
+import Prelude
 
 import Control.Exception as E
+import Control.Monad.Instances ()
 import Debug.Trace as T hiding (putTraceMsg)
-import Text.Show
 
 -- | Traces and returns its argument
 withTrace :: Show a => a -> a
@@ -21,3 +22,6 @@ withTrace x = traceShow x x
 -- | `force x = seq x x`
 force :: a -> a
 force x = seq x x
+
+assert' :: (a -> Bool) -> a -> a
+assert' = (=<<) assert
