@@ -3,23 +3,28 @@ module Game.Physics ( Size
                     , Position
                     , Velocity
                     , Acceleration
+                    , Distance
+                    , Speed
+                    , ScalarAccel
                     , Coord
                     , Time
+                    , DeltaP
+                    , DeltaV
                     , Physics (..)
                     , size'
                     , posn'
                     , vcty'
                     , accl'
-                    , gravity
                     ) where
 
 import Prelude ()
 import Util.Prelewd
 
 import Data.Fixed
+
+import Test.QuickCheck
 import Text.Show
 
-import Util.Impure
 import Game.Vector
 
 -- | Coordinate type
@@ -27,14 +32,20 @@ type Coord = Milli
 -- | Time measurement
 type Time = Coord
 
--- | Object size
-type Size = Vector Coord
--- | Object position
-type Position = Vector Coord
--- | Object velocity
-type Velocity = Vector Coord
--- | Object acceleration
-type Acceleration = Vector Coord
+newtype Distance = Dist Coord
+    deriving (Eq, Show, Num, Ord, Real, Fractional, Arbitrary)
+newtype Speed = Speed Coord
+    deriving (Eq, Show, Num, Ord, Real, Fractional, Arbitrary)
+newtype ScalarAccel = SAccel Coord
+    deriving (Eq, Show, Num, Ord, Real, Fractional, Arbitrary)
+
+type Size = Vector Distance
+type Position = Vector Distance
+type Velocity = Vector Speed
+type Acceleration = Vector ScalarAccel
+
+type DeltaP = Vector Distance
+type DeltaV = Vector Speed
 
 -- | Collection of physical properties for an object
 data Physics = Physics
@@ -63,6 +74,3 @@ vcty' f p = p { vcty = f (vcty p) }
 -- | Transform acceleration
 accl' :: (Acceleration -> Acceleration) -> Physics -> Physics
 accl' f p = p { accl = f (accl p) }
-
-gravity :: Acceleration
-gravity = Vector 0 (-32)

@@ -22,8 +22,8 @@ infToMaybe :: Indeterminate a -> Maybe a
 infToMaybe Infinite = Nothing
 infToMaybe (Finite x) = Just x
 
-taggedOverlap :: (Show a, Show b, Ord b, Monoid a) => TaggedRange a b -> TaggedRange a b -> TaggedRange a b
-taggedOverlap (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
+overlapTagged :: (Show a, Show b, Ord b, Monoid a) => TaggedRange a b -> TaggedRange a b -> TaggedRange a b
+overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
                                                           tag = if rng == empty
                                                                 then mempty
                                                                 -- This quite rightly causes an error when it fails
@@ -35,17 +35,12 @@ taggedOverlap (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
                                 EQ -> x <> y
                                 GT -> x
 
-collideShift :: Position -> Physics -> Physics -> ([Dimension], Fraction Coord)
-collideShift deltaP ph1 ph2 = let
-                                shift = realToFrac <$> deltaP
-                                p1 = realToFrac <$> posn ph1
-                                s1 = realToFrac <$> size ph1
-                                p2 = realToFrac <$> posn ph2
-                                s2 = realToFrac <$> size ph2
-                                -- Collisions individually in each dimension
-                                collides1 = collideShift1 <$> dimensions <*> shift <*> p1 <*> s1 <*> p2 <*> s2
-                                TaggedRange dims rng = foldr1 taggedOverlap $ normalize <$> collides1
-                            in maybe ([], 1) ((dims,) . recast) $ start rng
+shift :: DeltaP -> Physics -> Physics -> ([Dimension], Fraction Coord)
+shift shiftV ph1 ph2 = let
+                           -- Collisions individually in each dimension
+                           collides1 = shift1 <$> dimensions <*> shiftV <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
+                           TaggedRange dims rng = foldr1 overlapTagged $ normalize <$> collides1
+                     in maybe ([], 1) ((dims,) . recast) $ start rng
     where
         recast (Finite x) = x
         recast Infinite = error "recast parameter should be finite"
@@ -56,9 +51,12 @@ collideShift deltaP ph1 ph2 = let
                                          then TaggedRange mempty empty
                                          else TaggedRange t r'
 
-        collideShift1 d shift x1 w1 x2 w2 = TaggedRange [d] $ pass1 shift (x1 + w1) x2 <> pass1 (negate shift) (x2 + w2) x1
+        -- Range of time during which the line (x1, w1) moving at shift towards overlaps (x2, w2)
+        shift1 d v x1 w1 x2 w2 = TaggedRange [d] $ pass1 v (x1 + w1) x2 <> pass1 (negate v) (x2 + w2) x1
 
-        pass1 v x0 x = let t = (x - x0) / v
+        -- Range of time during which the point x0, moving at v, is on the right side of x
+        pass1 :: Distance -> Distance -> Distance -> Range (Fraction Time)
+        pass1 v x0 x = let t = ((-) `on` realToFrac) x x0 / realToFrac v
                        in case compare v 0 of
                         LT -> range Infinite (Finite t)
                         EQ -> iff (x0 <= x) empty $ range Infinite Infinite
@@ -68,16 +66,16 @@ upd1 :: (a -> r) -> (a, b, c) -> (r, b, c)
 upd1 f (a, b, c) = (f a, b, c)
 
 -- | Retrieve information about a potential object movement
-move :: Position                        -- The movement to make (i.e. delta P)
-     -> Physics                         -- Object to move
-     -> [KeyPair ID Physics]            -- Rest of the objects
-     -> (Position, [ID], [Dimension])   -- The amount the object can be moved, the IDs it collides with, and how it collides
-move deltaP p = upd1 resolveT . foldr bumpList (Infinite, [], [])
+move :: DeltaP                      -- The movement to make (i.e. delta P)
+     -> Physics                     -- Object to move
+     -> [KeyPair ID Physics]        -- Rest of the objects
+     -> (DeltaP, [ID], [Dimension]) -- The amount the object can be moved, the IDs it collides with, and how it collides
+move shiftVector p = upd1 resolveT . foldr bumpList (Infinite, [], [])
     where
-        resolveT Infinite = deltaP
-        resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (realToFrac . (realToFrac t *)) <$> deltaP
+        resolveT Infinite = shiftVector
+        resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (realToFrac t *) <$> shiftVector
 
-        bumpList iobj acc = keepEarlyColisns iobj acc $ collideShift deltaP p $ val iobj
+        bumpList iobj acc = keepEarlyColisns iobj acc $ shift shiftVector p $ val iobj
 
         keepEarlyColisns obj (c1, collides, dims) (ds, k) = let c2 = Finite k
                                                             in case compare c1 c2 of

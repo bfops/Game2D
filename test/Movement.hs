@@ -21,5 +21,5 @@ import Test.Framework.Providers.QuickCheck2
 test :: Test
 test = $(testGroupGenerator)
 
-prop_emptyMove :: (Physics, Position) -> Bool
+prop_emptyMove :: (Physics, DeltaP) -> Bool
 prop_emptyMove (p, shift) = move shift p [] == (shift, [], [])

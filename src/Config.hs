@@ -29,12 +29,16 @@ initState = foldr addObject emptyState [ Platform $ Physics (toVec [4, 1]) (toVe
                                        ]
 
 -- | Speed boost for a jump
-jumpSpeed :: Coord
+jumpSpeed :: Speed
 jumpSpeed = 12
 
 -- | Speed boost for movement
-moveSpeed :: Coord
+moveSpeed :: Speed
 moveSpeed = 8
+
+-- | Acceleration due to gravity
+gravity :: Acceleration
+gravity = singleV 0 Height (-32)
 
 -- | Title of the game window
 title :: String
