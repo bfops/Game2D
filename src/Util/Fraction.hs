@@ -7,6 +7,8 @@ import Prelude ()
 import Util.Prelewd
 
 import Data.Ratio
+
+import Test.QuickCheck
 import Text.Show
 
 import Util.Impure
@@ -49,3 +51,6 @@ instance (Num a, Ord a) => Ord (Fraction a) where
     compare (Frac a1 a2) (Frac b1 b2) = if' (a2 < 0) flipOrd
                                       $ if' (b2 < 0) flipOrd
                                       $ compare (a1 * b2) (b1 * a2)
+
+instance (Eq a, Num a, Arbitrary a) => Arbitrary (Fraction a) where
+    arbitrary = frac <$> arbitrary <*> (bool 1 <*> (/= 0) <$> arbitrary)

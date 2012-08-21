@@ -9,6 +9,7 @@ import Game.Object
 import Game.ObjectGroup
 import Game.Physics
 import Game.State
+import Game.Vector
 
 import Util.IO
 
@@ -16,7 +17,7 @@ import Wrappers.OpenGL
 
 -- | Convert the game's vector to an OpenGL coordinate
 toGLVertex :: Real a => Vector a -> Vertex2 GLdouble
-toGLVertex (Vector x y) = on Vertex2 realToFrac x y
+toGLVertex v = on Vertex2 realToFrac (component Width v) (component Height v)
 
 -- | Things which can be drawn
 class Drawable d where

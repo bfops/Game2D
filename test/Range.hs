@@ -13,8 +13,6 @@ import Test.QuickCheck
 import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2
 
-import Instances
-
 test :: Test
 test = $(testGroupGenerator)
 

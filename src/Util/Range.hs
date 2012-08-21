@@ -10,6 +10,8 @@ import Prelude ()
 import Util.Prelewd hiding (empty)
 
 import Data.Tuple
+
+import Test.QuickCheck
 import Text.Show
 
 import Util.Impure
@@ -28,6 +30,9 @@ instance Ord a => Monoid (Range a) where
             -- Overlap nonempty ranges
             overlapExtant r1 r2 = assert (validRange r1 && validRange r2)
                                 $ mcast validRange ((onBoth max `on` fst) r1 r2, (onBoth min `on` snd) r1 r2)
+
+instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
+    arbitrary = maybe empty (\(x, y) -> range (min x y) (max x y)) <$> arbitrary
 
 validRange :: Ord a => (Indeterminate a, Indeterminate a) -> Bool
 validRange (t1, t2) = liftA2 (>=) t1 t2 /= pure True

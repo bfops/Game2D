@@ -12,6 +12,7 @@ import Util.Impure
 
 import Game.Object
 import Game.Physics
+import Game.Vector
 
 import Config
 

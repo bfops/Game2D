@@ -13,6 +13,7 @@ import Util.Range
 
 import Game.ObjectGroup
 import Game.Physics
+import Game.Vector
 
 data TaggedRange a b = TaggedRange a (Range b)
     deriving Show

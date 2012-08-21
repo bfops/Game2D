@@ -16,6 +16,7 @@ import Game.Object
 import Game.ObjectGroup
 import Game.Physics
 import Game.State
+import Game.Vector
 
 updateInputs :: [Input] -> GameState -> GameState
 updateInputs is = objects' updateObjInputs

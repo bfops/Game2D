@@ -122,9 +122,13 @@ import Data.Ord
 import Data.Traversable
 import Data.Word
 
+import Test.QuickCheck hiding (Fixed)
 import Text.Show
 
 import Util.Impure
+
+instance HasResolution a => Arbitrary (Fixed a) where
+    arbitrary = realToFrac <$> (arbitrary :: Gen Double)
 
 -- | Objects with Infinity support
 data Indeterminate a = Finite a
@@ -157,6 +161,9 @@ instance Alternative Indeterminate where
     empty = Infinite
     Infinite <|> x = x
     x <|> _ = x
+
+instance Arbitrary a => Arbitrary (Indeterminate a) where
+    arbitrary = maybe Infinite Finite <$> arbitrary
 
 -- | Default fmap inmplementation for Monads
 apmap :: Applicative f => (a -> b) -> f a -> f b
