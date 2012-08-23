@@ -22,22 +22,22 @@ viewDist = 16
 
 -- | Start state of the game world
 initState :: GameState
-initState = foldr addObject emptyState [ Platform $ Physics (toPosn [4, 1]) (toPosn [-3, -1]) (pure $ speed 0) (pure $ accel 0)
-                                       , Player   $ Physics (toPosn [1, 2]) (toPosn [-3, 0])  (pure $ speed 0) gravity
+initState = foldr addObject emptyState [ Platform $ Physics (toPosn [4, 1]) (toPosn [-3, -1]) 0 0
+                                       , Player   $ Physics (toPosn [1, 2]) (toPosn [-3, 0])  0 gravity
                                        ]
-    where toPosn = vector (dist 0) . zip (toList dimensions) . fmap dist
+    where toPosn = fmap dist . vector 0 . zip (toList dimensions)
 
 -- | Speed boost for a jump
 jumpSpeed :: Speed
-jumpSpeed = speed 12
+jumpSpeed = 12
 
 -- | Speed boost for movement
 moveSpeed :: Speed
-moveSpeed = speed 8
+moveSpeed = 8
 
 -- | Acceleration due to gravity
 gravity :: Vector Acceleration
-gravity = accel <$> singleV 0 Height (-32)
+gravity = singleV 0 Height (-32)
 
 -- | Title of the game window
 title :: String

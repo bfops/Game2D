@@ -38,11 +38,11 @@ updateObjPhysics :: Time -> ObjectGroup -> GameObject -> (GameObject, ObjectGrou
 updateObjPhysics t others = updatePosn others . phys' updateVcty
     where
         updateVcty p = p { vcty = vcty p + ((t*) <$> accl p) }
-        updatePosn objs obj = unify $ mapAccumR moveAndCollide (obj, objs) $ isolate (speed 0) $ vcty $ phys obj
+        updatePosn objs obj = unify $ mapAccumR moveAndCollide (obj, objs) $ isolate 0 $ vcty $ phys obj
 
         unify ((obj, objs), vs) = (phys' (vcty' $ const $ sum vs) obj, objs)
         moveAndCollide (obj, objs) v = let (shiftV, collides, dims) = move ((t*) <$> v) (phys obj) $ val' phys <$> objs
-                                       in (enactCollides obj objs shiftV collides, foldr (`setV` speed 0) v dims)
+                                       in (enactCollides obj objs shiftV collides, foldr (`setV` 0) v dims)
 
         enactCollides :: GameObject -> ObjectGroup -> Position -> [ID] -> (GameObject, ObjectGroup)
         enactCollides obj objs shiftV collides = foldr findAndHit (makeMove shiftV obj, objs) collides
