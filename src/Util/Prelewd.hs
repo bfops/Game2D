@@ -36,8 +36,10 @@ module Util.Prelewd ( module Prelude
                     , ifm
                     , (!)
                     , (<&>)
+                    , (.)
+                    , (.^)
                     , (.$)
-                    , (.:)
+                    , ($$)
                     , null
                     , reverse
                     , intersperse
@@ -75,6 +77,7 @@ module Util.Prelewd ( module Prelude
                     , (++)
                     , unzip
                     , sequence
+                    , onBoth
                     ) where
 
 import Prelude ( Int
@@ -114,7 +117,7 @@ import Data.Either
 import Data.Eq
 import Data.Fixed
 import Data.Foldable hiding (concat)
-import Data.Function hiding (fix)
+import Data.Function hiding (fix, (.))
 import Data.List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy, concat, deleteBy, foldr1)
 import Data.Int
 import Data.Maybe
@@ -261,7 +264,7 @@ mcond :: MonadPlus m
                 -- Otherwise, return the value.
       -> a      -- ^ Value to make into a monad.
       -> m a
-mcond = ifm .$ return
+mcond = ifm .^ return
 
 -- | Conditionally nullify a monad
 ifm :: MonadPlus m
@@ -272,19 +275,33 @@ ifm :: MonadPlus m
 ifm = (>>) . guard
 
 infixl 4 <&>
-infixr 9 .$, .:
 
 -- | `(<$>)` with arguments interchanged
 (<&>) :: Functor f => f a -> (a -> b) -> f b
 (<&>) = flip (<$>)
 
+infixl 9 ., .^
+infixl 8 .$, $$
+
+-- | `(f . g) x = f (g x)`
+(.) :: (b -> c) -> (a -> b) -> (a -> c)
+(.) = fmap
+
 -- | `(f .$ g) x y = f x (g y)`
-(.$) :: (a -> b -> c) -> (r -> b) -> a -> r -> c
-(.$) f g x = f x . g
+(.^) :: (a -> b -> c) -> (r -> b) -> a -> r -> c
+(.^) f g x = f x . g
 
 -- | Composition across two arguments
-(.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
-(.:) = (.).(.)
+(.$) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
+(.$) = (.).(.)
+
+($$) :: (x -> y -> a -> r) -> (x -> y -> a) -> x -> y -> r
+($$) f g x = f x <*> g x
 
 sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
 sequence = sequenceA
+
+-- | Apply a function across both parameters only if both exist;
+-- otherwise default to the extant one
+onBoth :: Alternative f => (a -> a -> a) -> f a -> f a -> f a
+onBoth f x y = (f <$> x <*> y) <|> x <|> y

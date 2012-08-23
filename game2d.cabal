@@ -19,6 +19,7 @@ Executable Game2D
                     GLFW,
                     stm,
                     tuple,
+                    containers,
                     QuickCheck >= 2,
                     base
 
@@ -36,5 +37,6 @@ test-suite Tests
                     test-framework-hunit,
                     test-framework-th,
                     test-framework,
+                    containers,
                     Cabal,
                     base

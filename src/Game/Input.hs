@@ -29,8 +29,8 @@ objInput Left =  addPlayerVcty $ negate <$> moveVcty
 objInput Right = addPlayerVcty $ moveVcty
 
 moveVcty, jumpVcty :: Velocity
-moveVcty = assert (moveSpeed >= 0) $ singleV 0 Width moveSpeed
-jumpVcty = assert (jumpSpeed >= 0) $ singleV 0 Height jumpSpeed
+moveVcty = assert (moveSpeed >= 0) $ singleV (speed 0) Width moveSpeed
+jumpVcty = assert (jumpSpeed >= 0) $ singleV (speed 0) Height jumpSpeed
 
 -- | Add a velocity iff the object is a player
 addPlayerVcty :: Velocity -> GameObject -> GameObject

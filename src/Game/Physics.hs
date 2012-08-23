@@ -1,20 +1,23 @@
 -- | Functions and data structures for dealing with physical game aspects
-module Game.Physics ( Size
-                    , Position
-                    , Velocity
-                    , Acceleration
+module Game.Physics ( Units (..)
+                    , PhysicsValue
+                    , Scalar
+                    , Mass
+                    , Time
                     , Distance
                     , Speed
-                    , ScalarAccel
-                    , Coord
-                    , Time
-                    , DeltaP
-                    , DeltaV
+                    , Acceleration
+                    , Size
+                    , Position
+                    , Velocity
                     , Physics (..)
                     , size'
                     , posn'
                     , vcty'
                     , accl'
+                    , dist
+                    , speed
+                    , accel
                     ) where
 
 import Prelude ()
@@ -26,33 +29,32 @@ import Test.QuickCheck
 import Text.Show
 
 import Game.Vector
+import Util.Unit
 
--- | Coordinate type
-type Coord = Milli
--- | Time measurement
-type Time = Coord
+data Units = Mass | Size | Time
+    deriving (Show, Eq, Enum, Bounded, Ord)
 
-newtype Distance = Dist Coord
-    deriving (Eq, Show, Num, Ord, Real, Fractional, Arbitrary)
-newtype Speed = Speed Coord
-    deriving (Eq, Show, Num, Ord, Real, Fractional, Arbitrary)
-newtype ScalarAccel = SAccel Coord
-    deriving (Eq, Show, Num, Ord, Real, Fractional, Arbitrary)
+instance Arbitrary Units where
+    arbitrary = elements [minBound..maxBound]
+
+type PhysicsValue = Unit Units Milli
+type Scalar = PhysicsValue
+type Mass = PhysicsValue
+type Time = PhysicsValue
+type Distance = PhysicsValue
+type Speed = PhysicsValue
+type Acceleration = PhysicsValue
 
 type Size = Vector Distance
 type Position = Vector Distance
 type Velocity = Vector Speed
-type Acceleration = Vector ScalarAccel
-
-type DeltaP = Vector Distance
-type DeltaV = Vector Speed
 
 -- | Collection of physical properties for an object
 data Physics = Physics
         { size  :: Size
         , posn  :: Position
         , vcty  :: Velocity
-        , accl  :: Acceleration
+        , accl  :: Vector Acceleration
         }
     deriving (Show)
 
@@ -72,5 +74,11 @@ vcty' :: (Velocity -> Velocity) -> Physics -> Physics
 vcty' f p = p { vcty = f (vcty p) }
 
 -- | Transform acceleration
-accl' :: (Acceleration -> Acceleration) -> Physics -> Physics
+accl' :: (Vector Acceleration -> Vector Acceleration) -> Physics -> Physics
 accl' f p = p { accl = f (accl p) }
+
+dist, speed, accel :: (Show a, Fractional a) => a -> Unit Units a
+dist d = d `unit` Size
+speed v = dist v / 1 `unit` Time
+accel a = speed a / 1 `unit` Time
+

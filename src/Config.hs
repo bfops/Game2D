@@ -8,15 +8,13 @@ module Config ( viewDist
               , bgColor
               ) where
 
-import Data.Foldable (toList)
+import Prelude ()
+import Util.Prelewd
 
 import Game.Object
 import Game.Physics
 import Game.State
 import Game.Vector
-
-toVec :: Num a => [a] -> Vector a
-toVec = vector 0 . zip (toList dimensions)
 
 -- | Viewing distance of the camera
 viewDist :: Int
@@ -24,21 +22,22 @@ viewDist = 16
 
 -- | Start state of the game world
 initState :: GameState
-initState = foldr addObject emptyState [ Platform $ Physics (toVec [4, 1]) (toVec [-3, -1]) 0 0
-                                       , Player $   Physics (toVec [1, 2]) (toVec [-3, 0])  0 gravity
+initState = foldr addObject emptyState [ Platform $ Physics (toPosn [4, 1]) (toPosn [-3, -1]) (pure $ speed 0) (pure $ accel 0)
+                                       , Player   $ Physics (toPosn [1, 2]) (toPosn [-3, 0])  (pure $ speed 0) gravity
                                        ]
+    where toPosn = vector (dist 0) . zip (toList dimensions) . fmap dist
 
 -- | Speed boost for a jump
 jumpSpeed :: Speed
-jumpSpeed = 12
+jumpSpeed = speed 12
 
 -- | Speed boost for movement
 moveSpeed :: Speed
-moveSpeed = 8
+moveSpeed = speed 8
 
 -- | Acceleration due to gravity
-gravity :: Acceleration
-gravity = singleV 0 Height (-32)
+gravity :: Vector Acceleration
+gravity = accel <$> singleV 0 Height (-32)
 
 -- | Title of the game window
 title :: String

@@ -37,11 +37,6 @@ instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
 validRange :: Ord a => (Indeterminate a, Indeterminate a) -> Bool
 validRange (t1, t2) = liftA2 (>=) t1 t2 /= pure True
 
--- | Apply a function across both parameters only if both exist;
--- otherwise default to the extant one
-onBoth :: Alternative f => (a -> a -> a) -> f a -> f a -> f a
-onBoth f x y = (f <$> x <*> y) <|> x <|> y
-
 -- | Range with nothing in it
 empty :: Range a
 empty = Range Nothing

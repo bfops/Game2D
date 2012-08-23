@@ -83,4 +83,4 @@ magnitude v = sqrt $ realToFrac $ dot v v
 
 -- | Dot product
 dot :: Num a => Vector a -> Vector a -> a
-dot = sum .: (*)
+dot = sum .$ (*)

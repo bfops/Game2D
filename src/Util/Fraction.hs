@@ -40,7 +40,7 @@ instance (Num a, Real a) => Real (Fraction a) where
                             in (numerator rn * denominator rd) % (denominator rn * numerator rd)
 
 instance (Num a, Eq a) => Eq (Fraction a) where
-    (==) = (0 ==) .: (-)
+    (==) = (0 ==) .$ (-)
 
 flipOrd :: Ordering -> Ordering
 flipOrd LT = GT

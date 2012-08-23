@@ -37,12 +37,12 @@ isolate zero = liftA2 (singleV zero) dimensions
 updateObjPhysics :: Time -> ObjectGroup -> GameObject -> (GameObject, ObjectGroup)
 updateObjPhysics t others = updatePosn others . phys' updateVcty
     where
-        updateVcty p = p { vcty = vcty p + (realToFrac . (t*) . realToFrac <$> accl p) }
-        updatePosn objs obj = unify $ mapAccumR moveAndCollide (obj, objs) $ isolate 0 $ vcty $ phys obj
+        updateVcty p = p { vcty = vcty p + ((t*) <$> accl p) }
+        updatePosn objs obj = unify $ mapAccumR moveAndCollide (obj, objs) $ isolate (speed 0) $ vcty $ phys obj
 
-        unify ((obj, objs), vs) = (phys' (vcty' $ const $ foldr (liftA2 (+)) (pure 0) vs) obj, objs)
-        moveAndCollide (obj, objs) v = let (shiftV, collides, dims) = move (realToFrac . (t*) . realToFrac <$> v) (phys obj) $ val' phys <$> objs
-                                       in (enactCollides obj objs shiftV collides, foldr (`setV` 0) v dims)
+        unify ((obj, objs), vs) = (phys' (vcty' $ const $ sum vs) obj, objs)
+        moveAndCollide (obj, objs) v = let (shiftV, collides, dims) = move ((t*) <$> v) (phys obj) $ val' phys <$> objs
+                                       in (enactCollides obj objs shiftV collides, foldr (`setV` speed 0) v dims)
 
         enactCollides :: GameObject -> ObjectGroup -> Position -> [ID] -> (GameObject, ObjectGroup)
         enactCollides obj objs shiftV collides = foldr findAndHit (makeMove shiftV obj, objs) collides

@@ -7,7 +7,6 @@ import Util.Prelewd hiding (id, empty)
 
 import Text.Show
 
-import Util.Fraction
 import Util.Impure
 import Util.Range
 
@@ -35,10 +34,10 @@ overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
                                 EQ -> x <> y
                                 GT -> x
 
-shift :: DeltaP -> Physics -> Physics -> ([Dimension], Fraction Coord)
-shift shiftV ph1 ph2 = let
+shift :: Position -> Physics -> Physics -> ([Dimension], Scalar)
+shift deltaP ph1 ph2 = let
                            -- Collisions individually in each dimension
-                           collides1 = shift1 <$> dimensions <*> shiftV <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
+                           collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
                            TaggedRange dims rng = foldr1 overlapTagged $ normalize <$> collides1
                      in maybe ([], 1) ((dims,) . recast) $ start rng
     where
@@ -55,8 +54,8 @@ shift shiftV ph1 ph2 = let
         shift1 d v x1 w1 x2 w2 = TaggedRange [d] $ pass1 v (x1 + w1) x2 <> pass1 (negate v) (x2 + w2) x1
 
         -- Range of time during which the point x0, moving at v, is on the right side of x
-        pass1 :: Distance -> Distance -> Distance -> Range (Fraction Time)
-        pass1 v x0 x = let t = ((-) `on` realToFrac) x x0 / realToFrac v
+        pass1 :: Speed -> Distance -> Distance -> Range Time
+        pass1 v x0 x = let t = (x - x0) / v
                        in case compare v 0 of
                         LT -> range Infinite (Finite t)
                         EQ -> iff (x0 <= x) empty $ range Infinite Infinite
@@ -66,16 +65,16 @@ upd1 :: (a -> r) -> (a, b, c) -> (r, b, c)
 upd1 f (a, b, c) = (f a, b, c)
 
 -- | Retrieve information about a potential object movement
-move :: DeltaP                      -- The movement to make (i.e. delta P)
-     -> Physics                     -- Object to move
-     -> [KeyPair ID Physics]        -- Rest of the objects
-     -> (DeltaP, [ID], [Dimension]) -- The amount the object can be moved, the IDs it collides with, and how it collides
-move shiftVector p = upd1 resolveT . foldr bumpList (Infinite, [], [])
+move :: Position                        -- The movement to make (i.e. delta P)
+     -> Physics                         -- Object to move
+     -> [KeyPair ID Physics]            -- Rest of the objects
+     -> (Position, [ID], [Dimension])   -- The amount the object can be moved, the IDs it collides with, and how it collides
+move deltaP p = upd1 resolveT . foldr bumpList (Infinite, [], [])
     where
-        resolveT Infinite = shiftVector
-        resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (realToFrac t *) <$> shiftVector
+        resolveT Infinite = deltaP
+        resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (t*) <$> deltaP
 
-        bumpList iobj acc = keepEarlyColisns iobj acc $ shift shiftVector p $ val iobj
+        bumpList iobj acc = keepEarlyColisns iobj acc $ shift deltaP p $ val iobj
 
         keepEarlyColisns obj (c1, collides, dims) (ds, k) = let c2 = Finite k
                                                             in case compare c1 c2 of

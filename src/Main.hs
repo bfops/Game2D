@@ -9,11 +9,13 @@ import Control.Concurrent
 import Data.Tuple.Curry
 
 import Game.Input
+import Game.Physics hiding (Size)
 import Game.Render
 import Game.State
 import Game.Update
 import Util.Impure
 import Util.IO
+import Util.Unit
 
 import Wrappers.Events
 import Wrappers.OpenGL as OGL hiding (windowPos)
@@ -92,8 +94,9 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
 
 -- | Update the program state with input and time elapsed
 newState :: State -> [Input] -> Double -> State
-newState s is t = s { lastUpdate = t
-                       , game = update is (realToFrac $ t - lastUpdate s) $ game s
+newState s is t = let deltaT = (realToFrac $ t - lastUpdate s) `unit` Time
+                  in s { lastUpdate = t
+                       , game = update is deltaT $ game s
                        }
 
 mainLoop :: EventPoller -> State -> IO ()
