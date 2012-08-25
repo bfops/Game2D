@@ -4,11 +4,13 @@ module Wrappers.OpenGL ( module OGL
                        , magenta
                        , forest
                        , drawColored
-                       , toGLColor
+                       , GLColor (..)
                        ) where
 
 import Prelude ()
 import Util.Prelewd
+
+import Data.Tuple.Curry
 
 import Util.IO
 
@@ -32,6 +34,20 @@ instance ColorDef (Color4 GLdouble) where
     black       = Color4 0   0   0 0
     transparent = Color4 0   0   0 1
 
+instance ColorDef (GLubyte, GLubyte, GLubyte, GLubyte) where
+    red         = (255, 0  , 0  , 0  )
+    blue        = (0  , 0  , 255, 0  )
+    lime        = (0  , 255, 0  , 0  )
+    green       = (0  , 127, 0  , 0  )
+    orange      = (255, 127, 0  , 0  )
+    yellow      = (255, 255, 0  , 0  )
+    cyan        = (0  , 255, 255, 0  )
+    pink        = (255, 0  , 255, 0  )
+    purple      = (127, 0  , 255, 0  )
+    white       = (255, 255, 255, 0  )
+    black       = (0  , 0  , 0  , 0  )
+    transparent = (0  , 0  , 0  , 255)
+
 -- | Color renames
 magenta, forest :: ColorDef c => c
 magenta = pink
@@ -41,7 +57,7 @@ forest = green
 drawColored :: (Color c, Vertex v) => c -> [v] -> IO ()
 drawColored c vs = color c >> mapM_ vertex vs
  
---- | Colors which can be used to color OpenGL's rendering
+-- | Colors which can be used to color OpenGL's rendering
 class GLColor c where
     -- | Convert to an OpenGL color
     toGLColor :: c -> Color4 GLclampf
@@ -50,4 +66,7 @@ instance GLColor (Color4 GLubyte) where
     toGLColor c = realToFrac <$> c <&> (/ 255)
 
 instance GLColor (Color4 GLdouble) where
-    toGLColor c= realToFrac <$> c
+    toGLColor c = realToFrac <$> c
+
+instance GLColor (GLubyte, GLubyte, GLubyte, GLubyte) where
+    toGLColor = toGLColor . uncurryN Color4

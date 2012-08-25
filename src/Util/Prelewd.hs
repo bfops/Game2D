@@ -77,6 +77,7 @@ module Util.Prelewd ( module Prelude
                     , (++)
                     , unzip
                     , sequence
+                    , sequence_
                     , onBoth
                     ) where
 
@@ -116,7 +117,7 @@ import Data.Bool
 import Data.Either
 import Data.Eq
 import Data.Fixed
-import Data.Foldable hiding (concat)
+import Data.Foldable hiding (concat, sequence_)
 import Data.Function hiding (fix, (.))
 import Data.List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy, concat, deleteBy, foldr1)
 import Data.Int
@@ -295,11 +296,17 @@ infixl 8 .$, $$
 (.$) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (.$) = (.).(.)
 
+-- | (f $$ g) x y = f x y $ g x y
 ($$) :: (x -> y -> a -> r) -> (x -> y -> a) -> x -> y -> r
 ($$) f g x = f x <*> g x
 
+-- | Collect actions in a traversable structure
 sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
 sequence = sequenceA
+
+-- | Collect actions and discard results
+sequence_ :: (Foldable t, Applicative f) => t (f a) -> f ()
+sequence_ = sequenceA_
 
 -- | Apply a function across both parameters only if both exist;
 -- otherwise default to the extant one

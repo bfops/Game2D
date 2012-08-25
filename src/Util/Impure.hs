@@ -23,5 +23,6 @@ withTrace x = traceShow x x
 force :: a -> a
 force x = seq x x
 
+-- | Assertation with a predicate
 assert' :: (a -> Bool) -> a -> a
 assert' = (=<<) assert
