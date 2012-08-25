@@ -8,7 +8,7 @@ module Util.Unit ( Unit
 import Prelude ()
 import Util.Prelewd hiding (empty)
 
-import Data.Map
+import Util.Map
 
 import Test.QuickCheck
 import Text.Show

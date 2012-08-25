@@ -8,6 +8,7 @@ import Util.Prelewd hiding (id, empty)
 import Text.Show
 
 import Util.Impure
+import Util.Map
 import Util.Range
 
 import Game.ObjectGroup
@@ -21,9 +22,12 @@ infToMaybe :: Indeterminate a -> Maybe a
 infToMaybe Infinite = Nothing
 infToMaybe (Finite x) = Just x
 
+emptyRange :: Range a
+emptyRange = Util.Range.empty
+
 overlapTagged :: (Show a, Show b, Ord b, Monoid a) => TaggedRange a b -> TaggedRange a b -> TaggedRange a b
 overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
-                                                          tag = if rng == empty
+                                                          tag = if rng == emptyRange
                                                                 then mempty
                                                                 -- This quite rightly causes an error when it fails
                                                                 else fromJust $ overlap <$> start r1 <*> start r2
@@ -46,8 +50,8 @@ shift deltaP ph1 ph2 = let
 
         -- Chop all time ranges to [0, 1]
         normalize (TaggedRange t r) = let r' = range (Finite 0) (Finite 1) <> r
-                                      in if r' == empty
-                                         then TaggedRange mempty empty
+                                      in if r' == emptyRange
+                                         then TaggedRange mempty emptyRange
                                          else TaggedRange t r'
 
         -- Range of time during which the line (x1, w1) moving at shift towards overlaps (x2, w2)
@@ -58,26 +62,27 @@ shift deltaP ph1 ph2 = let
         pass1 v x0 x = let t = (x - x0) / v
                        in case compare v 0 of
                         LT -> range Infinite (Finite t)
-                        EQ -> iff (x0 <= x) empty $ range Infinite Infinite
+                        EQ -> iff (x0 <= x) emptyRange $ range Infinite Infinite
                         GT -> range (Finite t) Infinite
 
-upd1 :: (a -> r) -> (a, b, c) -> (r, b, c)
-upd1 f (a, b, c) = (f a, b, c)
+upd1 :: (a -> r) -> (a, b) -> (r, b)
+upd1 f (a, b) = (f a, b)
 
 -- | Retrieve information about a potential object movement
 move :: Position                        -- The movement to make (i.e. delta P)
      -> Physics                         -- Object to move
      -> [KeyPair ID Physics]            -- Rest of the objects
-     -> (Position, [ID], [Dimension])   -- The amount the object can be moved, the IDs it collides with, and how it collides
-move deltaP p = upd1 resolveT . foldr bumpList (Infinite, [], [])
+     -> (Position, Map ID [Dimension])  -- The amount the object can be moved, the IDs it collides with, and how it collides
+move deltaP p = upd1 resolveT . foldr bumpList (Infinite, Util.Map.empty)
     where
         resolveT Infinite = deltaP
         resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (t*) <$> deltaP
 
-        bumpList iobj acc = keepEarlyColisns iobj acc $ shift deltaP p $ val iobj
+        bumpList iobj acc = keepEarlyColisns (id iobj) acc $ shift deltaP p $ val iobj
 
-        keepEarlyColisns obj (c1, collides, dims) (ds, k) = let c2 = Finite k
-                                                            in case compare c1 c2 of
-                                                                LT -> (c1, collides, dims)
-                                                                EQ -> (c2, id obj:collides, ds ++ dims)
-                                                                GT -> (c2, [id obj], ds)
+        keepEarlyColisns i (c1, collides) (ds, k) = assert (not $ member i collides)
+                                                  $ let c2 = Finite k
+                                                    in case compare c1 c2 of
+                                                        LT -> (c1, collides)
+                                                        EQ -> (c2, insert i ds collides)
+                                                        GT -> (c2, singleton i ds)

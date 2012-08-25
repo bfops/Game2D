@@ -1,15 +1,17 @@
 module Movement (test) where
 
 import Prelude ()
-import Util.Prelewd
+import Util.Prelewd hiding (empty)
 
 import Data.List
+
 import Text.Show
 
 import Game.Movement
 import Game.Object
 import Game.ObjectGroup
 import Game.Physics
+import Util.Map
 
 import Test.HUnit hiding (Test, test)
 import Test.QuickCheck
@@ -22,4 +24,4 @@ test :: Test
 test = $(testGroupGenerator)
 
 prop_emptyMove :: (Physics, Position) -> Bool
-prop_emptyMove (p, shift) = move shift p [] == (shift, [], [])
+prop_emptyMove (p, shift) = move shift p [] == (shift, empty)

@@ -8,6 +8,7 @@ import Util.Prelewd hiding (id, empty)
 import Text.Show
 
 import Util.Impure
+import Util.Map hiding (update)
 
 import Game.Collision
 import Game.Input
@@ -33,19 +34,26 @@ extract i (obj:objs) = if i == id obj
 isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
 
+augment :: (a, b) -> c -> (a, b, c)
+augment (x, y) z = (x, y, z)
+
+setSeveral :: a -> [Dimension] -> Vector a -> Vector a
+setSeveral x = flip $ foldr (`setV` x)
+
 -- | One advancement of physics
 updateObjPhysics :: Time -> ObjectGroup -> GameObject -> (GameObject, ObjectGroup)
-updateObjPhysics t others = updatePosn others . phys' updateVcty
+updateObjPhysics t others orig = updatePosn others $ phys' updateVcty orig
     where
         updateVcty p = p { vcty = vcty p + ((t*) <$> accl p) }
         updatePosn objs obj = unify $ mapAccumR moveAndCollide (obj, objs) $ isolate 0 $ vcty $ phys obj
 
         unify ((obj, objs), vs) = (phys' (vcty' $ const $ sum vs) obj, objs)
-        moveAndCollide (obj, objs) v = let (shiftV, collides, dims) = move ((t*) <$> v) (phys obj) $ val' phys <$> objs
-                                       in (enactCollides obj objs shiftV collides, foldr (`setV` 0) v dims)
+        moveAndCollide (obj, objs) v = let (deltaP, collides) = move ((t*) <$> v) (phys obj) $ val' phys <$> objs
+                                           dims = mconcat collides
+                                       in (enactCollides obj objs deltaP $ keys collides, setSeveral 0 dims v)
 
         enactCollides :: GameObject -> ObjectGroup -> Position -> [ID] -> (GameObject, ObjectGroup)
-        enactCollides obj objs shiftV collides = foldr findAndHit (makeMove shiftV obj, objs) collides
+        enactCollides obj objs deltaP collides = foldr findAndHit (makeMove deltaP obj, objs) collides
         
         findAndHit i (obj, objs) = maybe (error $ "Couldn't find object " ++ show i) (collideCons obj) $ extract i objs
         collideCons o1 (o2, objs) = mutualCollide o1 o2 <&> (:objs)
