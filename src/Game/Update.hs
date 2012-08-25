@@ -34,9 +34,6 @@ extract i (obj:objs) = if i == id obj
 isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
 
-augment :: (a, b) -> c -> (a, b, c)
-augment (x, y) z = (x, y, z)
-
 setSeveral :: a -> [Dimension] -> Vector a -> Vector a
 setSeveral x = flip $ foldr (`setV` x)
 

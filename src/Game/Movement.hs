@@ -13,7 +13,7 @@ import Util.Range
 
 import Game.ObjectGroup
 import Game.Physics
-import Game.Vector
+import Game.Vector hiding (normalize)
 
 data TaggedRange a b = TaggedRange a (Range b)
     deriving Show

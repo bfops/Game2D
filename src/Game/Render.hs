@@ -5,25 +5,18 @@ module Game.Render ( Drawable (..)
 import Prelude ()
 import Util.Prelewd
 
-import Data.Map (fromList)
-
 import Game.Object
 import Game.ObjectGroup
 import Game.Physics
 import Game.State
 import Game.Vector
-import Util.Impure
 import Util.IO
-import Util.Unit
 
 import Wrappers.OpenGL hiding (Size, Position)
 
 -- | Convert the game's vector to an OpenGL coordinate
 toGLVertex :: Position -> Vertex2 GLdouble
-toGLVertex v = on Vertex2 fromDist (component Width v) (component Height v)
-
-fromDist :: Distance -> GLdouble
-fromDist = maybe (error "Tried to render non-distance") realToFrac . strip (fromList [(Size, 1)])
+toGLVertex v = on Vertex2 (realToFrac.fromDist) (component Width v) (component Height v)
 
 -- | Things which can be drawn
 class Drawable d where

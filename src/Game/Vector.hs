@@ -5,6 +5,7 @@ module Game.Vector ( Vector
                    , singleV
                    , vector
                    , magnitude
+                   , normalize
                    , dot
                    , component
                    ) where
@@ -80,6 +81,10 @@ vector = foldr (uncurry setV) . pure
 -- | Magnitude of a vector
 magnitude :: (Real a, Floating b) => Vector a -> b
 magnitude v = sqrt $ realToFrac $ dot v v
+
+normalize :: (Eq a, Fractional a) => Vector a -> Vector a
+normalize 0 = 0
+normalize v = (/ dot v v) <$> v
 
 -- | Dot product
 dot :: Num a => Vector a -> Vector a -> a

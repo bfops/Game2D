@@ -16,19 +16,23 @@ module Game.Physics ( Units (..)
                     , vcty'
                     , accl'
                     , dist
+                    , fromDist
                     , speed
+                    , fromSpeed
                     , accel
+                    , fromAccel
                     ) where
 
 import Prelude ()
 import Util.Prelewd
 
-import Data.Fixed
+import Util.Map (fromList)
 
 import Test.QuickCheck
 import Text.Show
 
 import Game.Vector
+import Util.Impure
 import Util.Unit
 
 data Units = Mass | Size | Time
@@ -37,7 +41,7 @@ data Units = Mass | Size | Time
 instance Arbitrary Units where
     arbitrary = elements [minBound..maxBound]
 
-type PhysicsValue = Unit Units Milli
+type PhysicsValue = Unit Units Double
 type Scalar = PhysicsValue
 type Mass = PhysicsValue
 type Time = PhysicsValue
@@ -82,3 +86,7 @@ dist d = d `unit` Size
 speed v = dist v / 1 `unit` Time
 accel a = speed a / 1 `unit` Time
 
+fromDist, fromSpeed, fromAccel :: Fractional a => Unit Units a -> a
+fromDist = fromMaybe (error "fromDist with non-distance") . strip (fromList [(Size, 1)])
+fromSpeed = fromDist . (1 `unit` Time *)
+fromAccel = fromSpeed . (1 `unit` Time *)
