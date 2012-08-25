@@ -21,24 +21,28 @@ First, configure the project with
 If there are unsatisfied dependencies, run `cabal install [dependency ..]` for each one.
 When the project has been successfully configured, it can be built with
 
-    cabal build
+    scripts/build.sh
 
 # Running
-
-To build the package, run
-
-    cabal build
 
 After a successful build, the game can be run from
 
     dist/build/Game2D/Game2D
+
+# Documentation
+
+Haddock documentation can be generated using
+
+    scripts/docgen.sh
+
+By default, the documentation is generated to `dist/docs/html/`
 
 # Tests
 
 To compile with tests, simply add the `--enable-test` flag when configuring.
 To run the tests after a successful build, run
 
-    cabal test
+    scripts/test.sh
 
 # Code Standards #
 
