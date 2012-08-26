@@ -42,7 +42,7 @@ shift :: Position -> Physics -> Physics -> ([Dimension], Scalar)
 shift deltaP ph1 ph2 = let
                            -- Collisions individually in each dimension
                            collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
-                           TaggedRange dims rng = foldr1 overlapTagged $ normalize <$> collides1
+                           TaggedRange dims rng = normalize $ foldr1 overlapTagged $ collides1
                      in maybe ([], 1) ((dims,) . recast) $ start rng
     where
         recast (Finite x) = x
