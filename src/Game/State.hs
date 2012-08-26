@@ -28,11 +28,12 @@ objects :: GameState -> ObjectGroup
 objects (GameState _ objs) = objs
 
 -- | Try to fetch a specific object
-object :: GameState -> ID -> Maybe GameObject
-object g i = val <$> find (id <&> (== i)) (objects g)
+object :: GameState -> ID -> GameObject
+object g i = maybe (error $ "Couldn't find object " ++ show i) val $ find (id <&> (== i)) $ objects g
 
-object' :: ID -> (GameObject -> GameObject) -> GameState -> Maybe GameState
-object' i f (GameState ids objs) = GameState ids <$> update f i objs
+object' :: ID -> (GameObject -> GameObject) -> GameState -> GameState
+object' i f (GameState ids objs) = maybe (error $ "Couldn't update object " ++ show i) (GameState ids)
+                                 $ update f i objs
 
 -- | Add an object into the game
 addObject :: GameObject -> GameState -> GameState
@@ -41,9 +42,9 @@ addObject obj (GameState (i:is) objs)
 addObject _ (GameState [] _) = error "Ran out of IDs"
 
 -- | Try to remove an object
-deleteObj :: ID -> GameState -> Maybe GameState
-deleteObj i (GameState is objs)
-           = (GameState $ i:is) <$> deleteBy (id <&> (== i)) objs
+deleteObj :: ID -> GameState -> GameState
+deleteObj i (GameState is objs) = maybe (error $ "Object " ++ show i ++ " doesn't exist") (GameState $ i:is)
+                                $ deleteBy (id <&> (== i)) objs
 
 -- | Game state with nothing in it
 emptyState :: GameState

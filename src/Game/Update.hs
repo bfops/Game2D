@@ -21,10 +21,9 @@ import Game.State
 import Game.Vector
 
 updateInputs :: [Input] -> GameState -> GameState
-updateInputs is = foldr updateObjInputs <*> fmap id . objects
+updateInputs ins = foldr updateObjInputs <*> fmap id . objects
     where
-        updateObjInputs i g = foldr (updateObjInput i) g is
-        updateObjInput i = fromMaybe (error "Could not find object") .$ object' i . objInput
+        updateObjInputs i g = foldr (object' i . objInput) g ins
 
 isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
@@ -54,7 +53,7 @@ updateObjPhysics t others orig = updatePosn $ phys' updateVcty orig
 updatePhysics :: Time -> GameState -> GameState
 updatePhysics t = foldr tryUpdate <*> fmap id . objects
     where
-        tryUpdate i g = fromMaybe g $ objPhysWrapper <$> object g i <*> deleteObj i g
+        tryUpdate i g = objPhysWrapper (object g i) $ deleteObj i g
 
         objPhysWrapper obj g = patch g $ updateObjPhysics t g obj
 
@@ -62,13 +61,13 @@ updatePhysics t = foldr tryUpdate <*> fmap id . objects
         patch g (obj, objs) = uncurry addObject $ foldr collideID (obj, g) objs
 
 collideID :: ID -> (GameObject, GameState) -> (GameObject, GameState)
-collideID i (obj, g) = fromMaybe (error "Can't find object") $ withObject i mutualCollide g
+collideID i (obj, g) = withObject i mutualCollide g
     where
         mutualCollide obj2 = (obj `collide` obj2, obj2 `collide` obj)
 
-withObject :: ID -> (GameObject -> (a, GameObject)) -> GameState -> Maybe (a, GameState)
-withObject i f g = do (x, obj) <- f <$> object g i
-                      (x,) <$> object' i (const obj) g
+withObject :: ID -> (GameObject -> (a, GameObject)) -> GameState -> (a, GameState)
+withObject i f g = let (x, obj) = f $ object g i
+                   in (x, object' i (const obj) g)
 
 -- | One update "tick"
 update :: [Input] -> Time -> GameState -> GameState
