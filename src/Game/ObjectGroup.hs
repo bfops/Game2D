@@ -3,8 +3,8 @@ module Game.ObjectGroup ( ObjectGroup
                         , UniqueObject
                         , ID
                         , KeyPair (..)
-                        , val'
                         , id'
+                        , val'
                         ) where
 
 import Prelude ()

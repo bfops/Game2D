@@ -37,4 +37,4 @@ addPlayerVcty :: Velocity -> GameObject -> GameObject
 addPlayerVcty v obj = if' (isPlayer obj) (addVcty v) obj
 
 addVcty :: Velocity -> GameObject -> GameObject
-addVcty = phys' . vcty' . liftA2 (+)
+addVcty = phys' . vcty' . (+)
