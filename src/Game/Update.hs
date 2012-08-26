@@ -33,7 +33,7 @@ setSeveral :: a -> [Dimension] -> Vector a -> Vector a
 setSeveral x = flip $ foldr (`setV` x)
 
 combine :: (Foldable t, Eq a) => t [a] -> [a]
-combine = foldr1 union
+combine = foldl union []
 
 -- | One advancement of physics
 updateObjPhysics :: Time -> GameState -> GameObject -> (GameObject, [ID])
