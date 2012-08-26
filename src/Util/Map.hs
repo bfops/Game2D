@@ -1,4 +1,4 @@
 module Util.Map ( module M
                 ) where
 
-import Data.Map as M hiding (foldr, foldl, size)
+import Data.Map as M hiding (foldr, foldl, size, toList)

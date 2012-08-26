@@ -79,8 +79,8 @@ vector :: a -> [(Dimension, a)] -> Vector a
 vector = foldr (uncurry setV) . pure
 
 -- | Magnitude of a vector
-magnitude :: (Real a, Floating b) => Vector a -> b
-magnitude v = sqrt $ realToFrac $ dot v v
+magnitude :: Floating a => Vector a -> a
+magnitude v = sqrt $ dot v v
 
 normalize :: (Eq a, Fractional a) => Vector a -> Vector a
 normalize 0 = 0

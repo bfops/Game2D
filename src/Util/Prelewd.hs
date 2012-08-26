@@ -119,7 +119,7 @@ import Data.Eq
 import Data.Fixed
 import Data.Foldable hiding (concat, sequence_)
 import Data.Function hiding (fix, (.))
-import Data.List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy, concat, deleteBy, foldr1)
+import Data.List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy, concat, deleteBy, foldr1, filter)
 import Data.Int
 import Data.Maybe
 import Data.Monoid hiding (mconcat)
@@ -299,6 +299,9 @@ infixl 8 .$, $$
 -- | (f $$ g) x y = f x y $ g x y
 ($$) :: (x -> y -> a -> r) -> (x -> y -> a) -> x -> y -> r
 ($$) f g x = f x <*> g x
+
+filter :: MonadPlus m => (a -> Bool) -> m a -> m a
+filter = mfilter
 
 -- | Collect actions in a traversable structure
 sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)

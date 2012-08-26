@@ -40,10 +40,12 @@ prop_dotAssoc :: (Vector Integer, Vector Integer, Vector Integer) -> Bool
 prop_dotAssoc (x, y, z) =  (dot x (y <&> (+) <*> z)) == dot x y + dot x z
                         && (dot (x <&> (+) <*> y) z) == dot x z + dot y z
 
-prop_magnitude :: Vector Integer -> Bool
-prop_magnitude v = let c = (-2) :: Integer
-                   in (realToFrac (abs c) * magnitude v :: Double) == magnitude ((c*) <$> v)
+prop_triangle :: (Vector Double, Vector Double, Vector Double) -> Bool
+prop_triangle (x, y, z) = magnitude (x - y) + magnitude (x - z) >= magnitude (y - z)
 
+prop_doubleSet :: (Vector Integer, Dimension, Integer) -> Bool
+prop_doubleSet (v, d, x) = let set = setV d x v
+                           in set == setV d x set
 
 indices :: Vector a -> [Integer]
 indices v = [0 .. length v - 1]
