@@ -1,3 +1,4 @@
+-- | Static size, homogenous Vector type
 module Game.Vector ( Vector
                    , Dimension (..)
                    , dimensions
@@ -64,6 +65,7 @@ instance Traversable Vector where
 instance Arbitrary a => Arbitrary (Vector a) where
     arbitrary = sequence $ pure arbitrary
 
+-- | Get a single component from a vector
 component :: Dimension -> Vector a -> a
 component d = fromJust . foldr (\(d', x) a -> a <|> mcond (d == d') x) Nothing . liftA2 (,) dimensions
 
@@ -75,13 +77,15 @@ setV d x = liftA2 (\d' -> iff (d == d') x) dimensions
 singleV :: a -> Dimension -> a -> Vector a
 singleV zero d x = setV d x $ pure zero
 
-vector :: a -> [(Dimension, a)] -> Vector a
+-- | Construct a vector from a Dimension-value mapping
+vector :: Foldable t => a -> t (Dimension, a) -> Vector a
 vector = foldr (uncurry setV) . pure
 
 -- | Magnitude of a vector
 magnitude :: Floating a => Vector a -> a
 magnitude v = sqrt $ dot v v
 
+-- | Redcue a vector's magnitude to 1
 normalize :: (Eq a, Fractional a) => Vector a -> Vector a
 normalize 0 = 0
 normalize v = (/ dot v v) <$> v

@@ -24,6 +24,7 @@ data GameState = GameState [ID] ObjectGroup
 instance Show GameState where
     show g = "GameState {objects = " ++ show (objects g) ++ "}"
 
+-- | Get the objects in the game
 objects :: GameState -> ObjectGroup
 objects (GameState _ objs) = objs
 
@@ -31,6 +32,7 @@ objects (GameState _ objs) = objs
 object :: GameState -> ID -> GameObject
 object g i = maybe (error $ "Couldn't find object " ++ show i) val $ find (id <&> (== i)) $ objects g
 
+-- | Try to update an object
 object' :: ID -> (GameObject -> GameObject) -> GameState -> GameState
 object' i f (GameState ids objs) = maybe (error $ "Couldn't update object " ++ show i) (GameState ids)
                                  $ update f i objs

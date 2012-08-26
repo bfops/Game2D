@@ -1,8 +1,6 @@
 -- | Functions and data structures for dealing with physical game aspects
-module Game.Physics ( Units (..)
-                    , PhysicsValue
+module Game.Physics ( PhysicsValue
                     , Scalar
-                    , Mass
                     , Time
                     , Distance
                     , Speed
@@ -15,6 +13,8 @@ module Game.Physics ( Units (..)
                     , posn'
                     , vcty'
                     , accl'
+                    , time
+                    , fromTime
                     , dist
                     , fromDist
                     , speed
@@ -26,7 +26,7 @@ module Game.Physics ( Units (..)
 import Prelude ()
 import Util.Prelewd
 
-import Util.Map (fromList)
+import Wrappers.Map (fromList)
 
 import Test.QuickCheck
 import Text.Show
@@ -35,23 +35,32 @@ import Game.Vector
 import Util.Impure
 import Util.Unit
 
-data Units = Mass | Size | Time
+data Units = Size | Time
     deriving (Show, Eq, Enum, Bounded, Ord)
 
 instance Arbitrary Units where
     arbitrary = elements [minBound..maxBound]
 
+-- | Value in the Physics world
 type PhysicsValue = Unit Units Double
+-- | Unitless value
 type Scalar = PhysicsValue
+-- | Frictional coefficient
 type Mu = Scalar
-type Mass = PhysicsValue
+-- | Against which rates are measured
 type Time = PhysicsValue
+-- | Measure of space
 type Distance = PhysicsValue
+-- | Rate of space
 type Speed = PhysicsValue
+-- | Rate of speed
 type Acceleration = PhysicsValue
 
+-- | Dimensions of an object
 type Size = Vector Distance
+-- | Location in space
 type Position = Vector Distance
+-- | Change in spatial location
 type Velocity = Vector Speed
 
 -- | Collection of physical properties for an object
@@ -83,12 +92,18 @@ vcty' f p = p { vcty = f (vcty p) }
 accl' :: (Vector Acceleration -> Vector Acceleration) -> Physics -> Physics
 accl' f p = p { accl = f (accl p) }
 
-dist, speed, accel :: (Show a, Fractional a) => a -> Unit Units a
+-- | Create a value with basic units
+time, dist :: a -> Unit Units a
+-- | Create a unit with derived units
+speed, accel :: Fractional a => a -> Unit Units a
+time t = t `unit` Time
 dist d = d `unit` Size
-speed v = dist v / 1 `unit` Time
-accel a = speed a / 1 `unit` Time
+speed v = dist v / time 1
+accel a = speed a / time 1
 
-fromDist, fromSpeed, fromAccel :: Fractional a => Unit Units a -> a
+-- | Get a numeric value from one with units
+fromTime, fromDist, fromSpeed, fromAccel :: Num a => Unit Units a -> a
+fromTime = fromMaybe (error "fromTime with non-time") . strip (fromList [(Time, 1)])
 fromDist = fromMaybe (error "fromDist with non-distance") . strip (fromList [(Size, 1)])
-fromSpeed = fromDist . (1 `unit` Time *)
-fromAccel = fromSpeed . (1 `unit` Time *)
+fromSpeed = fromDist . (time 1 *)
+fromAccel = fromSpeed . (time 1 *)

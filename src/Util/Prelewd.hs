@@ -300,6 +300,7 @@ infixl 8 .$, $$
 ($$) :: (x -> y -> a -> r) -> (x -> y -> a) -> x -> y -> r
 ($$) f g x = f x <*> g x
 
+-- | Keep only elements which satisfy a predicate
 filter :: MonadPlus m => (a -> Bool) -> m a -> m a
 filter = mfilter
 

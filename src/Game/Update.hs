@@ -8,7 +8,7 @@ import Util.Prelewd hiding (id, empty, filter)
 import Data.List (union, deleteFirstsBy)
 import Data.Tuple
 
-import Util.Map hiding (update, union)
+import Wrappers.Map hiding (update, union)
 
 import Game.Collision
 import Game.Input

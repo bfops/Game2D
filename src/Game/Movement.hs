@@ -8,8 +8,9 @@ import Util.Prelewd hiding (id, empty)
 import Text.Show
 
 import Util.Impure
-import Util.Map
 import Util.Range
+
+import Wrappers.Map
 
 import Game.ObjectGroup
 import Game.Physics
@@ -73,7 +74,7 @@ move :: Position                        -- The movement to make (i.e. delta P)
      -> Physics                         -- Object to move
      -> [KeyPair ID Physics]            -- Rest of the objects
      -> (Position, Map ID [Dimension])  -- The amount the object can be moved, the IDs it collides with, and how it collides
-move deltaP p = upd1 resolveT . foldr bumpList (Infinite, Util.Map.empty)
+move deltaP p = upd1 resolveT . foldr bumpList (Infinite, Wrappers.Map.empty)
     where
         resolveT Infinite = deltaP
         resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (t*) <$> deltaP

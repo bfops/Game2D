@@ -15,7 +15,6 @@ import Game.State
 import Game.Update
 import Util.Impure
 import Util.IO
-import Util.Unit
 
 import Wrappers.Events
 import Wrappers.OpenGL as OGL hiding (windowPos)
@@ -95,7 +94,7 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
 
 -- | Update the program state with input and time elapsed
 newState :: State -> [Input] -> Double -> State
-newState s is t = let deltaT = (realToFrac $ t - lastUpdate s) `unit` Time
+newState s is t = let deltaT = time $ realToFrac $ t - lastUpdate s
                   in s { lastUpdate = t
                        , game = update is deltaT $ game s
                        }

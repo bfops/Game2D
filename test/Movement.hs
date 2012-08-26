@@ -11,7 +11,8 @@ import Game.Movement
 import Game.Object
 import Game.ObjectGroup
 import Game.Physics
-import Util.Map
+
+import Wrappers.Map
 
 import Test.HUnit hiding (Test, test)
 import Test.QuickCheck

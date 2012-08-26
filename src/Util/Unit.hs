@@ -1,3 +1,4 @@
+-- | Adds type-checking units for calculations
 module Util.Unit ( Unit
                  , unit
                  , scalar
@@ -8,13 +9,14 @@ module Util.Unit ( Unit
 import Prelude ()
 import Util.Prelewd hiding (empty)
 
-import Util.Map
+import Util.Impure
+
+import Wrappers.Map
 
 import Test.QuickCheck
 import Text.Show
 
-import Util.Impure
-
+-- | `Unit t v` is a unit with a unit in `t`, and a value in `v`
 data Unit t v = Unit { units :: Maybe (Map t Integer), val :: v }
     deriving Show
 
@@ -36,7 +38,7 @@ instance (Show t, Ord t, Num v) => Num (Unit t v) where
     signum = val' signum
     fromInteger = flexScalar . fromInteger
 
-instance (Show t, Show v, Ord t, Fractional v) => Fractional (Unit t v) where
+instance (Show t, Ord t, Fractional v) => Fractional (Unit t v) where
     recip (Unit t v) = Unit (fmap negate <$> t) (recip v)
     fromRational = flexScalar . fromRational
 
@@ -51,14 +53,18 @@ symmetricDiff x y = difference x y `union` difference y x
 
 infix 9 `unit`
 
+-- | Construct a value with a unit
 unit :: v -> t -> Unit t v
 unit v t = Unit (Just $ singleton t 1) v
 
+-- | A unitless value
 scalar :: v -> Unit t v
 scalar = Unit $ Just empty
 
+-- | A value with inferred units
 flexScalar :: v -> Unit t v
 flexScalar = Unit Nothing
 
-strip :: (Ord t, Show t) => Map t Integer -> Unit t v -> Maybe v
+-- | Strip units from a value
+strip :: Ord t => Map t Integer -> Unit t v -> Maybe v
 strip ts = mcond <$> compatible (Just ts) . units <*> val
