@@ -43,6 +43,7 @@ instance Arbitrary Units where
 
 type PhysicsValue = Unit Units Double
 type Scalar = PhysicsValue
+type Mu = Scalar
 type Mass = PhysicsValue
 type Time = PhysicsValue
 type Distance = PhysicsValue
@@ -59,11 +60,12 @@ data Physics = Physics
         , posn  :: Position
         , vcty  :: Velocity
         , accl  :: Vector Acceleration
+        , mu    :: Mu
         }
     deriving (Show)
 
 instance Arbitrary Physics where
-    arbitrary = Physics <$> (abs <$> arbitrary) <*> arbitrary <*> arbitrary <*> arbitrary
+    arbitrary = Physics <$> (abs <$> arbitrary) <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
 
 -- | Transform size
 size' :: (Size -> Size) -> Physics -> Physics

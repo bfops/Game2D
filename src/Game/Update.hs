@@ -3,12 +3,11 @@ module Game.Update ( update
                    ) where
 
 import Prelude ()
-import Util.Prelewd hiding (id, empty)
+import Util.Prelewd hiding (id, empty, filter)
 
-import Data.List (union)
+import Data.List (union, deleteFirstsBy)
 import Data.Tuple
 
-import Util.Impure
 import Util.Map hiding (update, union)
 
 import Game.Collision
@@ -34,18 +33,31 @@ setSeveral x = flip $ foldr (`setV` x)
 combine :: (Foldable t, Eq a) => t [a] -> [a]
 combine = foldl union []
 
+deleteFirsts :: Eq a => [a] -> [a] -> [a]
+deleteFirsts = deleteFirstsBy (==)
+
+friction :: Velocity -> Velocity -> Velocity
+friction = liftA2 (\d x -> signum x * max 0 (abs x - d))
+
 -- | One advancement of physics
 updateObjPhysics :: Time -> GameState -> GameObject -> (GameObject, [ID])
-updateObjPhysics t others orig = updatePosn $ phys' updateVcty orig
+updateObjPhysics t s orig = updatePosn $ phys' updateVcty orig
     where
         updateVcty p = p { vcty = vcty p + ((t*) <$> accl p) }
-        updatePosn obj = unify $ foldr moveAndCollide (obj, []) $ isolate 0 $ vcty $ phys obj
+        updatePosn obj = unify $ foldr moveAndCollide (obj, [], 0) $ isolate 0 $ vcty $ phys obj
 
-        unify (obj, collides) = (obj, collides)
-        moveAndCollide mv (obj, allCollides) = let (deltaP, collides) = move ((t*) <$> mv) (phys obj) $ val' phys <$> objects others
-                                               in ( phys' (vcty' $ setSeveral 0 $ combine collides) $ makeMove deltaP obj
-                                                  , allCollides `union` keys collides
-                                                  )
+        unify (obj, collides, a_f) = (phys' (vcty' $ friction $ (t*) <$> a_f) obj, collides)
+        moveAndCollide mv (obj, allCollides, a_f) = let (deltaP, collides) = move ((t*) <$> mv) (phys obj) $ val' phys <$> objects s
+                                                        dims = combine collides
+                                                        invCollides = deleteFirsts (toList dimensions) <$> collides
+                                                    in ( phys' (vcty' $ setSeveral 0 dims) $ makeMove deltaP obj
+                                                       , allCollides `union` keys (filter (/= []) collides)
+                                                       , a_f + sum (mapWithKey (addFriction obj) invCollides)
+                                                       )
+                                                      
+        addFriction obj i dims = let scalarNorm = (realToFrac . fromAccel <$> setSeveral 0 dims (accl $ phys orig)) :: Vector Double
+                                     f = ((+) `on` mu.phys) obj (object s i) * realToFrac (magnitude scalarNorm)
+                                 in setSeveral f dims 0
 
         makeMove :: Position -> GameObject -> GameObject
         makeMove = phys' . posn' . (+)
