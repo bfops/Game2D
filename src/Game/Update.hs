@@ -5,10 +5,11 @@ module Game.Update ( update
 import Prelude ()
 import Util.Prelewd hiding (id, empty)
 
-import Text.Show
+import Data.List (union)
+import Data.Tuple
 
 import Util.Impure
-import Util.Map hiding (update)
+import Util.Map hiding (update, union)
 
 import Game.Collision
 import Game.Input
@@ -20,16 +21,10 @@ import Game.State
 import Game.Vector
 
 updateInputs :: [Input] -> GameState -> GameState
-updateInputs is = objects' updateObjInputs
+updateInputs is = foldr updateObjInputs <*> fmap id . objects
     where
-        updateObjInputs objs = foldr updateInputAll objs is
-        updateInputAll i objs = val' (objInput i) <$> objs
-
-extract :: ID -> ObjectGroup -> Maybe (UniqueObject, ObjectGroup)
-extract _ [] = Nothing
-extract i (obj:objs) = if i == id obj
-                       then Just (obj, objs)
-                       else ((obj:) <$>)<$> extract i objs
+        updateObjInputs i g = foldr (updateObjInput i) g is
+        updateObjInput i = fromMaybe (error "Could not find object") .$ object' i . objInput
 
 isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
@@ -37,38 +32,43 @@ isolate zero = liftA2 (singleV zero) dimensions
 setSeveral :: a -> [Dimension] -> Vector a -> Vector a
 setSeveral x = flip $ foldr (`setV` x)
 
+combine :: (Foldable t, Eq a) => t [a] -> [a]
+combine = foldr1 union
+
 -- | One advancement of physics
-updateObjPhysics :: Time -> ObjectGroup -> GameObject -> (GameObject, ObjectGroup)
-updateObjPhysics t others orig = updatePosn others $ phys' updateVcty orig
+updateObjPhysics :: Time -> GameState -> GameObject -> (GameObject, [ID])
+updateObjPhysics t others orig = updatePosn $ phys' updateVcty orig
     where
         updateVcty p = p { vcty = vcty p + ((t*) <$> accl p) }
-        updatePosn objs obj = unify $ mapAccumR moveAndCollide (obj, objs) $ isolate 0 $ vcty $ phys obj
+        updatePosn obj = unify $ foldr moveAndCollide (obj, []) $ isolate 0 $ vcty $ phys obj
 
-        unify ((obj, objs), vs) = (phys' (vcty' $ const $ sum vs) obj, objs)
-        moveAndCollide (obj, objs) v = let (deltaP, collides) = move ((t*) <$> v) (phys obj) $ val' phys <$> objs
-                                           dims = mconcat collides
-                                       in (enactCollides obj objs deltaP $ keys collides, setSeveral 0 dims v)
-
-        enactCollides :: GameObject -> ObjectGroup -> Position -> [ID] -> (GameObject, ObjectGroup)
-        enactCollides obj objs deltaP collides = foldr findAndHit (makeMove deltaP obj, objs) collides
-        
-        findAndHit i (obj, objs) = maybe (error $ "Couldn't find object " ++ show i) (collideCons obj) $ extract i objs
-        collideCons o1 (o2, objs) = mutualCollide o1 o2 <&> (:objs)
+        unify (obj, collides) = (obj, collides)
+        moveAndCollide mv (obj, allCollides) = let (deltaP, collides) = move ((t*) <$> mv) (phys obj) $ val' phys <$> objects others
+                                               in ( phys' (vcty' $ setSeveral 0 $ combine collides) $ makeMove deltaP obj
+                                                  , allCollides `union` keys collides
+                                                  )
 
         makeMove :: Position -> GameObject -> GameObject
-        makeMove = phys' . posn' . liftA2 (+)
-
-        mutualCollide o1 o2 = (o1 `collide` val o2, val' (`collide` o1) o2)
+        makeMove = phys' . posn' . (+)
 
 updatePhysics :: Time -> GameState -> GameState
 updatePhysics t = foldr tryUpdate <*> fmap id . objects
     where
         tryUpdate i g = fromMaybe g $ objPhysWrapper <$> object g i <*> deleteObj i g
 
-        objPhysWrapper obj g = patch g $ updateObjPhysics t (objects g) obj
+        objPhysWrapper obj g = patch g $ updateObjPhysics t g obj
 
-        patch :: GameState -> (GameObject, ObjectGroup) -> GameState
-        patch g (obj, objs) = addObject obj $ g { objects = objs }
+        patch :: GameState -> (GameObject, [ID]) -> GameState
+        patch g (obj, objs) = uncurry addObject $ foldr collideID (obj, g) objs
+
+collideID :: ID -> (GameObject, GameState) -> (GameObject, GameState)
+collideID i (obj, g) = fromMaybe (error "Can't find object") $ withObject i mutualCollide g
+    where
+        mutualCollide obj2 = (obj `collide` obj2, obj2 `collide` obj)
+
+withObject :: ID -> (GameObject -> (a, GameObject)) -> GameState -> Maybe (a, GameState)
+withObject i f g = do (x, obj) <- f <$> object g i
+                      (x,) <$> object' i (const obj) g
 
 -- | One update "tick"
 update :: [Input] -> Time -> GameState -> GameState
