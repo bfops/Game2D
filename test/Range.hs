@@ -1,6 +1,5 @@
 module Range (test) where
 
-import Prelude ()
 import Util.Prelewd hiding (empty)
 
 import Util.Fraction

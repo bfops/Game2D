@@ -6,7 +6,6 @@ module Game.Object ( GameObject (..)
                    , isPlayer
                    ) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Text.Show

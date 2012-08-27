@@ -1,6 +1,5 @@
 module Fraction (test) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Util.Fraction

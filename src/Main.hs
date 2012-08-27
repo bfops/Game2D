@@ -1,7 +1,6 @@
 -- | Main module, entry point
 module Main (main) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Control.Arrow

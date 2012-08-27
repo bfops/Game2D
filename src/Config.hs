@@ -8,7 +8,6 @@ module Config ( viewDist
               , bgColor
               ) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Game.Object

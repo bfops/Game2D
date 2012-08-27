@@ -2,7 +2,6 @@
 module Game.Collision ( collide
                       ) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Game.Object

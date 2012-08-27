@@ -8,7 +8,6 @@ module Game.State ( GameState
                   , emptyState
                   ) where
 
-import Prelude ()
 import Util.Prelewd hiding (id, empty)
 
 import Text.Show
