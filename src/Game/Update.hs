@@ -2,7 +2,6 @@
 module Game.Update ( update
                    ) where
 
-import Prelude ()
 import Util.Prelewd hiding (id, empty, filter)
 
 import Data.List (union, deleteFirstsBy)

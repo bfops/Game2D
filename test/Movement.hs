@@ -1,6 +1,5 @@
 module Movement (test) where
 
-import Prelude ()
 import Util.Prelewd hiding (empty)
 
 import Data.List

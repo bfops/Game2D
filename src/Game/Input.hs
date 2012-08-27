@@ -3,7 +3,6 @@ module Game.Input ( Input (..)
                   , objInput
                   ) where
 
-import Prelude ()
 import Util.Prelewd hiding (id, empty)
 
 import Text.Show

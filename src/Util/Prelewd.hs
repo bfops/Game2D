@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- | Prelude replacement
 -- Remember to import Prelude () if using this
 module Util.Prelewd ( module Prelude
@@ -132,8 +133,10 @@ import Text.Show
 
 import Util.Impure
 
+#if __GLASGOW_HASKELL__ < 704
 instance HasResolution a => Arbitrary (Fixed a) where
     arbitrary = realToFrac <$> (arbitrary :: Gen Double)
+#endif
 
 -- | Objects with Infinity support
 data Indeterminate a = Finite a

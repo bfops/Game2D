@@ -23,7 +23,6 @@ module Game.Physics ( PhysicsValue
                     , fromAccel
                     ) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Wrappers.Map (fromList)

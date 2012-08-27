@@ -7,7 +7,6 @@ module Wrappers.OpenGL ( module OGL
                        , GLColor (..)
                        ) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Data.Tuple.Curry

@@ -12,7 +12,6 @@ module Wrappers.Events ( Event (..)
                        , createEventPoller
                        ) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Data.Either

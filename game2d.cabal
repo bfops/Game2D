@@ -12,7 +12,7 @@ Executable Game2D
     hs-source-dirs:    src/
     Main-is:           Main.hs
     GHC-Options:       -Wall -threaded -rtsopts=all -fllvm
-    Extensions:        FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving
+    Extensions:        FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude
 
     Build-Depends: 
                     OpenGL,
@@ -28,7 +28,7 @@ test-suite Tests
     hs-source-dirs: test/
                     src/
     main-is:        Test.hs
-    extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving
+    extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude
 
     build-depends: 
                     QuickCheck >= 2,

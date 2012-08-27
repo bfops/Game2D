@@ -2,7 +2,6 @@
 module Game.Render ( Drawable (..)
                    ) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Game.Object

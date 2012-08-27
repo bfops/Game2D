@@ -2,7 +2,6 @@
 module Game.Movement ( move
                      ) where
 
-import Prelude ()
 import Util.Prelewd hiding (id, empty)
 
 import Text.Show

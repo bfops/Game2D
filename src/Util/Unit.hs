@@ -6,7 +6,6 @@ module Util.Unit ( Unit
                  , strip
                  ) where
 
-import Prelude ()
 import Util.Prelewd hiding (empty)
 
 import Util.Impure

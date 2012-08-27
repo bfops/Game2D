@@ -11,7 +11,6 @@ module Game.Vector ( Vector
                    , component
                    ) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Data.Tuple

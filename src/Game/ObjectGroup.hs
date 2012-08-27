@@ -7,7 +7,6 @@ module Game.ObjectGroup ( ObjectGroup
                         , val'
                         ) where
 
-import Prelude ()
 import Util.Prelewd hiding (id, empty)
 
 import Text.Show
