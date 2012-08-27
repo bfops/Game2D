@@ -6,7 +6,6 @@ module Util.Range ( Range
                   , end
                   ) where
 
-import Prelude ()
 import Util.Prelewd hiding (empty)
 
 import Data.Tuple

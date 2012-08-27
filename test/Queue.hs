@@ -1,6 +1,5 @@
 module Queue (test) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Util.Queue

@@ -7,7 +7,6 @@ module Util.Queue ( Queue
                   , fromList
                   ) where
 
-import Prelude ()
 import Util.Prelewd
 
 -- | LIFO data structure

@@ -3,7 +3,6 @@ module Util.Fraction ( Fraction
                      , frac
                      ) where
 
-import Prelude ()
 import Util.Prelewd
 
 import Data.Ratio
