@@ -30,7 +30,7 @@ dimensions :: Vector Dimension
 dimensions = Vector Width Height
 
 -- | Homogenous vector
-data Vector a = Vector a a 
+data Vector a = Vector !a !a
     deriving (Eq, Show)
 
 instance Num a => Num (Vector a) where
