@@ -1,6 +1,7 @@
 -- | Functions for dealing with non-pure or non-lazy computations
 module Util.IO ( module IO
                , module Env
+               , module Exit
                , undefined
                , void
                , forever
@@ -11,3 +12,4 @@ import Prelude (undefined)
 import Control.Monad
 import System.IO as IO
 import System.Environment as Env
+import System.Exit as Exit

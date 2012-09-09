@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 -- | Prelude replacement
 -- Remember to import Prelude () if using this
 module Util.Prelewd ( module Prelude
@@ -120,7 +119,7 @@ import Data.Eq
 import Data.Fixed
 import Data.Foldable hiding (concat, sequence_)
 import Data.Function hiding (fix, (.))
-import Data.List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy, concat, deleteBy, foldr1, filter)
+import Data.List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy, concat, deleteBy, foldr1, filter, replicate)
 import Data.Int
 import Data.Maybe
 import Data.Monoid hiding (mconcat)
@@ -132,11 +131,6 @@ import Test.QuickCheck hiding (Fixed)
 import Text.Show
 
 import Util.Impure
-
-#if __GLASGOW_HASKELL__ < 704
-instance HasResolution a => Arbitrary (Fixed a) where
-    arbitrary = realToFrac <$> (arbitrary :: Gen Double)
-#endif
 
 -- | Objects with Infinity support
 data Indeterminate a = Finite a
@@ -302,6 +296,10 @@ infixl 8 .$, $$
 -- | (f $$ g) x y = f x y $ g x y
 ($$) :: (x -> y -> a -> r) -> (x -> y -> a) -> x -> y -> r
 ($$) f g x = f x <*> g x
+
+-- | Create several copies of an element
+replicate :: Integral i => i -> a -> [a]
+replicate = genericReplicate
 
 -- | Keep only elements which satisfy a predicate
 filter :: MonadPlus m => (a -> Bool) -> m a -> m a
