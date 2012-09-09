@@ -11,7 +11,8 @@ import Game.Input
 import Game.Physics hiding (Size)
 import Game.Render
 import Game.State
-import Game.Update
+import Game.Update.Input as Input
+import Game.Update.Physics as Physics
 import Util.Impure
 import Util.IO
 
@@ -26,6 +27,9 @@ import Config
 data State = State { game       :: GameState
                    , lastUpdate :: Double
                    }
+
+game' :: (GameState -> GameState) -> State -> State
+game' f s = s { game = f (game s) }
 
 initOpenGL :: IO ()
 initOpenGL = do
@@ -84,7 +88,7 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
         rawToInput _ = Nothing
 
         keys :: [(Key, Input)]
-        keys = fmap (first CharKey)
+        keys = first CharKey <$>
                 [ (' ', Jump)
                 , ('W', Jump)
                 , ('A', Left)
@@ -93,10 +97,10 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
 
 -- | Update the program state with input and time elapsed
 newState :: State -> [Input] -> Double -> State
-newState s is t = let deltaT = time $ realToFrac $ t - lastUpdate s
-                  in s { lastUpdate = t
-                       , game = update is deltaT $ game s
-                       }
+newState s is t = game' (foldr (.) id updates) $ s { lastUpdate = t }
+    where
+        deltaT = time $ realToFrac $ t - lastUpdate s
+        updates = [ Input.update is deltaT, Physics.update deltaT ]
 
 mainLoop :: EventPoller -> State -> IO ()
 mainLoop poll s0 = isOpen poll >>= bool (return ()) runLoop

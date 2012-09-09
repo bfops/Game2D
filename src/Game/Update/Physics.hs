@@ -1,27 +1,19 @@
--- | Game world tranformations over time
-module Game.Update ( update
-                   ) where
+module Game.Update.Physics ( update
+                           ) where
 
-import Util.Prelewd hiding (id, empty, filter)
+import Util.Prelewd hiding (id, filter)
 
-import Data.List (union, deleteFirstsBy)
+import Data.List (deleteFirstsBy, union)
+import Data.Map hiding (foldl, foldr, toList, union, update)
 import Data.Tuple
 
-import Wrappers.Map hiding (update, union)
-
 import Game.Collision
-import Game.Input
 import Game.Movement
 import Game.Object
 import Game.ObjectGroup
 import Game.Physics
 import Game.State
 import Game.Vector
-
-updateInputs :: [Input] -> GameState -> GameState
-updateInputs ins = foldr updateObjInputs <*> fmap id . objects
-    where
-        updateObjInputs i g = foldr (object' i . objInput) g ins
 
 isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
@@ -61,8 +53,8 @@ updateObjPhysics t s orig = updatePosn $ phys' updateVcty orig
         makeMove :: Position -> GameObject -> GameObject
         makeMove = phys' . posn' . (+)
 
-updatePhysics :: Time -> GameState -> GameState
-updatePhysics t = foldr tryUpdate <*> fmap id . objects
+update :: Time -> GameState -> GameState
+update t = foldr tryUpdate <*> fmap id . objects
     where
         tryUpdate i g = objPhysWrapper (object g i) $ deleteObj i g
 
@@ -78,11 +70,4 @@ collideID i (obj, g) = withObject i mutualCollide g
 
 withObject :: ID -> (GameObject -> (a, GameObject)) -> GameState -> (a, GameState)
 withObject i f g = let (x, obj) = f $ object g i
-                   in (x, object' i (const obj) g)
-
--- | One update "tick"
-update :: [Input] -> Time -> GameState -> GameState
-update is t g = foldr ($) g
-                    [ updateInputs is
-                    , updatePhysics t
-                    ]
+                   in (x, object' (const obj) i g)
