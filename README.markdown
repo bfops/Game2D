@@ -48,3 +48,5 @@ To run the tests after a successful build, run
 
 The `Util` and `Wrappers` folders are for code which is *not project-specific*:
 Direct library wraps go into `Wrappers/`, and useful generic functions and modules go in `Util/`.
+
+Functions ending with a single quote usually require a transformation function as one of their parameters.
