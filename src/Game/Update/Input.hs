@@ -3,7 +3,9 @@ module Game.Update.Input ( update
 
 import Util.Prelewd hiding (id, empty, lookup)
 
-import Data.Map hiding (foldr, filter, mapMaybe, update)
+import Control.Arrow
+import Data.List as List (delete)
+import Data.Map as Map hiding (foldr, mapMaybe, filter, update)
 
 import Config
 
@@ -14,9 +16,10 @@ import Game.ObjectGroup
 import Game.State
 import Game.Vector
 import Util.Impure
+import Wrappers.Events
 
 data InputAction = Push Input (GameState -> GameState)
-                 | Hold Input (Time -> GameState -> GameState)
+                 | Hold Input (Time -> GameState -> GameState) -- ^ First parameter is hold time
 
 cmd :: InputAction -> Input
 cmd (Push inp _) = inp
@@ -30,26 +33,29 @@ isHold :: InputAction -> Bool
 isHold (Hold _ _) = True
 isHold _ = False
 
-action :: Time -> InputAction -> GameState -> GameState
-action _ (Push _ f) = f
-action t (Hold _ f) = f t
-
-update :: [Input] -> Time -> GameState -> GameState
-update ins dt g = let holdIns = (dt +) <$> foldr (insert <*> fromMaybe 0 . (`lookup` inputs g)) empty ins
-                      updates = ((++) `on` (`mapMaybe` assocs holdIns)) getPushAction getHoldAction
-                  in foldr ($) (inputs' (const holdIns) g) updates
-    where
-        getPushAction :: (Input, Time) -> Maybe (GameState -> GameState)
-        getPushAction (i, t) = action t <$> find ((i ==) . cmd) pushActions
-
-        getHoldAction :: (Input, Time) -> Maybe (GameState -> GameState)
-        getHoldAction (i, t) = action t <$> find ((i ==) . cmd) holdActions
+actionUpdate :: Time -> InputAction -> GameState -> GameState
+actionUpdate _ (Push _ f) = f
+actionUpdate t (Hold _ f) = f t
 
 actions :: [InputAction]
-actions = [ Push Jump $ propelPlayer $ jumpVcty
-          , Hold Left $ const $ propelPlayer $ negate moveVcty
-          , Hold Right $ const $ propelPlayer moveVcty
+actions = [ Push Jump $ player' $ addVcty $ jumpVcty
+          , Push Left $ player' $ addVcty $ negate moveVcty
+          , Push Right $ player' $ addVcty moveVcty
           ]
+
+update :: [(Input, ButtonState)] -> Time -> GameState -> GameState
+update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
+                      updates = mapMaybe getPushAction pushes ++ mapMaybe getHoldAction (assocs ins')
+                  in foldr ($) (inputs' (const ins') g) updates
+    where
+        getPushAction :: Input -> Maybe (GameState -> GameState)
+        getPushAction i = actionUpdate dt <$> find ((i ==) . cmd) pushActions
+
+        getHoldAction :: (Input, Time) -> Maybe (GameState -> GameState)
+        getHoldAction (i, t) = actionUpdate t <$> find ((i ==) . cmd) holdActions
+
+        perpetuate (i, Press) = insert i 0 *** (i:)
+        perpetuate (i, Release) = Map.delete i *** List.delete i
 
 pushActions, holdActions :: [InputAction]
 pushActions = filter isPush actions
@@ -63,9 +69,6 @@ player' :: (GameObject -> GameObject) -> GameState -> GameState
 player' = object' <&> (=<< getPlayer)
     where
         getPlayer = id . fromMaybe (error "No player!") . find (isPlayer . val) . objects
-
-propelPlayer :: Velocity -> GameState -> GameState
-propelPlayer = player' . addVcty
 
 addVcty :: Velocity -> GameObject -> GameObject
 addVcty = phys' . vcty' . (+)

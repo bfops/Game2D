@@ -79,12 +79,12 @@ handleResize poll = poll [ResizeEvents] >>= maybe (return ()) resize' . last
         resize' _ = error "poll [ResizeEvents] returned an invalid list."
 
 -- | Receive all pending input events, and convert them to game input
-getInputs :: EventPoller -> IO [Input]
+getInputs :: EventPoller -> IO [(Input, ButtonState)]
 getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, MouseMoveEvents ]
     where
         -- Convert an input event to a game input
-        rawToInput :: Event -> Maybe Input
-        rawToInput (ButtonEvent (KeyButton key) Press) = lookup key keys
+        rawToInput :: Event -> Maybe (Input, ButtonState)
+        rawToInput (ButtonEvent (KeyButton key) s) = lookup key keys <&> (, s)
         rawToInput _ = Nothing
 
         keys :: [(Key, Input)]
@@ -96,7 +96,7 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
                 ]
 
 -- | Update the program state with input and time elapsed
-newState :: State -> [Input] -> Double -> State
+newState :: State -> [(Input, ButtonState)] -> Double -> State
 newState s is t = game' (foldr (.) id updates) $ s { lastUpdate = t }
     where
         deltaT = time $ realToFrac $ t - lastUpdate s
