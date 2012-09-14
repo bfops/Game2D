@@ -11,8 +11,7 @@ import Game.Input
 import Game.Physics hiding (Size)
 import Game.Render
 import Game.State
-import Game.Update.Input as Input
-import Game.Update.Physics as Physics
+import Game.Update
 import Util.Impure
 import Util.IO
 
@@ -97,10 +96,9 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
 
 -- | Update the program state with input and time elapsed
 newState :: State -> [(Input, ButtonState)] -> Double -> State
-newState s is t = game' (foldr (.) id updates) $ s { lastUpdate = t }
+newState s is t = game' (update is deltaT) $ s { lastUpdate = t }
     where
         deltaT = time $ realToFrac $ t - lastUpdate s
-        updates = [ Input.update is deltaT, Physics.update deltaT ]
 
 mainLoop :: EventPoller -> State -> IO ()
 mainLoop poll s0 = isOpen poll >>= bool (return ()) runLoop
