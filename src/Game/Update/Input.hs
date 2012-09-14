@@ -5,9 +5,9 @@ import Util.Prelewd hiding (id, empty, lookup)
 
 import Control.Arrow
 import Data.List as List (delete)
-import Data.Map as Map hiding (foldr, mapMaybe, filter, update)
 
 import Config
+import Wrappers.Map as Map hiding (mapMaybe, filter, update)
 
 import Game.Input
 import Game.Physics

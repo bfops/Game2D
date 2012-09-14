@@ -12,9 +12,9 @@ module Game.State ( GameState
 
 import Util.Prelewd hiding (id, empty)
 
-import Data.Map hiding (update)
-
 import Text.Show
+
+import Wrappers.Map hiding (update)
 
 import Game.Input
 import Game.Physics
