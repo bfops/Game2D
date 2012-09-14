@@ -24,4 +24,4 @@ test :: Test
 test = $(testGroupGenerator)
 
 prop_emptyMove :: (Physics, Position) -> Bool
-prop_emptyMove (p, shift) = move shift p [] == (shift, empty)
+prop_emptyMove (p, shift) = move shift (KeyPair 0 p) [] == (shift, empty)

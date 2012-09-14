@@ -9,7 +9,7 @@ import Text.Show
 import Util.Impure
 import Util.Range
 
-import Wrappers.Map
+import Wrappers.Map hiding (union)
 
 import Game.ObjectGroup
 import Game.Physics
@@ -70,15 +70,15 @@ upd1 f (a, b) = (f a, b)
 
 -- | Retrieve information about a potential object movement
 move :: Position                        -- The movement to make (i.e. delta P)
-     -> Physics                         -- Object to move
+     -> KeyPair ID Physics              -- Object to move
      -> [KeyPair ID Physics]            -- Rest of the objects
      -> (Position, Map ID [Dimension])  -- The amount the object can be moved, the IDs it collides with, and how it collides
 move deltaP p = upd1 resolveT . foldr bumpList (Infinite, Wrappers.Map.empty)
     where
         resolveT Infinite = deltaP
-        resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (t*) <$> deltaP
+        resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (t *) <$> deltaP
 
-        bumpList iobj acc = keepEarlyColisns (id iobj) acc $ shift deltaP p $ val iobj
+        bumpList obj = if' (obj /= p) $ \accum -> keepEarlyColisns (id obj) accum $ (shift deltaP `on` val) p obj
 
         keepEarlyColisns i (c1, collides) (ds, k) = assert (not $ member i collides)
                                                   $ let c2 = Finite k

@@ -3,9 +3,12 @@ module Game.Update.Physics ( update
 
 import Util.Prelewd hiding (id, filter)
 
-import Data.List (deleteFirstsBy, union)
-import Data.Map hiding (foldl, foldr, toList, union, update)
+import Control.Arrow
 import Data.Tuple
+import qualified Data.List as List
+import qualified Data.Set as Set
+
+import Wrappers.Map hiding (union, update)
 
 import Game.Collision
 import Game.Movement
@@ -22,52 +25,34 @@ setSeveral :: a -> [Dimension] -> Vector a -> Vector a
 setSeveral x = flip $ foldr (`setV` x)
 
 combine :: (Foldable t, Eq a) => t [a] -> [a]
-combine = foldl union []
-
-deleteFirsts :: Eq a => [a] -> [a] -> [a]
-deleteFirsts = deleteFirstsBy (==)
-
-friction :: Velocity -> Velocity -> Velocity
-friction = liftA2 (\d x -> signum x * max 0 (abs x - d))
+combine = foldl List.union []
 
 -- | One advancement of physics
-updateObjPhysics :: Time -> GameState -> GameObject -> (GameObject, [ID])
-updateObjPhysics t s orig = updatePosn $ phys' updateVcty orig
+updateObjPhysics :: Time -> GameState -> UniqueObject -> (UniqueObject, [ID])
+updateObjPhysics t s = updatePosn . val' (phys' updateVcty)
     where
         updateVcty p = p { vcty = vcty p + ((t*) <$> accl p) }
-        updatePosn obj = unify $ foldr moveAndCollide (obj, [], 0) $ isolate 0 $ vcty $ phys obj
+        updatePosn obj = foldr moveAndCollide (obj, []) $ isolate 0 $ vcty $ phys $ val obj
 
-        unify (obj, collides, a_f) = (phys' (vcty' $ friction $ (t*) <$> a_f) obj, collides)
-        moveAndCollide mv (obj, allCollides, a_f) = let (deltaP, collides) = move ((t*) <$> mv) (phys obj) $ val' phys <$> objects s
-                                                        dims = combine collides
-                                                        invCollides = deleteFirsts (toList dimensions) <$> collides
-                                                    in ( phys' (vcty' $ setSeveral 0 dims) $ makeMove deltaP obj
-                                                       , allCollides `union` keys (filter (/= []) collides)
-                                                       , a_f + sum (mapWithKey (addFriction obj) invCollides)
-                                                       )
-                                                      
-        addFriction obj i dims = let scalarNorm = (realToFrac . fromAccel <$> setSeveral 0 dims (accl $ phys orig)) :: Vector Double
-                                     f = ((+) `on` mu.phys) obj (object s i) * realToFrac (magnitude scalarNorm)
-                                 in setSeveral f dims 0
+        moveAndCollide mv (obj, allCollides) = let (deltaP, collides) = move ((t*) <$> mv) (phys <$> obj) $ val' phys <$> objects s
+                                                   dims = combine collides
+                                               in ( foldr (($) . val') obj $
+                                                    [ phys' $ vcty' $ setSeveral 0 dims
+                                                    , makeMove deltaP
+                                                    ]
+                                                  , allCollides `List.union` keys (filter (/= []) collides)
+                                                  )
 
         makeMove :: Position -> GameObject -> GameObject
         makeMove = phys' . posn' . (+)
 
-update :: Time -> GameState -> GameState
-update t = foldr tryUpdate <*> fmap id . objects
+update :: Time -> GameState -> (Collisions, GameState)
+update t = foldr tryUpdate <$> (Set.empty, ) <*> fmap id . objects
     where
-        tryUpdate i g = objPhysWrapper (object g i) $ deleteObj i g
+        tryUpdate i (cs, g) = objPhysWrapper (KeyPair i $ object g i) cs g
 
-        objPhysWrapper obj g = patch g $ updateObjPhysics t g obj
+        objPhysWrapper :: UniqueObject -> Collisions -> GameState -> (Collisions, GameState)
+        objPhysWrapper obj cs g = addCollides (id obj) cs *** patch g $ swap $ updateObjPhysics t g obj
 
-        patch :: GameState -> (GameObject, [ID]) -> GameState
-        patch g (obj, objs) = uncurry addObject $ foldr collideID (obj, g) objs
-
-collideID :: ID -> (GameObject, GameState) -> (GameObject, GameState)
-collideID i (obj, g) = withObject i mutualCollide g
-    where
-        mutualCollide obj2 = (obj `collide` obj2, obj2 `collide` obj)
-
-withObject :: ID -> (GameObject -> (a, GameObject)) -> GameState -> (a, GameState)
-withObject i f g = let (x, obj) = f $ object g i
-                   in (x, object' (const obj) i g)
+        patch g obj = object' (const $ val obj) (id obj) g
+        addCollides i cs = Set.union cs . Set.fromList . fmap (`Set.insert` Set.singleton i)
