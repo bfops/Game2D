@@ -30,6 +30,9 @@ val' f (KeyPair a b) = KeyPair a (f b)
 instance (Eq a) => Eq (KeyPair a b) where
     (==) = (==) `on` id
 
+instance Functor (KeyPair a) where
+    fmap = val'
+
 -- | Unique identifier
 type ID = Integer
 -- | Uniquely identified object
