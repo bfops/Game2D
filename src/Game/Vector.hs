@@ -20,7 +20,7 @@ import Text.Show
 
 -- | Physical dimensions in the game
 data Dimension = Width | Height
-    deriving (Eq, Show, Enum, Bounded)
+    deriving (Show, Eq, Ord, Enum, Bounded)
 
 instance Arbitrary Dimension where
     arbitrary = elements [minBound..maxBound]

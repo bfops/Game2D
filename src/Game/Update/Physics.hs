@@ -18,6 +18,7 @@ import Game.Physics
 import Game.State
 import Game.Vector
 
+-- | Put each component in its own vector, in the correct location
 isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
 
@@ -46,6 +47,7 @@ updateObjPhysics t s = updatePosn . val' (phys' updateVcty)
         makeMove :: Position -> GameObject -> GameObject
         makeMove = phys' . posn' . (+)
 
+-- | Advance all physics by a certain amount of time
 update :: Time -> GameState -> (Collisions, GameState)
 update t = foldr tryUpdate <$> (Set.empty, ) <*> fmap id . objects
     where

@@ -27,27 +27,29 @@ data GameState = GameState [ID] ObjectGroup (Map Input Time)
 
 -- Infinite lists of available IDs don't play nicely with deriving Show
 instance Show GameState where
-    show g = "GameState {objects = " ++ show (objects g) ++ "}"
+    show g = "GameState {objects = " <> show (objects g) <> "}"
 
 -- | Get the objects in the game
 objects :: GameState -> ObjectGroup
 objects (GameState _ objs _) = objs
 
+-- | Get information about the current input state
 inputs :: GameState -> Map Input Time
 inputs (GameState _ _ is) = is
 
 -- | Try to fetch a specific object
 object :: GameState -> ID -> GameObject
-object g i = maybe (error $ "Couldn't find object " ++ show i) val $ find (id <&> (== i)) $ objects g
+object g i = maybe (error $ "Couldn't find object " <> show i) val $ find (id <&> (== i)) $ objects g
 
 -- | Try to update an object
 object' :: (GameObject -> GameObject) -> ID -> GameState -> GameState
-object' f i g = maybe (error $ "Couldn't update object " ++ show i) ((`objects'` g) . const)
+object' f i g = maybe (error $ "Couldn't update object " <> show i) ((`objects'` g) . const)
               $ update f i $ objects g
 
 objects' :: (ObjectGroup -> ObjectGroup) -> GameState -> GameState
 objects' f (GameState x objs y) = GameState x (f objs) y
 
+-- | Transform information about the current input state
 inputs' :: (Map Input Time -> Map Input Time) -> GameState -> GameState
 inputs' f (GameState x y ins) = GameState x y (f ins)
 
@@ -59,7 +61,7 @@ addObject _ (GameState [] _ _) = error "Ran out of IDs"
 
 -- | Try to remove an object
 deleteObj :: ID -> GameState -> GameState
-deleteObj i (GameState is objs ins) = maybe (error $ "Object " ++ show i ++ " doesn't exist") (\o -> GameState (i:is) o ins)
+deleteObj i (GameState is objs ins) = maybe (error $ "Object " <> show i <> " doesn't exist") (\o -> GameState (i:is) o ins)
                                     $ deleteBy (id <&> (== i)) objs
 
 -- | Game state with nothing in it

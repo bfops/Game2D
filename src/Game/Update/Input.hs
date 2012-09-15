@@ -45,7 +45,7 @@ actions = [ Push Jump $ player' $ addVcty $ jumpVcty
 
 update :: [(Input, ButtonState)] -> Time -> GameState -> GameState
 update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
-                      updates = mapMaybe getPushAction pushes ++ mapMaybe getHoldAction (assocs ins')
+                      updates = mapMaybe getPushAction pushes <> mapMaybe getHoldAction (assocs ins')
                   in foldr ($) (inputs' (const ins') g) updates
     where
         getPushAction :: Input -> Maybe (GameState -> GameState)

@@ -40,42 +40,41 @@ module Util.Prelewd ( module Prelude
                     , (.^)
                     , (.$)
                     , ($$)
-                    , null
-                    , reverse
-                    , intersperse
-                    , intercalate
-                    , transpose
-                    , subsequences
-                    , permutations
-                    , foldl1'
-                    , scanl
-                    , scanl1
-                    , scanr
-                    , scanr1
-                    , iterate
-                    , repeat
+                    , List.null
+                    , List.reverse
+                    , List.intersperse
+                    , List.intercalate
+                    , List.transpose
+                    , List.subsequences
+                    , List.permutations
+                    , List.foldl1'
+                    , List.scanl
+                    , List.scanl1
+                    , List.scanr
+                    , List.scanr1
+                    , List.iterate
+                    , List.repeat
                     , replicate
-                    , cycle
-                    , unfoldr
-                    , take
-                    , drop
-                    , splitAt
-                    , takeWhile
-                    , dropWhile
-                    , dropWhileEnd
-                    , span
-                    , break
-                    , stripPrefix
-                    , group
-                    , isPrefixOf
-                    , isSuffixOf
-                    , isInfixOf
-                    , lookup
+                    , List.cycle
+                    , List.unfoldr
+                    , List.take
+                    , List.drop
+                    , List.splitAt
+                    , List.takeWhile
+                    , List.dropWhile
+                    , List.dropWhileEnd
+                    , List.span
+                    , List.break
+                    , List.stripPrefix
+                    , List.group
+                    , List.isPrefixOf
+                    , List.isSuffixOf
+                    , List.isInfixOf
+                    , List.lookup
                     , filter
-                    , zip
-                    , zipWith
-                    , (++)
-                    , unzip
+                    , List.zip
+                    , List.zipWith
+                    , List.unzip
                     , sequence
                     , sequence_
                     , onBoth
@@ -119,7 +118,7 @@ import Data.Eq
 import Data.Fixed
 import Data.Foldable hiding (concat, sequence_)
 import Data.Function hiding (fix, (.))
-import Data.List hiding (head, last, init, tail, partition, length, foldl, foldr, minimumBy, maximumBy, concat, deleteBy, foldr1, filter, replicate)
+import qualified Data.List as List
 import Data.Int
 import Data.Maybe
 import Data.Monoid hiding (mconcat)
@@ -205,7 +204,7 @@ head = listToMaybe
 
 -- | Last element of a finite list
 last :: [a] -> Maybe a
-last = Util.Prelewd.head . reverse
+last = Util.Prelewd.head . List.reverse
 
 -- | All but the first element of a list
 tail :: [a] -> Maybe [a]
@@ -214,7 +213,7 @@ tail (_:xs) = Just xs
 
 -- | All but the last element of a list
 init :: [a] -> Maybe [a]
-init = Util.Prelewd.tail . reverse
+init = Util.Prelewd.tail . List.reverse
 
 -- | Find and remove the first occurance for which the supplied predicate is true
 deleteBy :: (a -> Bool) -> [a] -> Maybe [a]
@@ -227,7 +226,7 @@ infixl 9 !
 (!) :: Foldable t => t a -> Integer -> a
 (!) l n = case foldl (\v x -> v >>= go x) (Right n) l of
             Left x -> x
-            Right i -> error $ "Foldable index too large by " ++ show (i + 1) ++ "."
+            Right i -> error $ "Foldable index too large by " <> show (i + 1) <> "."
     where
         go x 0 = Left x
         go _ k = Right (k - 1)
@@ -239,7 +238,7 @@ partition f = partitionEithers . fmap f
 -- | Length of a foldable structure
 -- O(n)
 length :: (Integral i, Foldable t) => t a -> i
-length = foldr (const (+1)) 0
+length = foldl' (const . (+ 1)) 0
 
 -- | Division with integral result
 div :: (Real a, Integral b) => a -> a -> Indeterminate b
@@ -299,7 +298,7 @@ infixl 8 .$, $$
 
 -- | Create several copies of an element
 replicate :: Integral i => i -> a -> [a]
-replicate = genericReplicate
+replicate = List.genericReplicate
 
 -- | Keep only elements which satisfy a predicate
 filter :: MonadPlus m => (a -> Bool) -> m a -> m a

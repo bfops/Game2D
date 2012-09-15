@@ -6,14 +6,12 @@ module Util.Unit ( Unit
                  , strip
                  ) where
 
-import Util.Prelewd hiding (empty)
-
-import Util.Impure
-
-import Wrappers.Map
-
+import Data.Map
 import Test.QuickCheck
 import Text.Show
+
+import Util.Impure
+import Util.Prelewd hiding (empty)
 
 -- | `Unit t v` is a unit with a unit in `t`, and a value in `v`
 data Unit t v = Unit { units :: Maybe (Map t Integer), val :: v }
@@ -30,7 +28,7 @@ instance (Ord t, Num v, Ord v) => Ord (Unit t v) where
 
 instance (Show t, Ord t, Num v) => Num (Unit t v) where
     (+) = Unit .$ (combine `on` units) $$ ((+) `on` val)
-        where combine x y = iff (compatible x y) (x <|> y) $ error $ "Can't add " ++ show x ++ " and " ++ show y
+        where combine x y = iff (compatible x y) (x <|> y) $ error $ "Can't add " <> show x <> " and " <> show y
     (*) = Unit .$ (liftA2 (unionWith (+)) `on` units) $$ ((*) `on` val)
     negate = val' negate
     abs = val' abs
