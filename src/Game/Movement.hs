@@ -4,6 +4,7 @@ module Game.Movement ( move
 
 import Util.Prelewd hiding (id, empty)
 
+import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Text.Show
 
@@ -37,12 +38,12 @@ overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
                                 EQ -> x <> y
                                 GT -> x
 
-shift :: Position -> Physics -> Physics -> ([Dimension], Scalar)
+shift :: Position -> Physics -> Physics -> (Set.Set Dimension, Scalar)
 shift deltaP ph1 ph2 = let
                            -- Collisions individually in each dimension
                            collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
                            TaggedRange dims rng = normalize $ foldr1 overlapTagged $ collides1
-                     in maybe ([], 1) ((dims,) . recast) $ start rng
+                     in maybe (Set.empty, 1) ((dims,) . recast) $ start rng
     where
         recast (Finite x) = x
         recast Infinite = error "recast parameter should be finite"
@@ -54,7 +55,7 @@ shift deltaP ph1 ph2 = let
                                          else TaggedRange t r'
 
         -- Range of time during which the line (x1, w1) moving at shift towards overlaps (x2, w2)
-        shift1 d v x1 w1 x2 w2 = TaggedRange [d] $ pass1 v (x1 + w1) x2 <> pass1 (negate v) (x2 + w2) x1
+        shift1 d v x1 w1 x2 w2 = TaggedRange (Set.singleton d) $ pass1 v (x1 + w1) x2 <> pass1 (negate v) (x2 + w2) x1
 
         -- Range of time during which the point x0, moving at v, is on the right side of x
         pass1 :: Speed -> Distance -> Distance -> Range Time
@@ -68,10 +69,10 @@ upd1 :: (a -> r) -> (a, b) -> (r, b)
 upd1 f (a, b) = (f a, b)
 
 -- | Retrieve information about a potential object movement
-move :: Position                        -- The movement to make (i.e. delta P)
-     -> KeyPair ID Physics              -- Object to move
-     -> [KeyPair ID Physics]            -- Rest of the objects
-     -> (Position, Map.Map ID [Dimension])  -- The amount the object can be moved, the IDs it collides with, and how it collides
+move :: Position                                    -- The movement to make (i.e. delta P)
+     -> KeyPair ID Physics                          -- Object to move
+     -> [KeyPair ID Physics]                        -- Rest of the objects
+     -> (Position, Map.Map ID (Set.Set Dimension))  -- The amount the object can be moved, the IDs it collides with, and how it collides
 move deltaP p = upd1 resolveT . foldr bumpList (Infinite, Map.empty)
     where
         resolveT Infinite = deltaP
