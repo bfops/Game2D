@@ -37,8 +37,8 @@ inputs :: GameState -> Map Input Time
 inputs (GameState _ _ is) = is
 
 -- | Try to fetch a specific object
-object :: GameState -> ID -> GameObject
-object g i = maybe (error $ "Couldn't find object " <> show i) val $ find (id <&> (== i)) $ objects g
+object :: ID -> GameState -> GameObject
+object i g = maybe (error $ "Couldn't find object " <> show i) val $ find (id <&> (== i)) $ objects g
 
 -- | Try to update an object
 object' :: (GameObject -> GameObject) -> ID -> GameState -> GameState

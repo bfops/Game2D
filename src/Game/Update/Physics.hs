@@ -48,7 +48,7 @@ updateObjPhysics t s = updatePosn . val' (phys' updateVcty)
 update :: Time -> GameState -> (Collisions, GameState)
 update t = foldr tryUpdate <$> (Set.empty, ) <*> fmap id . objects
     where
-        tryUpdate i (cs, g) = objPhysWrapper (KeyPair i $ object g i) cs g
+        tryUpdate i (cs, g) = objPhysWrapper (KeyPair i $ object i g) cs g
 
         objPhysWrapper :: UniqueObject -> Collisions -> GameState -> (Collisions, GameState)
         objPhysWrapper obj cs g = addCollides (id obj) cs *** patch g $ swap $ updateObjPhysics t g obj
