@@ -14,14 +14,12 @@ import Game.ObjectGroup
 import Game.Physics
 import Game.State
 import Game.Vector
+import Game.Update.Collisions hiding (update)
 import Util.Impure
 
 -- | Put each component in its own vector, in the correct location
 isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
-
-setSeveral :: a -> [Dimension] -> Vector a -> Vector a
-setSeveral x = flip $ foldr (`setV` x)
 
 updateObjPhysics :: Time -> GameState -> UniqueObject -> (UniqueObject, Map.Map ID (Set.Set Dimension))
 updateObjPhysics t s = updatePosn . val' (phys' updateVcty)
@@ -30,11 +28,7 @@ updateObjPhysics t s = updatePosn . val' (phys' updateVcty)
         updatePosn obj = foldr moveAndCollide (obj, Map.empty) $ isolate 0 $ vcty $ phys $ val obj
 
         moveAndCollide mv (obj, allCollides) = let (deltaP, collides) = move ((t*) <$> mv) (phys <$> obj) $ val' phys <$> objects s
-                                                   dims = mconcat collides
-                                               in ( foldr (($) . val') obj $
-                                                    [ phys' $ vcty' $ setSeveral 0 dims
-                                                    , makeMove deltaP
-                                                    ]
+                                               in ( val' (makeMove deltaP) obj
                                                   , allCollides `Map.union` Map.filter (not.Set.null) collides
                                                   )
 
