@@ -1,3 +1,4 @@
+-- | Transform one physics state to the next
 module Game.Update.Physics ( update
                            ) where
 

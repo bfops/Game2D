@@ -1,3 +1,4 @@
+-- | Transform game from one state to the next
 module Game.Update ( Game.Update.update
                    ) where
 
@@ -11,7 +12,11 @@ import Util.Prelewd
 
 import Data.Tuple
 
-update :: [(Input, ButtonState)] -> Time -> GameState -> GameState
+-- | Advance the game state
+update :: [(Input, ButtonState)] -- ^ List of input events, in order of ascending age
+       -> Time                   -- ^ Time elapsed for this step
+       -> GameState
+       -> GameState
 update is t = foldr (.) id
         [ Input.update is t
         , uncurry (Collisions.update t)

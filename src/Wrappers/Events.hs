@@ -57,8 +57,8 @@ type EventPoller = [EventConstraint] -- ^ Event types to filter for
 addEvent :: TVar (Queue Event) -> Event -> IO ()
 addEvent es s = void $ atomically $ modifyTVar es $ enq s
 
--- | Set up a queued event system.
--- `GLFW.initialize` must have been called.
+-- | Set up a queued event system
+-- `GLFW.initialize` must have been called
 createEventPoller :: IO EventPoller
 createEventPoller = atomically (newTVar mempty) >>= go
     where
@@ -71,11 +71,11 @@ createEventPoller = atomically (newTVar mempty) >>= go
             GLFW.mouseButtonCallback $= \b -> addEvent events . ButtonEvent (MouseButton b)
             GLFW.mousePosCallback $= addEvent events . MouseMoveEvent
 
--- | True if the maybe is Nothing, or the value it holds matches.
+-- | True if the maybe is Nothing, or the value it holds matches
 matchesMaybe :: Eq a => a -> Maybe a -> Bool
 matchesMaybe = maybe True . (==)
 
--- | Get a list of events matching any of the constraints.
+-- | Get a list of events matching any of the constraints, starting with the most recent
 poll :: TVar (Queue Event) -> EventPoller
 poll es constraints = atomically $ do
         (es', ret) <- partition constraintMatch . toList <$> readTVar es

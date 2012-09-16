@@ -1,3 +1,4 @@
+-- | Update game state to respond to input
 module Game.Update.Input ( update
                          ) where
 
@@ -43,6 +44,7 @@ actions = [ Push Jump $ player' $ addVcty $ jumpVcty
           , Push Right $ player' $ addVcty moveVcty
           ]
 
+-- | Advance game state to deal with user input
 update :: [(Input, ButtonState)] -> Time -> GameState -> GameState
 update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
                       updates = mapMaybe getPushAction pushes <> mapMaybe getHoldAction (Map.assocs ins')

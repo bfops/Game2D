@@ -1,3 +1,4 @@
+-- | Update game state's physical interactions
 module Game.Update.Collisions ( update
                               , Collisions
                               ) where
@@ -14,6 +15,7 @@ import Game.Vector
 import Util.Prelewd hiding (partition)
 import Util.Unit
 
+-- | Map object interactions to their collision dimensions
 type Collisions = Map.Map (Set.Set ID) (Set.Set Dimension)
 
 toSet :: (Foldable t, Ord a) => t a -> Set.Set a
@@ -33,6 +35,7 @@ updateCollision t (i1, i2) dims g = object' (collide t dims $ object i2 g) i1
                                   $ object' (collide t dims $ object i1 g) i2
                                   $ g
 
+-- | Advance a game state based on collisions
 update :: Time -> Collisions -> GameState -> GameState
 update t cs g = Map.foldrWithKey (updateCollision t . (Set.findMin &&& Set.findMax)) g cs
 
