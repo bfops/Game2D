@@ -25,8 +25,7 @@ module Game.Physics ( PhysicsValue
 
 import Util.Prelewd
 
-import Wrappers.Map (fromList)
-
+import Data.Map (fromList)
 import Test.QuickCheck
 import Text.Show
 

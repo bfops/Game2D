@@ -4,12 +4,11 @@ module Game.Movement ( move
 
 import Util.Prelewd hiding (id, empty)
 
+import qualified Data.Map as Map
 import Text.Show
 
 import Util.Impure
 import Util.Range
-
-import Wrappers.Map hiding (union)
 
 import Game.ObjectGroup
 import Game.Physics
@@ -72,17 +71,17 @@ upd1 f (a, b) = (f a, b)
 move :: Position                        -- The movement to make (i.e. delta P)
      -> KeyPair ID Physics              -- Object to move
      -> [KeyPair ID Physics]            -- Rest of the objects
-     -> (Position, Map ID [Dimension])  -- The amount the object can be moved, the IDs it collides with, and how it collides
-move deltaP p = upd1 resolveT . foldr bumpList (Infinite, Wrappers.Map.empty)
+     -> (Position, Map.Map ID [Dimension])  -- The amount the object can be moved, the IDs it collides with, and how it collides
+move deltaP p = upd1 resolveT . foldr bumpList (Infinite, Map.empty)
     where
         resolveT Infinite = deltaP
         resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (t *) <$> deltaP
 
         bumpList obj = if' (obj /= p) $ \accum -> keepEarlyColisns (id obj) accum $ (shift deltaP `on` val) p obj
 
-        keepEarlyColisns i (c1, collides) (ds, k) = assert (not $ member i collides)
+        keepEarlyColisns i (c1, collides) (ds, k) = assert (not $ Map.member i collides)
                                                   $ let c2 = Finite k
                                                     in case compare c1 c2 of
                                                         LT -> (c1, collides)
-                                                        EQ -> (c2, insert i ds collides)
-                                                        GT -> (c2, singleton i ds)
+                                                        EQ -> (c2, Map.insert i ds collides)
+                                                        GT -> (c2, Map.singleton i ds)

@@ -3,6 +3,7 @@ module Movement (test) where
 import Util.Prelewd hiding (empty)
 
 import Data.List
+import Data.Map
 
 import Text.Show
 
@@ -10,8 +11,6 @@ import Game.Movement
 import Game.Object
 import Game.ObjectGroup
 import Game.Physics
-
-import Wrappers.Map
 
 import Test.HUnit hiding (Test, test)
 import Test.QuickCheck

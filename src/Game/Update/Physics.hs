@@ -7,10 +7,8 @@ import Control.Arrow
 import Data.Tuple
 import qualified Data.List as List
 import qualified Data.Set as Set
+import qualified Data.Map as Map
 
-import Wrappers.Map hiding (union, update)
-
-import Game.Collision
 import Game.Movement
 import Game.Object
 import Game.ObjectGroup
@@ -28,7 +26,6 @@ setSeveral x = flip $ foldr (`setV` x)
 combine :: (Foldable t, Eq a) => t [a] -> [a]
 combine = foldl List.union []
 
--- | One advancement of physics
 updateObjPhysics :: Time -> GameState -> UniqueObject -> (UniqueObject, [ID])
 updateObjPhysics t s = updatePosn . val' (phys' updateVcty)
     where
