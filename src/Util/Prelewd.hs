@@ -35,6 +35,7 @@ module Util.Prelewd ( module Prelude
                     , mcond
                     , ifm
                     , (!)
+                    , ($>)
                     , (<&>)
                     , (.)
                     , (.^)
@@ -271,7 +272,11 @@ ifm :: MonadPlus m
       -> m a
 ifm = (>>) . guard
 
-infixl 4 <&>
+infixl 4 $>, <&>
+
+-- | (<$), with arguments reversed
+($>) :: Functor f => f a -> b -> f b
+($>) = flip (<$)
 
 -- | `(<$>)` with arguments interchanged
 (<&>) :: Functor f => f a -> (a -> b) -> f b

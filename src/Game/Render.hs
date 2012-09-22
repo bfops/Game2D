@@ -27,11 +27,12 @@ instance Drawable GameState where
 
 -- | `draw c o` draws `o` as a quadrilateral, based on its position and size.
 drawQuad :: Color4 GLdouble -> GameObject -> IO ()
-drawQuad c o = renderPrimitive Quads $ drawColored c [ Vertex2 x  y
-                                                     , Vertex2 x  y'
-                                                     , Vertex2 x' y'
-                                                     , Vertex2 x' y
-                                                     ]
+drawQuad c o = io $ renderPrimitive Quads $ runIO $ drawColored c
+                [ Vertex2 x  y
+                , Vertex2 x  y'
+                , Vertex2 x' y'
+                , Vertex2 x' y
+                ]
         where
             p = posn $ phys o
             (Vertex2 x y) = toGLVertex p

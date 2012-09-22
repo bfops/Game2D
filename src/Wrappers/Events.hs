@@ -62,14 +62,16 @@ addEvent es s = void $ atomically $ modifyTVar es $ enq s
 createEventPoller :: IO EventPoller
 createEventPoller = atomically (newTVar mempty) >>= go
     where
-        go events = poll events <$ do
-            True <- GLFW.initialize
-            GLFW.windowCloseCallback $= True <$ addEvent events CloseEvent
-            GLFW.windowSizeCallback $= addEvent events . ResizeEvent
-            GLFW.windowRefreshCallback $= addEvent events RefreshEvent
-            GLFW.keyCallback $= \k -> addEvent events . ButtonEvent (KeyButton k)
-            GLFW.mouseButtonCallback $= \b -> addEvent events . ButtonEvent (MouseButton b)
-            GLFW.mousePosCallback $= addEvent events . MouseMoveEvent
+        go events = mfilter id (io GLFW.initialize) >> io (setCallbacks events) $> poll events
+
+        setCallbacks events = sequence_
+            [ GLFW.windowCloseCallback $= True <$ (runIO $ addEvent events CloseEvent)
+            , GLFW.windowSizeCallback $= runIO . addEvent events . ResizeEvent
+            , GLFW.windowRefreshCallback $= runIO (addEvent events RefreshEvent)
+            , GLFW.keyCallback $= runIO . addEvent events .$ ButtonEvent . KeyButton
+            , GLFW.mouseButtonCallback $= runIO . addEvent events .$ ButtonEvent . MouseButton
+            , GLFW.mousePosCallback $= runIO . addEvent events . MouseMoveEvent
+            ]
 
 -- | True if the maybe is Nothing, or the value it holds matches
 matchesMaybe :: Eq a => a -> Maybe a -> Bool

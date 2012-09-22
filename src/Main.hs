@@ -3,9 +3,10 @@ module Main (main) where
 
 import Util.Prelewd
 
-import Control.Arrow
 import Control.Concurrent
+import Control.Arrow hiding (loop)
 import Data.Tuple.Curry
+import qualified System.IO as IO
 
 import Game.Input
 import Game.Physics hiding (Size)
@@ -31,31 +32,48 @@ game' :: (GameState -> GameState) -> State -> State
 game' f s = s { game = f (game s) }
 
 initOpenGL :: IO ()
-initOpenGL = do
+initOpenGL = io $ do
             shadeModel $= Smooth
             clearDepth $= 1
             depthFunc $= Just Less
             hint PerspectiveCorrection $= Nicest
 
+-- | Run the action within a GLFW-initialized state, and close it afterward
+runGLFW :: IO a -> IO a
+runGLFW body =  initGLFW
+             >> body
+             <* closeGLFW
+
+initGLFW :: IO ()
+initGLFW = io $ do
+        True <- GLFW.initialize
+        True <- GLFW.openWindow (uncurryN Size windowSize) [] GLFW.Window
+
+        GLFW.windowPos $= Position 0 0
+        GLFW.windowTitle $= title
+
+closeGLFW :: IO ()
+closeGLFW = io $  GLFW.closeWindow
+               >> GLFW.terminate
+
 drawFrame :: GameState -- ^ State to draw
           -> IO ()
 drawFrame g = do
         -- Clear the screen
-        clear [ ColorBuffer, DepthBuffer ]
-        -- Reset the view
-        loadIdentity
+        io $ do clear [ ColorBuffer, DepthBuffer ]
+                -- Reset the view
+                loadIdentity
 
-        -- Move to the render location
-        translate $ Vector3 0 0 (negate $ fromIntegral viewDist :: GLdouble)
+                -- Move to the render location
+                translate $ Vector3 0 0 (negate $ fromIntegral viewDist :: GLdouble)
 
         draw g
-
         -- Write it all to the buffer
-        flush
+        io flush
 
 -- | Resize OpenGL view
 resize :: Size -> IO ()
-resize s@(Size w h) = do
+resize s@(Size w h) = io $ do
     viewport $= (Position 0 0, s)
 
     matrixMode $= Projection
@@ -70,12 +88,17 @@ isOpen :: EventPoller -> IO Bool
 isOpen poll = null <$> poll [CloseEvents]
 
 -- | Take care of all received resize events
-handleResize :: EventPoller -> IO ()
-handleResize poll = poll [ResizeEvents] >>= maybe (return ()) resize' . last
+clearResizeEvents :: EventPoller -> IO ()
+clearResizeEvents poll = tryResize . last =<< poll [ResizeEvents]
     where
+        tryResize = maybe (return ()) resize'
+
         resize' :: Event -> IO ()
         resize' (ResizeEvent s) = resize s
         resize' _ = error "poll [ResizeEvents] returned an invalid list."
+
+clearRefreshEvents :: EventPoller -> IO ()
+clearRefreshEvents poll = poll [RefreshEvents] $> ()
 
 -- | Receive all pending input events, and convert them to game input
 getInputs :: EventPoller -> IO [(Input, ButtonState)]
@@ -100,44 +123,35 @@ newState s is t = game' (update is deltaT) $ s { lastUpdate = t }
     where
         deltaT = time $ realToFrac $ t - lastUpdate s
 
-mainLoop :: EventPoller -> State -> IO ()
-mainLoop poll s0 = isOpen poll >>= bool (return ()) runLoop
+mainLoop :: EventPoller -> State -> IO State
+mainLoop poll s0 =   isOpen poll
+                 >>= guard
+                 >>  visualize
+                 >>  updateState
     where
-        runLoop =   visualize
-                >>  updateState
-                <*  threadDelay 10000
-                >>= mainLoop poll
-
-        updateState = newState s0 <$> getInputs poll <*> get GLFW.time
+        updateState = newState s0 <$> getInputs poll <*> io (get GLFW.time)
 
         visualize = do
             -- Since we're drawing, all the window refresh events are taken care of
-            _ <- poll [RefreshEvents]
-            handleResize poll
+            clearRefreshEvents poll
+            clearResizeEvents poll
             drawFrame $ game s0
             -- Double buffering
-            GLFW.swapBuffers
+            io GLFW.swapBuffers
 
 -- | Create initial program state
 getInitState :: IO State
-getInitState = State initState <$> get GLFW.time
+getInitState = State initState <$> io (get GLFW.time)
 
 -- | Run the program
-main :: IO ()
-main = do
-        True <- GLFW.initialize
-        True <- GLFW.openWindow (uncurryN Size windowSize) [] GLFW.Window
-
-        GLFW.windowPos $= Position 0 0
-        GLFW.windowTitle $= title
-
+main :: IO.IO ()
+main = runIO $ runGLFW $ do
         initOpenGL
         let glColor = uncurryN Color4 bgColor
         clearColor $= toGLColor (glColor :: Color4 GLubyte)
 
         poll <- createEventPoller
+        run $ loop (mainLoop poll) =<< getInitState
 
-        getInitState >>= mainLoop poll
-
-        GLFW.closeWindow
-        GLFW.terminate
+loop :: Monad m => (a -> m a) -> a -> m a
+loop f x = f x >>= loop f

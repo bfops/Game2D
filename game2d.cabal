@@ -20,6 +20,7 @@ Executable Game2D
                     stm,
                     tuple,
                     containers,
+                    transformers,
                     QuickCheck >= 2,
                     base
 

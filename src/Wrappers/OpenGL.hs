@@ -7,11 +7,10 @@ module Wrappers.OpenGL ( module OGL
                        , GLColor (..)
                        ) where
 
-import Util.Prelewd
-
 import Data.Tuple.Curry
 
 import Util.IO
+import Util.Prelewd
 
 import Graphics.Rendering.OpenGL as OGL
 
@@ -54,7 +53,7 @@ forest = green
 
 -- | Set the OpenGL color, then call `vertex` on each vertex
 drawColored :: (Color c, Vertex v) => c -> [v] -> IO ()
-drawColored c vs = color c >> mapM_ vertex vs
+drawColored c vs = io (color c) >> io (mapM_ vertex vs)
  
 -- | Colors which can be used to color OpenGL's rendering
 class GLColor c where
