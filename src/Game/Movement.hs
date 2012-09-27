@@ -4,12 +4,12 @@ module Game.Movement ( move
 
 import Util.Prelewd hiding (id, empty)
 
-import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Text.Show
 
 import Util.Impure
 import Util.Range
+import qualified Util.Set as Set
 
 import Game.ObjectGroup
 import Game.Physics
@@ -43,7 +43,7 @@ shift deltaP ph1 ph2 = let
                            -- Collisions individually in each dimension
                            collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
                            TaggedRange dims rng = normalize $ foldr1 overlapTagged $ collides1
-                     in maybe (Set.empty, 1) ((dims,) . recast) $ start rng
+                     in maybe (mempty, 1) ((dims,) . recast) $ start rng
     where
         recast (Finite x) = x
         recast Infinite = error "recast parameter should be finite"

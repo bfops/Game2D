@@ -6,7 +6,6 @@ import Util.Prelewd hiding (id, filter)
 
 import Control.Arrow
 import Data.Tuple
-import qualified Data.Set as Set
 import qualified Data.Map as Map
 
 import Game.Movement
@@ -17,6 +16,7 @@ import Game.State
 import Game.Vector
 import Game.Update.Collisions hiding (update)
 import Util.Impure
+import qualified Util.Set as Set
 
 -- | Put each component in its own vector, in the correct location
 isolate :: a -> Vector a -> Vector (Vector a)

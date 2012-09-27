@@ -4,7 +4,6 @@ module Game.Update.Collisions ( update
                               ) where
 
 import Control.Arrow
-import qualified Data.Set as Set
 import qualified Data.Map as Map
 
 import Game.Physics
@@ -13,6 +12,7 @@ import Game.ObjectGroup hiding (id)
 import Game.State
 import Game.Vector
 import Util.Prelewd hiding (partition)
+import qualified Util.Set as Set
 import Util.Unit
 
 -- | Map object interactions to their collision dimensions
