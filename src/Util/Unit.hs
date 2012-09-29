@@ -24,7 +24,7 @@ instance (Ord t, Eq v, Num v) => Eq (Unit t v) where
     (==) = (&&) .$ ((==) `on` val) $$ (compatible `on` units)
 
 instance (Ord t, Num v, Ord v) => Ord (Unit t v) where
-    compare = compare `on` val
+    compare = bool (error "Can't compare different units") .$ (compare `on` val) $$ (compatible `on` units)
 
 instance (Show t, Ord t, Num v) => Num (Unit t v) where
     (+) = Unit .$ (combine `on` units) $$ ((+) `on` val)
