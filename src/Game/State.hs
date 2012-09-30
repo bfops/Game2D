@@ -37,7 +37,7 @@ inputs (GameState _ _ is) = is
 
 -- | Try to fetch a specific object
 object :: ID -> GameState -> GameObject
-object i g = maybe (error $ "Couldn't find object " <> show i) $ lookup i $ objects g
+object i g = fromMaybe (error $ "Couldn't find object " <> show i) $ lookup i $ objects g
 
 -- | Try to update an object
 object' :: (GameObject -> GameObject) -> ID -> GameState -> GameState

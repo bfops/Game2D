@@ -3,7 +3,6 @@ module Main (main) where
 
 import Util.Prelewd
 
-import Control.Concurrent
 import Control.Arrow hiding (loop)
 import Data.Tuple.Curry
 import qualified System.IO as IO
@@ -38,6 +37,9 @@ initOpenGL = io $ do
             clearDepth $= 1
             depthFunc $= Just Less
             hint PerspectiveCorrection $= Nicest
+
+            let glColor = uncurryN Color4 bgColor
+            clearColor $= toGLColor (glColor :: Color4 GLubyte)
 
 -- | Run the action within a GLFW-initialized state, and close it afterward
 runGLFW :: IO a -> IO a
@@ -110,8 +112,8 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
         rawToInput (ButtonEvent (KeyButton key) s) = lookup key keymap <&> (, s)
         rawToInput _ = Nothing
 
-        keys :: Map Key Input
-        keys = fromList $ first CharKey <$>
+        keymap :: Map Key Input
+        keymap = fromList $ first CharKey <$>
                 [ (' ', Jump)
                 , ('W', Jump)
                 , ('A', Left)
@@ -148,8 +150,6 @@ getInitState = State initState <$> io (get GLFW.time)
 main :: IO.IO ()
 main = runIO $ runGLFW $ do
         initOpenGL
-        let glColor = uncurryN Color4 bgColor
-        clearColor $= toGLColor (glColor :: Color4 GLubyte)
 
         poll <- createEventPoller
         run $ loop (mainLoop poll) =<< getInitState

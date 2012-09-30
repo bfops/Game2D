@@ -76,7 +76,6 @@ move :: Position                                    -- The movement to make (i.e
      -> Map ID Physics                      -- Rest of the objects
      -> (Position, Map ID (Set Dimension))  -- The amount the object can be moved,
                                             -- and a map of collision object ID's to collision dimensions
-move deltaP p = upd1 resolveT . foldr bumpList (Infinite, mempty)
 move deltaP p = upd1 resolveT . foldrWithKey (\i obj -> if' (i /= fst p) $ bumpList (i, obj)) (Infinite, mempty)
     where
         resolveT Infinite = deltaP

@@ -2,11 +2,10 @@
 module Game.Update.Input ( update
                          ) where
 
-import Util.Prelewd hiding (id, empty, lookup)
+import Util.Prelewd hiding (id, empty)
 
 import Control.Arrow
 import qualified Data.List as List
-import Data.Maybe (listToMaybe)
 
 import Config
 
@@ -60,8 +59,8 @@ update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
         perpetuate (i, Release) = (fromMaybe <*> delete i) *** List.delete i
 
 pushActions, holdActions :: [InputAction]
-pushActions = filter isPush actions
-holdActions = filter isHold actions
+pushActions = Util.Prelewd.filter isPush actions
+holdActions = Util.Prelewd.filter isHold actions
 
 moveVcty, jumpVcty :: Velocity
 moveVcty = assert (moveSpeed >= 0) $ singleV 0 Width moveSpeed
