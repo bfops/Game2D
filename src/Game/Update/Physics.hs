@@ -15,6 +15,7 @@ import Game.State
 import Game.Vector
 import Game.Update.Collisions hiding (update)
 import Util.Impure
+import Util.Pair
 import Util.Map
 import Util.Set
 
@@ -38,7 +39,7 @@ updateObjPhysics t s = updatePosn . val' (phys' updateVcty)
 
 -- | Advance all physics by a certain amount of time
 update :: Time -> GameState -> (Collisions, GameState)
-update t = foldr tryUpdate <$> (mempty, ) <*> fmap id . objects
+update t = foldr tryUpdate <$> (mempty, ) <*> keys . objects
     where
         tryUpdate i (cs, g) = objPhysWrapper (KeyPair i $ object i g) cs g
 
@@ -46,5 +47,5 @@ update t = foldr tryUpdate <$> (mempty, ) <*> fmap id . objects
         objPhysWrapper obj cs g = addCollides (id obj) cs *** patch g $ swap $ updateObjPhysics t g obj
 
         patch g obj = object' (const $ val obj) (id obj) g
-        addCollides i cs = joinWith checkEqual cs . mapKeys (<> set [i])
+        addCollides i cs = joinWith checkEqual cs . mapKeys (pair i)
         checkEqual x = assert =<< (== x)

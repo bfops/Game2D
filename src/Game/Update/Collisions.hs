@@ -3,20 +3,19 @@ module Game.Update.Collisions ( update
                               , Collisions
                               ) where
 
-import Control.Arrow
-
 import Game.Physics
 import Game.Object
 import Game.ObjectGroup hiding (id)
 import Game.State
 import Game.Vector
 import Util.Map
+import Util.Pair
 import Util.Prelewd hiding (partition)
 import Util.Set
 import Util.Unit
 
 -- | Map object interactions to their collision dimensions
-type Collisions = Map (Set ID) (Set Dimension)
+type Collisions = Map (Pair ID) (Set Dimension)
 
 toSet :: (Foldable t, Ord a) => t a -> Set a
 toSet = set . toList
@@ -37,7 +36,7 @@ updateCollision t (i1, i2) dims g = object' (collide t dims $ object i2 g) i1
 
 -- | Advance a game state based on collisions
 update :: Time -> Collisions -> GameState -> GameState
-update t cs g = foldrWithKey (updateCollision t . (findMin &&& findMax)) g cs
+update t cs g = foldrWithKey (updateCollision t . tuple) g cs
 
 applyFriction :: Time -> Set Dimension -> GameObject -> GameObject -> GameObject
 applyFriction t dims collidee obj = let 
