@@ -1,5 +1,7 @@
 -- | Basic game object type, and associated functions
 module Game.Object ( GameObject (..)
+                   , ID
+                   , ObjectGroup
                    , phys'
                    , isPlatform
                    , isBlock
@@ -11,6 +13,7 @@ import Util.Prelewd
 import Text.Show
 
 import Game.Physics
+import Util.Map
 
 -- | An object in the game world
 data GameObject
@@ -37,3 +40,8 @@ isPlatform _ = False
 isPlayer :: GameObject -> Bool
 isPlayer (Player {}) = True
 isPlayer _ = False
+
+-- | Unique identifier
+type ID = Integer
+-- | World of objects
+type ObjectGroup = Map ID GameObject

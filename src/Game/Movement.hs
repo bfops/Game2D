@@ -4,6 +4,7 @@ module Game.Movement ( move
 
 import Util.Prelewd hiding (id, empty)
 
+import Data.Tuple
 import Text.Show
 
 import Util.Impure
@@ -12,7 +13,7 @@ import Util.Map
 import Util.Member
 import Util.Set
 
-import Game.ObjectGroup
+import Game.Object
 import Game.Physics
 import Game.Vector hiding (normalize)
 
@@ -71,15 +72,17 @@ upd1 f (a, b) = (f a, b)
 
 -- | Retrieve information about a potential object movement
 move :: Position                                    -- The movement to make (i.e. delta P)
-     -> KeyPair ID Physics                          -- Object to move
-     -> [KeyPair ID Physics]                        -- Rest of the objects
-     -> (Position, Map ID (Set Dimension))          -- The amount the object can be moved, the IDs it collides with, and how it collides
+     -> (ID, Physics)                       -- Object to move
+     -> Map ID Physics                      -- Rest of the objects
+     -> (Position, Map ID (Set Dimension))  -- The amount the object can be moved,
+                                            -- and a map of collision object ID's to collision dimensions
 move deltaP p = upd1 resolveT . foldr bumpList (Infinite, mempty)
+move deltaP p = upd1 resolveT . foldrWithKey (\i obj -> if' (i /= fst p) $ bumpList (i, obj)) (Infinite, mempty)
     where
         resolveT Infinite = deltaP
         resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (t *) <$> deltaP
 
-        bumpList obj = if' (obj /= p) $ \accum -> keepEarlyColisns (id obj) accum $ (shift deltaP `on` val) p obj
+        bumpList iobj accum = keepEarlyColisns (fst iobj) accum $ (shift deltaP `on` snd) p iobj
 
         keepEarlyColisns i (c1, collides) (ds, k) = assert (not $ elem i $ keys collides)
                                                   $ let c2 = Finite k

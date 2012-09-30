@@ -5,7 +5,6 @@ module Game.Update.Collisions ( update
 
 import Game.Physics
 import Game.Object
-import Game.ObjectGroup hiding (id)
 import Game.State
 import Game.Vector
 import Util.Map

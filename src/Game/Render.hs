@@ -5,7 +5,6 @@ module Game.Render ( Drawable (..)
 import Util.Prelewd
 
 import Game.Object
-import Game.ObjectGroup
 import Game.Physics
 import Game.State
 import Game.Vector
@@ -23,7 +22,7 @@ class Drawable d where
     draw :: d -> IO ()
 
 instance Drawable GameState where
-    draw = mapM_ (draw . val) . objects
+    draw = mapM_ draw . objects
 
 -- | `draw c o` draws `o` as a quadrilateral, based on its position and size.
 drawQuad :: Color4 GLdouble -> GameObject -> IO ()

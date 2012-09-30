@@ -6,13 +6,13 @@ import Util.Prelewd hiding (id, empty, lookup)
 
 import Control.Arrow
 import qualified Data.List as List
+import Data.Maybe (listToMaybe)
 
 import Config
 
 import Game.Input
 import Game.Physics
 import Game.Object
-import Game.ObjectGroup
 import Game.State
 import Game.Vector
 import Util.Impure
@@ -57,7 +57,7 @@ update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
         getHoldAction (i, t) = actionUpdate t <$> find ((i ==) . cmd) holdActions
 
         perpetuate (i, Press) = insert i 0 *** (i:)
-        perpetuate (i, Release) = Map.delete i *** List.delete i
+        perpetuate (i, Release) = (fromMaybe <*> delete i) *** List.delete i
 
 pushActions, holdActions :: [InputAction]
 pushActions = filter isPush actions
@@ -70,7 +70,7 @@ jumpVcty = assert (jumpSpeed >= 0) $ singleV 0 Height jumpSpeed
 player' :: (GameObject -> GameObject) -> GameState -> GameState
 player' = object' <&> (=<< getPlayer)
     where
-        getPlayer = id . fromMaybe (error "No player!") . find (isPlayer . val) . objects
+        getPlayer = fromMaybe (error "No player!") . listToMaybe . keys . Map.filter isPlayer . objects
 
 addVcty :: Velocity -> GameObject -> GameObject
 addVcty = phys' . vcty' . (+)

@@ -8,7 +8,6 @@ import Text.Show
 
 import Game.Movement
 import Game.Object
-import Game.ObjectGroup
 import Game.Physics
 import Util.Map
 
@@ -23,4 +22,4 @@ test :: Test
 test = $(testGroupGenerator)
 
 prop_emptyMove :: (Physics, Position) -> Bool
-prop_emptyMove (p, shift) = move shift (KeyPair 0 p) mempty == (shift, mempty)
+prop_emptyMove (p, shift) = move shift (0, p) mempty == (shift, mempty)
