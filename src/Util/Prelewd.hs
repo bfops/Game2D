@@ -11,8 +11,10 @@ module Util.Prelewd ( module Prelude
                     , module Data.Maybe
                     , module Data.Monoid
                     , module Data.Ord
-                    , module Data.Traversable
                     , module Data.Word
+                    , Mappable (..)
+                    , Sequential (..)
+                    , Traversable (..)
                     , Indeterminate (..)
                     , apmap
                     , ordEq
@@ -75,7 +77,6 @@ module Util.Prelewd ( module Prelude
                     , List.zip
                     , List.zipWith
                     , List.unzip
-                    , sequence
                     , sequence_
                     , onBoth
                     ) where
@@ -123,13 +124,45 @@ import Data.Int
 import Data.Maybe
 import Data.Monoid hiding (mconcat)
 import Data.Ord
-import Data.Traversable hiding (sequence)
+import qualified Data.Traversable as T
+import qualified Data.Set as Set
 import Data.Word
 
 import Test.QuickCheck hiding (Fixed)
 import Text.Show
 
 import Util.Impure
+
+class Mappable f a b where
+    map :: (a -> b) -> f a -> f b
+
+class Applicative f => Sequential s f a where
+    sequence :: s (f a) -> f (s a)
+
+class (Foldable t, Mappable t a (f b), Sequential t f b) => Traversable t f a b where
+    traverse :: (a -> f b) -> t a -> f (t b)
+    traverse = sequence .$ map
+
+instance Functor f => Mappable f a b where
+    map = fmap
+
+instance Applicative f => Sequential [] f a where
+    sequence = T.sequenceA
+
+instance Applicative f => Traversable [] f a b where
+    traverse = T.traverse
+
+instance Applicative f => Sequential Maybe f a where
+    sequence = T.sequenceA
+
+instance Applicative f => Traversable Maybe f a b where
+    traverse = T.traverse
+
+instance (Ord a, Ord b) => Mappable Set.Set a b where
+    map = Set.map
+
+instance (Applicative f, Ord a) => Sequential Set.Set f a where
+    sequence = foldr (liftA2 Set.insert) (pure mempty)
 
 -- | Objects with Infinity support
 data Indeterminate a = Finite a
@@ -309,9 +342,6 @@ replicate = List.genericReplicate
 -- | Keep only elements which satisfy a predicate
 filter :: MonadPlus m => (a -> Bool) -> m a -> m a
 filter = mfilter
-
-sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
-sequence = sequenceA
 
 -- | Collect actions and discard results
 sequence_ :: (Foldable t, Applicative f) => t (f a) -> f ()

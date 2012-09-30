@@ -21,9 +21,11 @@ instance Foldable Queue where
     -- | O(n)
     foldr f b (Queue l1 l2) = foldr f (foldl (flip f) b l2) l1
 
-instance Traversable Queue where
+instance Applicative f => Sequential Queue f a where
     -- | O(n)
-    sequenceA q = fromList <$> sequenceA (toList q)
+    sequence q = fromList <$> sequence (toList q)
+
+instance Applicative f => Traversable Queue f a b
 
 instance Monoid (Queue a) where
     mempty = Queue [] []

@@ -60,10 +60,12 @@ instance Applicative Vector where
 instance Foldable Vector where
     foldr f b (Vector x y) = foldr f b [x, y]
 
-instance Traversable Vector where
-    sequenceA (Vector x y) = Vector <$> x <*> y
-
 instance Ord a => Member Vector a
+
+instance Applicative f => Sequential Vector f a where
+    sequence (Vector x y) = Vector <$> x <*> y
+
+instance Applicative f => Traversable Vector f a b
 
 instance Arbitrary a => Arbitrary (Vector a) where
     arbitrary = sequence $ pure arbitrary
