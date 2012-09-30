@@ -6,7 +6,6 @@ import Util.Prelewd hiding (id, empty, lookup)
 
 import Control.Arrow
 import qualified Data.List as List
-import qualified Data.Map as Map
 
 import Config
 
@@ -17,6 +16,7 @@ import Game.ObjectGroup
 import Game.State
 import Game.Vector
 import Util.Impure
+import Util.Map as Map
 import Wrappers.Events
 
 data InputAction = Push Input (GameState -> GameState)
@@ -47,7 +47,7 @@ actions = [ Push Jump $ player' $ addVcty $ jumpVcty
 -- | Advance game state to deal with user input
 update :: [(Input, ButtonState)] -> Time -> GameState -> GameState
 update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
-                      updates = mapMaybe getPushAction pushes <> mapMaybe getHoldAction (Map.assocs ins')
+                      updates = mapMaybe getPushAction pushes <> mapMaybe getHoldAction (assocs ins')
                   in foldr ($) (inputs' (const ins') g) updates
     where
         getPushAction :: Input -> Maybe (GameState -> GameState)
@@ -56,7 +56,7 @@ update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
         getHoldAction :: (Input, Time) -> Maybe (GameState -> GameState)
         getHoldAction (i, t) = actionUpdate t <$> find ((i ==) . cmd) holdActions
 
-        perpetuate (i, Press) = Map.insert i 0 *** (i:)
+        perpetuate (i, Press) = insert i 0 *** (i:)
         perpetuate (i, Release) = Map.delete i *** List.delete i
 
 pushActions, holdActions :: [InputAction]

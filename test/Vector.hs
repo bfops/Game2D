@@ -5,6 +5,7 @@ import Util.Prelewd
 import Text.Show
 
 import Game.Vector
+import Util.Member
 
 import Test.Framework
 import Test.Framework.TH

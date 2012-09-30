@@ -43,10 +43,7 @@ instance (Ord t, Arbitrary t, Arbitrary v) => Arbitrary (Unit t v) where
     arbitrary = Unit . fmap fromList <$> arbitrary <*> arbitrary
 
 compatible :: (Ord t, Eq v, Num v) => Maybe (Map t v) -> Maybe (Map t v) -> Bool
-compatible x y = maybe True (all (== 0)) $ symmetricDiff <$> x <*> y
-
-symmetricDiff :: Ord t => Map t v -> Map t v -> Map t v
-symmetricDiff x y = difference x y `union` difference y x
+compatible x y = maybe True (all (== 0)) $ difference <$> x <*> y
 
 infix 9 `unit`
 

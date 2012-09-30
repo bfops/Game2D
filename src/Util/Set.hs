@@ -1,13 +1,13 @@
 module Util.Set ( Set ()
-                , singleton
-                , insert
-                , (\\)
-                , fromList
+                , set
+                , difference
                 , findMin
                 , findMax
-                , null
                 ) where
 
-import Data.Set
+import Data.Set hiding (foldr, foldl, toList)
 
-import Util.Prelewd ()
+import Util.Prelewd
+
+set :: (Foldable t, Ord a) => t a -> Set a
+set = fromList . toList

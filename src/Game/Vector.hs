@@ -15,6 +15,8 @@ import Util.Prelewd
 
 import Data.Tuple
 
+import Util.Member
+
 import Test.QuickCheck hiding (vector)
 import Text.Show
 
@@ -60,6 +62,8 @@ instance Foldable Vector where
 
 instance Traversable Vector where
     sequenceA (Vector x y) = Vector <$> x <*> y
+
+instance Ord a => Member Vector a
 
 instance Arbitrary a => Arbitrary (Vector a) where
     arbitrary = sequence $ pure arbitrary

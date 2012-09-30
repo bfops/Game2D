@@ -15,6 +15,7 @@ import Game.State
 import Game.Update
 import Util.Impure
 import Util.IO
+import Util.Map
 
 import Wrappers.Events
 import Wrappers.OpenGL as OGL hiding (windowPos)
@@ -106,11 +107,11 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
     where
         -- Convert an input event to a game input
         rawToInput :: Event -> Maybe (Input, ButtonState)
-        rawToInput (ButtonEvent (KeyButton key) s) = lookup key keys <&> (, s)
+        rawToInput (ButtonEvent (KeyButton key) s) = lookup key keymap <&> (, s)
         rawToInput _ = Nothing
 
-        keys :: [(Key, Input)]
-        keys = first CharKey <$>
+        keys :: Map Key Input
+        keys = fromList $ first CharKey <$>
                 [ (' ', Jump)
                 , ('W', Jump)
                 , ('A', Left)

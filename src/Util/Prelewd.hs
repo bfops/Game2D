@@ -29,6 +29,7 @@ module Util.Prelewd ( module Prelude
                     , tail
                     , deleteBy
                     , length
+                    , null
                     , div
                     , divMod
                     , mcast
@@ -41,7 +42,6 @@ module Util.Prelewd ( module Prelude
                     , (.^)
                     , (.$)
                     , ($$)
-                    , List.null
                     , List.reverse
                     , List.intersperse
                     , List.intercalate
@@ -71,7 +71,6 @@ module Util.Prelewd ( module Prelude
                     , List.isPrefixOf
                     , List.isSuffixOf
                     , List.isInfixOf
-                    , List.lookup
                     , filter
                     , List.zip
                     , List.zipWith
@@ -117,7 +116,7 @@ import Data.Bool
 import Data.Either
 import Data.Eq
 import Data.Fixed
-import Data.Foldable hiding (concat, sequence_)
+import Data.Foldable hiding (concat, sequence_, elem)
 import Data.Function hiding (fix, (.))
 import qualified Data.List as List
 import Data.Int
@@ -167,7 +166,6 @@ instance Alternative Indeterminate where
 instance Arbitrary a => Arbitrary (Indeterminate a) where
     arbitrary = maybe Infinite Finite <$> arbitrary
 
--- | Default fmap inmplementation for Monads
 apmap :: Applicative f => (a -> b) -> f a -> f b
 apmap = (<*>) . pure
 
@@ -175,7 +173,6 @@ apmap = (<*>) . pure
 ordEq :: Ord a => a -> a -> Bool
 ordEq x y = compare x y == EQ
 
--- | Generalized `mconcat`
 mconcat :: (Foldable t, Monoid m) => t m -> m
 mconcat = foldr (<>) mempty
 
@@ -240,6 +237,10 @@ partition f = partitionEithers . fmap f
 -- O(n)
 length :: (Integral i, Foldable t) => t a -> i
 length = foldl' (const . (+ 1)) 0
+
+-- | Is this value empty?
+null :: (Monoid a, Eq a) => a -> Bool
+null x = x == mempty
 
 -- | Division with integral result
 div :: (Real a, Integral b) => a -> a -> Indeterminate b
@@ -309,7 +310,6 @@ replicate = List.genericReplicate
 filter :: MonadPlus m => (a -> Bool) -> m a -> m a
 filter = mfilter
 
--- | Collect actions in a traversable structure
 sequence :: (Traversable t, Applicative f) => t (f a) -> f (t a)
 sequence = sequenceA
 

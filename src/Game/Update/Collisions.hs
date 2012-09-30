@@ -4,24 +4,24 @@ module Game.Update.Collisions ( update
                               ) where
 
 import Control.Arrow
-import qualified Data.Map as Map
 
 import Game.Physics
 import Game.Object
 import Game.ObjectGroup hiding (id)
 import Game.State
 import Game.Vector
+import Util.Map
 import Util.Prelewd hiding (partition)
-import qualified Util.Set as Set
+import Util.Set
 import Util.Unit
 
 -- | Map object interactions to their collision dimensions
-type Collisions = Map.Map (Set.Set ID) (Set.Set Dimension)
+type Collisions = Map (Set ID) (Set Dimension)
 
-toSet :: (Foldable t, Ord a) => t a -> Set.Set a
-toSet = Set.fromList . toList
+toSet :: (Foldable t, Ord a) => t a -> Set a
+toSet = set . toList
 
-collide :: Time -> Set.Set Dimension -> GameObject -> GameObject -> GameObject
+collide :: Time -> Set Dimension -> GameObject -> GameObject -> GameObject
 collide t dims collidee = foldr (.) id
             [ applyFriction t dims collidee
             , phys' $ vcty' $ setSeveral 0 dims
@@ -30,18 +30,18 @@ collide t dims collidee = foldr (.) id
 setSeveral :: Foldable t => a -> t Dimension -> Vector a -> Vector a
 setSeveral x = flip $ foldr (`setV` x)
 
-updateCollision :: Time -> (ID, ID) -> Set.Set Dimension -> GameState -> GameState
+updateCollision :: Time -> (ID, ID) -> Set Dimension -> GameState -> GameState
 updateCollision t (i1, i2) dims g = object' (collide t dims $ object i2 g) i1
                                   $ object' (collide t dims $ object i1 g) i2
                                   $ g
 
 -- | Advance a game state based on collisions
 update :: Time -> Collisions -> GameState -> GameState
-update t cs g = Map.foldrWithKey (updateCollision t . (Set.findMin &&& Set.findMax)) g cs
+update t cs g = foldrWithKey (updateCollision t . (findMin &&& findMax)) g cs
 
-applyFriction :: Time -> Set.Set Dimension -> GameObject -> GameObject -> GameObject
+applyFriction :: Time -> Set Dimension -> GameObject -> GameObject -> GameObject
 applyFriction t dims collidee obj = let 
-                                        moveDims = toSet dimensions Set.\\ dims
+                                        moveDims = toSet dimensions `difference` dims
                                         norm = setSeveral 0 moveDims $ accl $ phys obj
                                         f = ((+) `on` mu.phys) collidee obj * accel (magnitude $ fromAccel <$> norm)
                                     in phys' (vcty' $ friction $ t * f) obj

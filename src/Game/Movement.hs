@@ -4,12 +4,13 @@ module Game.Movement ( move
 
 import Util.Prelewd hiding (id, empty)
 
-import qualified Data.Map as Map
 import Text.Show
 
 import Util.Impure
 import Util.Range
-import qualified Util.Set as Set
+import Util.Map
+import Util.Member
+import Util.Set
 
 import Game.ObjectGroup
 import Game.Physics
@@ -38,7 +39,7 @@ overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
                                 EQ -> x <> y
                                 GT -> x
 
-shift :: Position -> Physics -> Physics -> (Set.Set Dimension, Scalar)
+shift :: Position -> Physics -> Physics -> (Set Dimension, Scalar)
 shift deltaP ph1 ph2 = let
                            -- Collisions individually in each dimension
                            collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
@@ -55,7 +56,7 @@ shift deltaP ph1 ph2 = let
                                          else TaggedRange t r'
 
         -- Range of time during which the line (x1, w1) moving at shift towards overlaps (x2, w2)
-        shift1 d v x1 w1 x2 w2 = TaggedRange (Set.singleton d) $ pass1 v (x1 + w1) x2 <> pass1 (negate v) (x2 + w2) x1
+        shift1 d v x1 w1 x2 w2 = TaggedRange (set [d]) $ pass1 v (x1 + w1) x2 <> pass1 (negate v) (x2 + w2) x1
 
         -- Range of time during which the point x0, moving at v, is on the right side of x
         pass1 :: Speed -> Distance -> Distance -> Range Time
@@ -72,17 +73,17 @@ upd1 f (a, b) = (f a, b)
 move :: Position                                    -- The movement to make (i.e. delta P)
      -> KeyPair ID Physics                          -- Object to move
      -> [KeyPair ID Physics]                        -- Rest of the objects
-     -> (Position, Map.Map ID (Set.Set Dimension))  -- The amount the object can be moved, the IDs it collides with, and how it collides
-move deltaP p = upd1 resolveT . foldr bumpList (Infinite, Map.empty)
+     -> (Position, Map ID (Set Dimension))          -- The amount the object can be moved, the IDs it collides with, and how it collides
+move deltaP p = upd1 resolveT . foldr bumpList (Infinite, mempty)
     where
         resolveT Infinite = deltaP
         resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (t *) <$> deltaP
 
         bumpList obj = if' (obj /= p) $ \accum -> keepEarlyColisns (id obj) accum $ (shift deltaP `on` val) p obj
 
-        keepEarlyColisns i (c1, collides) (ds, k) = assert (not $ Map.member i collides)
+        keepEarlyColisns i (c1, collides) (ds, k) = assert (not $ elem i $ keys collides)
                                                   $ let c2 = Finite k
                                                     in case compare c1 c2 of
                                                         LT -> (c1, collides)
-                                                        EQ -> (c2, Map.insert i ds collides)
-                                                        GT -> (c2, Map.singleton i ds)
+                                                        EQ -> (c2, insert i ds collides)
+                                                        GT -> (c2, singleton i ds)

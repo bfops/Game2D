@@ -12,7 +12,6 @@ module Game.State ( GameState
 
 import Util.Prelewd hiding (id, empty)
 
-import Data.Map hiding (update)
 import Text.Show
 
 import Game.Input
@@ -20,6 +19,7 @@ import Game.Physics
 import Game.Object
 import Game.ObjectGroup
 import Util.Impure
+import Util.Map
 
 -- | Game state structure
 data GameState = GameState [ID] ObjectGroup (Map Input Time)
@@ -65,7 +65,7 @@ deleteObj i (GameState is objs ins) = maybe (error $ "Object " <> show i <> " do
 
 -- | Game state with nothing in it
 emptyState :: GameState
-emptyState = GameState [0..] [] empty
+emptyState = GameState [0..] mempty mempty
 
 update :: Eq k => (v -> v) -> k -> [KeyPair k v] -> Maybe [KeyPair k v]
 update _ _ [] = Nothing
