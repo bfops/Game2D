@@ -12,6 +12,7 @@ You can set up the build environment by running
 
     scripts/setup.sh
 
+Doing so is **mandatory** before committing any code, as this also sets up pre-commit hooks.
 All scripts should be run from the project root directory.
 
 # Building
