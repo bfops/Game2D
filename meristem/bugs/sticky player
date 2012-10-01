@@ -1,0 +1,3 @@
+Player sometimes sticks in platforms.
+
+Possible cause: once two objects overlap, neither can move, by the rules of movement (which state you move until you intersect something else)
