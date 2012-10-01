@@ -2,10 +2,9 @@
 module Game.Update.Input ( update
                          ) where
 
-import Util.Prelewd hiding (id, empty)
-
 import Control.Arrow
 import qualified Data.List as List
+import Data.Maybe (listToMaybe)
 
 import Config
 
@@ -16,22 +15,28 @@ import Game.State
 import Game.Vector
 import Util.Impure
 import Util.Map as Map
+import Util.Prelewd
 import Wrappers.Events
 
+puref :: Functor f => (a -> f b) -> a -> f a
+puref f x = x <$ f x
+
+-- | Map an Input to a gamestate transformation
 data InputAction = Push Input (GameState -> GameState)
                  | Hold Input (Time -> GameState -> GameState) -- ^ First parameter is hold time
 
+-- | Get the input command which corresponds to this action
 cmd :: InputAction -> Input
 cmd (Push inp _) = inp
 cmd (Hold inp _) = inp
 
-isPush :: InputAction -> Bool
-isPush (Push _ _) = True
-isPush _ = False
+fromPush :: InputAction -> Maybe (GameState -> GameState)
+fromPush (Push _ f) = Just f
+fromPush _ = Nothing
 
-isHold :: InputAction -> Bool
-isHold (Hold _ _) = True
-isHold _ = False
+fromHold :: Time -> InputAction -> Maybe (GameState -> GameState)
+fromHold t (Hold _ f) = Just $ f t
+fromHold _ _ = Nothing
 
 actionUpdate :: Time -> InputAction -> GameState -> GameState
 actionUpdate _ (Push _ f) = f
@@ -55,12 +60,12 @@ update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
         getHoldAction :: (Input, Time) -> Maybe (GameState -> GameState)
         getHoldAction (i, t) = actionUpdate t <$> find ((i ==) . cmd) holdActions
 
+        -- Step the folded parameter with a new input
         perpetuate (i, Press) = insert i 0 *** (i:)
-        perpetuate (i, Release) = (fromMaybe <*> delete i) *** List.delete i
+        perpetuate (i, Release) = ((<?>) <*> delete i) *** List.delete i
 
 pushActions, holdActions :: [InputAction]
-pushActions = Util.Prelewd.filter isPush actions
-holdActions = Util.Prelewd.filter isHold actions
+[pushActions, holdActions] = fmap puref [fromPush, fromHold 0] <&> (`mapMaybe` actions)
 
 moveVcty, jumpVcty :: Velocity
 moveVcty = assert (moveSpeed >= 0) $ singleV 0 Width moveSpeed
@@ -69,7 +74,7 @@ jumpVcty = assert (jumpSpeed >= 0) $ singleV 0 Height jumpSpeed
 player' :: (GameObject -> GameObject) -> GameState -> GameState
 player' = object' <&> (=<< getPlayer)
     where
-        getPlayer = fromMaybe (error "No player!") . listToMaybe . keys . Map.filter isPlayer . objects
+        getPlayer = (error "No player!" <?>) . listToMaybe . keys . Map.filter isPlayer . objects
 
 addVcty :: Velocity -> GameObject -> GameObject
 addVcty = phys' . vcty' . (+)

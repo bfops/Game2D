@@ -8,7 +8,7 @@ module Util.IO ( IO
                , io
                , forceIO
                , runIO
-               , run
+               , quiet
                ) where
 
 import Prelude (undefined)
@@ -16,14 +16,17 @@ import Prelude (undefined)
 import Control.Monad
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Maybe
+import Data.Maybe
 import qualified System.IO as IO
 import System.Environment as Env
 import System.Exit as Exit
 
 import Util.Prelewd
 
+-- | IO which may be interrupted
 type IO = MaybeT IO.IO
 
+-- | Transform a primitive IO action to a Util.IO.IO
 io :: IO.IO a -> IO a
 io = lift
 
@@ -35,5 +38,6 @@ forceIO = fmap fromJust . runMaybeT
 runIO :: IO a -> IO.IO ()
 runIO = void . runMaybeT
 
-run :: IO a -> IO ()
-run = io . runIO
+-- | Remove return value and make failure silent
+quiet :: IO a -> IO ()
+quiet = io . runIO

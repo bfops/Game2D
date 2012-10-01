@@ -69,7 +69,7 @@ data Physics = Physics
         , accl  :: Vector Acceleration
         , mu    :: Mu
         }
-    deriving (Show)
+    deriving (Show, Eq)
 
 instance Arbitrary Physics where
     arbitrary = Physics <$> (abs <$> arbitrary) <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
@@ -101,7 +101,7 @@ accel a = speed a / time 1
 
 -- | Get a numeric value from one with units
 fromTime, fromDist, fromSpeed, fromAccel :: Num a => Unit Units a -> a
-fromTime = fromMaybe (error "fromTime with non-time") . strip (fromList [(Time, 1)])
-fromDist = fromMaybe (error "fromDist with non-distance") . strip (fromList [(Size, 1)])
+fromTime = (error "fromTime with non-time" <?>) . strip (fromList [(Time, 1)])
+fromDist = (error "fromDist with non-distance" <?>) . strip (fromList [(Size, 1)])
 fromSpeed = fromDist . (time 1 *)
 fromAccel = fromSpeed . (time 1 *)

@@ -2,7 +2,6 @@
 module Util.Unit ( Unit
                  , unit
                  , scalar
-                 , flexScalar
                  , strip
                  ) where
 
@@ -15,8 +14,9 @@ import Util.Prelewd hiding (empty)
 
 -- | `Unit t v` is a unit with a unit in `t`, and a value in `v`
 data Unit t v = Unit { units :: Maybe (Map t Integer), val :: v }
-    deriving Show
+    deriving (Show)
 
+-- | Local fmap
 val' :: (v -> v') -> Unit t v -> Unit t v'
 val' f x = x { val = f (val x) }
 

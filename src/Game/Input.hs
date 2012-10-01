@@ -5,7 +5,7 @@ module Game.Input ( Input (..)
 
 import Text.Show
 
-import Util.Prelewd hiding (id, empty)
+import Util.Prelewd
 import Wrappers.Events
 
 -- | Input events understood by the game

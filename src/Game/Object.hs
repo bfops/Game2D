@@ -8,11 +8,10 @@ module Game.Object ( GameObject (..)
                    , isPlayer
                    ) where
 
-import Util.Prelewd
-
 import Text.Show
 
 import Game.Physics
+import Util.Prelewd
 import Util.Map
 
 -- | An object in the game world

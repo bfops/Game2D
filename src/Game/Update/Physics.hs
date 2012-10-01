@@ -2,7 +2,7 @@
 module Game.Update.Physics ( update
                            ) where
 
-import Util.Prelewd hiding (id, join, filter)
+import Util.Prelewd hiding (join, filter)
 
 import Control.Arrow
 import Data.Tuple
@@ -22,30 +22,35 @@ import Util.Set
 isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
 
-updateObjPhysics :: Time -> GameState -> (ID, GameObject) -> ((ID, GameObject), Map ID (Set Dimension))
-updateObjPhysics t s = updatePosn . fmap (phys' updateVcty)
+-- | Update a single object's physics
+update1 :: Time -> GameState -> ID -> GameObject
+                 -> (GameObject, Map ID (Set Dimension))    -- ^ (object, collisions)
+update1 t s i = updatePosn . phys' updateVcty
     where
         updateVcty p = p { vcty = vcty p + ((t*) <$> accl p) }
-        updatePosn obj = foldr moveAndCollide (obj, mempty) $ isolate 0 $ vcty $ phys $ snd obj
+        updatePosn obj = foldr moveAndCollide (obj, mempty) $ isolate 0 $ vcty $ phys obj
 
         moveAndCollide mv (obj, allCollides) = let physLookup = phys <$> objects s
-                                                   (deltaP, collides) = move ((t*) <$> mv) (phys <$> obj) $ physLookup
-                                               in ( fmap (makeMove deltaP) obj
+                                                   (deltaP, collides) = move ((t*) <$> mv) i (phys obj) $ physLookup
+                                               in ( makeMove deltaP obj
                                                   , allCollides `join` filter (not.null) collides
                                                   )
 
         makeMove :: Position -> GameObject -> GameObject
         makeMove = phys' . posn' . (+)
 
+-- | Rotate a function's argument order
+rotateL :: (a -> b -> c -> d) -> b -> c -> a -> d
+rotateL f y z x = f x y z
+
 -- | Advance all physics by a certain amount of time
 update :: Time -> GameState -> (Collisions, GameState)
-update t = foldr tryUpdate <$> (mempty, ) <*> keys . objects
+update t = foldr updateID <$> (mempty, ) <*> keys . objects
     where
-        tryUpdate i (cs, g) = objPhysWrapper (i, object i g) cs g
+        updateID i (cs, g) = swap $ updateWCollisions t i (object i g) cs g
 
-        objPhysWrapper :: (ID, GameObject) -> Collisions -> GameState -> (Collisions, GameState)
-        objPhysWrapper obj cs g = addCollides (fst obj) cs *** patch g $ swap $ updateObjPhysics t g obj
-
-        patch g obj = object' (const $ snd obj) (fst obj) g
-        addCollides i cs = joinWith checkEqual cs . mapKeys (pair i)
+updateWCollisions :: Time -> ID -> GameObject -> Collisions -> GameState -> (GameState, Collisions)
+updateWCollisions t i obj cs g = (rotateL $ object'.const) i g *** addCollides $ update1 t g i obj
+    where
+        addCollides = joinWith checkEqual cs . mapKeys (Pair i)
         checkEqual x = assert =<< (== x)

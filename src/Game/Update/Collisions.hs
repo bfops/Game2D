@@ -28,14 +28,15 @@ collide t dims collidee = foldr (.) id
 setSeveral :: Foldable t => a -> t Dimension -> Vector a -> Vector a
 setSeveral x = flip $ foldr (`setV` x)
 
-updateCollision :: Time -> (ID, ID) -> Set Dimension -> GameState -> GameState
-updateCollision t (i1, i2) dims g = object' (collide t dims $ object i2 g) i1
-                                  $ object' (collide t dims $ object i1 g) i2
-                                  $ g
+-- | Run both objects' collision functions
+collideBoth :: Time -> (ID, ID) -> Set Dimension -> GameState -> GameState
+collideBoth t (i1, i2) dims g = object' (collide t dims $ object i2 g) i1
+                              $ object' (collide t dims $ object i1 g) i2
+                              $ g
 
 -- | Advance a game state based on collisions
 update :: Time -> Collisions -> GameState -> GameState
-update t cs g = foldrWithKey (updateCollision t . tuple) g cs
+update t cs g = foldrWithKey (collideBoth t . tuple) g cs
 
 applyFriction :: Time -> Set Dimension -> GameObject -> GameObject -> GameObject
 applyFriction t dims collidee obj = let 

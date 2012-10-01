@@ -8,7 +8,6 @@ module Util.Prelewd ( module Prelude
                     , module Data.Foldable
                     , module Data.Function
                     , module Data.Int
-                    , module Data.Maybe
                     , module Data.Monoid
                     , module Data.Ord
                     , module Data.Word
@@ -16,9 +15,9 @@ module Util.Prelewd ( module Prelude
                     , Sequential (..)
                     , Traversable (..)
                     , Indeterminate (..)
-                    , apmap
+                    , Maybe (..)
                     , ordEq
-                    , mconcat
+                    , concat
                     , minBy
                     , maxBy
                     , bool
@@ -34,9 +33,11 @@ module Util.Prelewd ( module Prelude
                     , null
                     , div
                     , divMod
-                    , mcast
+                    , maybe
+                    , mapMaybe
+                    , (<?>)
+                    , cast
                     , mcond
-                    , ifm
                     , (!)
                     , ($>)
                     , (<&>)
@@ -111,8 +112,10 @@ import Prelude ( Int
                , String
                )
 
-import Control.Applicative hiding (optional, some, many)
-import Control.Monad hiding (mapM, mapM_, sequence, sequence_, msum, forM, forM_, forever, void)
+import Control.Applicative (Applicative (..), Alternative (..), optional, (<$>), (<$), liftA, liftA2, liftA3)
+import Control.Monad ( Functor (..), Monad (..), MonadPlus (..)
+                     , (=<<), forever, void, guard, join, when, unless, ap, mfilter
+                     )
 import Data.Bool
 import Data.Either
 import Data.Eq
@@ -121,8 +124,8 @@ import Data.Foldable hiding (concat, sequence_, elem)
 import Data.Function hiding (fix, (.))
 import qualified Data.List as List
 import Data.Int
-import Data.Maybe
-import Data.Monoid hiding (mconcat)
+import Data.Maybe hiding (mapMaybe)
+import Data.Monoid
 import Data.Ord
 import qualified Data.Traversable as T
 import qualified Data.Set as Set
@@ -133,12 +136,15 @@ import Text.Show
 
 import Util.Impure
 
+-- | Multi-parameter Functor class
 class Mappable f a b where
     map :: (a -> b) -> f a -> f b
 
+-- | Multi-parameter class for `sequence`
 class Applicative f => Sequential s f a where
     sequence :: s (f a) -> f (s a)
 
+-- | Multi-parameter class for `traverse`
 class (Foldable t, Mappable t a (f b), Sequential t f b) => Traversable t f a b where
     traverse :: (a -> f b) -> t a -> f (t b)
     traverse = sequence .$ map
@@ -181,33 +187,35 @@ instance Monad Indeterminate where
     (Finite x) >>= f = f x
 
 instance MonadPlus Indeterminate where
-    mzero = empty
-    mplus = (<|>)
+    mzero = mempty
+    mplus = (<>)
+
+instance Monoid (Indeterminate a) where
+    mempty = Infinite
+    mappend Infinite x = x
+    mappend x _ = x
 
 instance Functor Indeterminate where
-    fmap = apmap
+    fmap = liftA
 
 instance Applicative Indeterminate where
     pure = return
     (<*>) = ap
 
 instance Alternative Indeterminate where
-    empty = Infinite
-    Infinite <|> x = x
-    x <|> _ = x
+    empty = mempty
+    (<|>) = (<>)
 
 instance Arbitrary a => Arbitrary (Indeterminate a) where
     arbitrary = maybe Infinite Finite <$> arbitrary
-
-apmap :: Applicative f => (a -> b) -> f a -> f b
-apmap = (<*>) . pure
 
 -- | Default == implementation for Ords
 ordEq :: Ord a => a -> a -> Bool
 ordEq x y = compare x y == EQ
 
-mconcat :: (Foldable t, Monoid m) => t m -> m
-mconcat = foldr (<>) mempty
+-- | Generalized `concat`
+concat :: (Foldable t, Monoid m) => t m -> m
+concat = foldr (<>) mempty
 
 -- | `min` with user-supplied ordering
 minBy :: (a -> a -> Ordering) -> a -> a -> a
@@ -283,12 +291,22 @@ div x y = mcond (y /= 0) $ div' x y
 divMod :: (Real a, Integral b) => a -> a -> Indeterminate (b, a)
 divMod x y = mcond (y /= 0) $ divMod' x y
 
+-- | `map` with deletion
+mapMaybe :: (Foldable m, Applicative m, Monoid (m b)) => (a -> Maybe b) -> m a -> m b
+mapMaybe f = concat . fmap (maybe mempty pure . f)
+
+infixl 4 <?>
+
+-- | infix of `fromMaybe`
+(<?>) :: a -> Maybe a -> a
+(<?>) = fromMaybe
+
 -- | Interpret something as a monad
-mcast :: MonadPlus m
-      => (a -> Bool)    -- ^ Casting function
-      -> a              -- ^ Value to cast
-      -> m a            -- ^ `return value` if cast succeeded, `mzero` otherwise
-mcast = (mcond =<<)
+cast :: MonadPlus m
+     => (a -> Bool)    -- ^ Casting function
+     -> a              -- ^ Value to cast
+     -> m a            -- ^ `return value` if cast succeeded, `mzero` otherwise
+cast = (mcond =<<)
 
 -- | Conditionally create a monad
 mcond :: MonadPlus m
@@ -296,15 +314,7 @@ mcond :: MonadPlus m
                 -- Otherwise, return the value.
       -> a      -- ^ Value to make into a monad.
       -> m a
-mcond = ifm .^ return
-
--- | Conditionally nullify a monad
-ifm :: MonadPlus m
-      => Bool   -- ^ If this condition is false, mzero.
-                -- Otherwise, return the monad.
-      -> m a    -- ^ Monad to filter
-      -> m a
-ifm = (>>) . guard
+mcond = (>>) . guard .^ return
 
 infixl 4 $>, <&>
 
@@ -320,6 +330,7 @@ infixl 9 ., .^
 infixl 8 .$, $$
 
 -- | `(f . g) x = f (g x)`
+-- Redefined for fixity purposes
 (.) :: (b -> c) -> (a -> b) -> (a -> c)
 (.) = fmap
 
@@ -347,6 +358,7 @@ filter = mfilter
 sequence_ :: (Foldable t, Applicative f) => t (f a) -> f ()
 sequence_ = sequenceA_
 
+-- | Null value for a type
 -- | Apply a function across both parameters only if both exist;
 -- otherwise default to the extant one
 onBoth :: Alternative f => (a -> a -> a) -> f a -> f a -> f a

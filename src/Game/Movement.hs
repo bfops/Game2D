@@ -2,15 +2,14 @@
 module Game.Movement ( move
                      ) where
 
-import Util.Prelewd hiding (id, empty)
-
-import Data.Tuple
+import Control.Arrow
 import Text.Show
 
 import Util.Impure
-import Util.Range
 import Util.Map
 import Util.Member
+import Util.Prelewd hiding (empty)
+import Util.Range as Range
 import Util.Set
 
 import Game.Object
@@ -20,31 +19,33 @@ import Game.Vector hiding (normalize)
 data TaggedRange a b = TaggedRange a (Range b)
     deriving Show
 
-infToMaybe :: Indeterminate a -> Maybe a
-infToMaybe Infinite = Nothing
-infToMaybe (Finite x) = Just x
+indfToMaybe :: Indeterminate a -> Maybe a
+indfToMaybe Infinite = Nothing
+indfToMaybe (Finite x) = Just x
 
 emptyRange :: Range a
-emptyRange = Util.Range.empty
+emptyRange = Range.empty
 
-overlapTagged :: (Show a, Show b, Ord b, Monoid a) => TaggedRange a b -> TaggedRange a b -> TaggedRange a b
+overlapTagged :: (Ord b, Monoid a) => TaggedRange a b -> TaggedRange a b -> TaggedRange a b
 overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
                                                           tag = if rng == emptyRange
                                                                 then mempty
-                                                                -- This quite rightly causes an error when it fails
-                                                                else fromJust $ overlap <$> start r1 <*> start r2
+                                                                else overlapNonempty r1 r2
                                                       in TaggedRange tag rng
         where
-            overlap s1 s2 = case (compare `on` infToMaybe) s1 s2 of
+            overlapNonempty = overlap `on` (error "Empty overlap produced non-empty range" <?>) . start
+            overlap s1 s2 = case (compare `on` indfToMaybe) s1 s2 of
                                 LT -> y
                                 EQ -> x <> y
                                 GT -> x
 
-shift :: Position -> Physics -> Physics -> (Set Dimension, Scalar)
+-- Shift one object through a vector towards another object
+shift :: Position -> Physics -> Physics
+      -> (Set Dimension, Scalar)        -- ^ (Collision dimensions, fraction of distance which can be travelled)
 shift deltaP ph1 ph2 = let
-                           -- Collisions individually in each dimension
-                           collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
-                           TaggedRange dims rng = normalize $ foldr1 overlapTagged $ collides1
+                        -- Collisions individually in each dimension
+                        collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
+                        TaggedRange dims rng = normalize $ foldr1 overlapTagged $ collides1
                      in maybe (mempty, 1) ((dims,) . recast) $ start rng
     where
         recast (Finite x) = x
@@ -67,25 +68,24 @@ shift deltaP ph1 ph2 = let
                         EQ -> iff (x0 <= x) emptyRange $ range Infinite Infinite
                         GT -> range (Finite t) Infinite
 
-upd1 :: (a -> r) -> (a, b) -> (r, b)
-upd1 f (a, b) = (f a, b)
-
 -- | Retrieve information about a potential object movement
-move :: Position                                    -- The movement to make (i.e. delta P)
-     -> (ID, Physics)                       -- Object to move
-     -> Map ID Physics                      -- Rest of the objects
+move :: Position                            -- The movement to make (i.e. delta P)
+     -> ID
+     -> Physics                             -- Object to move
+     -> Map ID Physics                      -- All of the objects (this can include the object being moved)
      -> (Position, Map ID (Set Dimension))  -- The amount the object can be moved,
                                             -- and a map of collision object ID's to collision dimensions
-move deltaP p = upd1 resolveT . foldrWithKey (\i obj -> if' (i /= fst p) $ bumpList (i, obj)) (Infinite, mempty)
+move deltaP i p = first resolveT . foldrWithKey (\j obj -> if' (i /= j) $ earliestBump j obj) (Infinite, mempty)
     where
         resolveT Infinite = deltaP
         resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (t *) <$> deltaP
 
-        bumpList iobj accum = keepEarlyColisns (fst iobj) accum $ (shift deltaP `on` snd) p iobj
+        -- Take an object, some bump information and produce update earliest bump information
+        earliestBump j q accum = keepEarlyColisns j accum $ shift deltaP p q
 
-        keepEarlyColisns i (c1, collides) (ds, k) = assert (not $ elem i $ keys collides)
+        keepEarlyColisns j (c1, collides) (ds, k) = assert (not $ elem j $ keys collides)
                                                   $ let c2 = Finite k
                                                     in case compare c1 c2 of
                                                         LT -> (c1, collides)
-                                                        EQ -> (c2, insert i ds collides)
-                                                        GT -> (c2, singleton i ds)
+                                                        EQ -> (c2, insert j ds collides)
+                                                        GT -> (c2, singleton j ds)

@@ -1,9 +1,6 @@
 -- | Main module, entry point
 module Main (main) where
 
-import Util.Prelewd
-
-import Control.Arrow hiding (loop)
 import Data.Tuple.Curry
 import qualified System.IO as IO
 
@@ -14,6 +11,7 @@ import Game.State
 import Game.Update
 import Util.Impure
 import Util.IO
+import Util.Prelewd
 import Util.Map
 
 import Wrappers.Events
@@ -33,13 +31,13 @@ game' f s = s { game = f (game s) }
 
 initOpenGL :: IO ()
 initOpenGL = io $ do
-            shadeModel $= Smooth
-            clearDepth $= 1
-            depthFunc $= Just Less
-            hint PerspectiveCorrection $= Nicest
+        shadeModel $= Smooth
+        clearDepth $= 1
+        depthFunc $= Just Less
+        hint PerspectiveCorrection $= Nicest
 
-            let glColor = uncurryN Color4 bgColor
-            clearColor $= toGLColor (glColor :: Color4 GLubyte)
+        let glColor = uncurryN Color4 bgColor
+        clearColor $= toGLColor (glColor :: Color4 GLubyte)
 
 -- | Run the action within a GLFW-initialized state, and close it afterward
 runGLFW :: IO a -> IO a
@@ -77,14 +75,16 @@ drawFrame g = do
 -- | Resize OpenGL view
 resize :: Size -> IO ()
 resize s@(Size w h) = io $ do
-    viewport $= (Position 0 0, s)
-
-    matrixMode $= Projection
-    loadIdentity
-    perspective 45 (on (/) realToFrac w h) 0.1 64
-
-    matrixMode $= Modelview 0
-    loadIdentity
+        viewport $= (Position 0 0, s)
+    
+        matrixMode $= Projection
+        loadIdentity
+        perspective 45 (w // h) 0.1 64
+    
+        matrixMode $= Modelview 0
+        loadIdentity
+    where
+        (//) = (/) `on` realToFrac
 
 -- | Is the window open?
 isOpen :: EventPoller -> IO Bool
@@ -112,19 +112,10 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
         rawToInput (ButtonEvent (KeyButton key) s) = lookup key keymap <&> (, s)
         rawToInput _ = Nothing
 
-        keymap :: Map Key Input
-        keymap = fromList $ first CharKey <$>
-                [ (' ', Jump)
-                , ('W', Jump)
-                , ('A', Left)
-                , ('D', Right)
-                ]
-
 -- | Update the program state with input and time elapsed
 newState :: State -> [(Input, ButtonState)] -> Double -> State
-newState s is t = game' (update is deltaT) $ s { lastUpdate = t }
-    where
-        deltaT = time $ realToFrac $ t - lastUpdate s
+newState s is t = let deltaT = time $ realToFrac $ t - lastUpdate s
+                  in game' (update is deltaT) $ s { lastUpdate = t }
 
 mainLoop :: EventPoller -> State -> IO State
 mainLoop poll s0 =   isOpen poll
@@ -150,9 +141,8 @@ getInitState = State initState <$> io (get GLFW.time)
 main :: IO.IO ()
 main = runIO $ runGLFW $ do
         initOpenGL
-
         poll <- createEventPoller
-        run $ loop (mainLoop poll) =<< getInitState
+        quiet $ loop (mainLoop poll) =<< getInitState
 
 loop :: Monad m => (a -> m a) -> a -> m a
 loop f x = f x >>= loop f

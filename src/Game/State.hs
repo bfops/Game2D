@@ -10,8 +10,6 @@ module Game.State ( GameState
                   , emptyState
                   ) where
 
-import Util.Prelewd hiding (id, empty)
-
 import Text.Show
 
 import Game.Input
@@ -19,6 +17,7 @@ import Game.Physics
 import Game.Object
 import Util.Impure
 import Util.Map
+import Util.Prelewd
 
 -- | Game state structure
 data GameState = GameState [ID] ObjectGroup (Map Input Time)
@@ -26,6 +25,9 @@ data GameState = GameState [ID] ObjectGroup (Map Input Time)
 -- Infinite lists of available IDs don't play nicely with deriving Show
 instance Show GameState where
     show g = "GameState {objects = " <> show (objects g) <> "}"
+
+ids :: GameState -> [ID]
+ids (GameState is _ _) = is
 
 -- | Get the objects in the game
 objects :: GameState -> ObjectGroup
@@ -35,11 +37,11 @@ objects (GameState _ objs _) = objs
 inputs :: GameState -> Map Input Time
 inputs (GameState _ _ is) = is
 
--- | Try to fetch a specific object
+-- | Fetch a specific object
 object :: ID -> GameState -> GameObject
-object i g = fromMaybe (error $ "Couldn't find object " <> show i) $ lookup i $ objects g
+object i g = error ("Couldn't find object " <> show i) <?> lookup i (objects g)
 
--- | Try to update an object
+-- | Update an object
 object' :: (GameObject -> GameObject) -> ID -> GameState -> GameState
 object' f i g = maybe (error $ "Couldn't update object " <> show i) ((`objects'` g) . const)
               $ modify (Just . f) i $ objects g
@@ -59,8 +61,8 @@ addObject _ (GameState [] _ _) = error "Ran out of IDs"
 
 -- | Try to remove an object
 deleteObj :: ID -> GameState -> GameState
-deleteObj i (GameState is objs ins) = maybe (error $ "Object " <> show i <> " doesn't exist") (\o -> GameState (i:is) o ins)
-                                    $ delete i objs
+deleteObj i s = maybe (error $ "Object " <> show i <> " doesn't exist") (\o -> GameState (i:ids s) o $ inputs s)
+              $ delete i $ objects s
 
 -- | Game state with nothing in it
 emptyState :: GameState

@@ -44,9 +44,23 @@ To run the tests after a successful build, run
 
     scripts/test.sh
 
-# Code Standards #
+# Committing
+
+## Code Standards
 
 The `Util` and `Wrappers` folders are for code which is *not project-specific*:
 Direct library wraps go into `Wrappers/`, and useful generic functions and modules go in `Util/`.
 
-Functions ending with a single quote usually require a transformation function as one of their parameters.
+Coding is a language. You are expressing ideas, so they should be as clear, concise, and elegant as possible.
+
+ * Wrap to 120 characters
+ * Functions ending with a single quote usually require a transformation function as one of their parameters
+ * When indenting multi-lined bodies, align SOMETHING visually (e.g. operators)
+   or just use a multiple of four spaces (at least 8)
+ * Indent a `where` clause by 4 spaces
+ * If a `where` clause has more than one line in it, the `where` keyword should be on a distinct line from any code
+ * Do not have more than one embedded subscope (A `let` inside a `where` is acceptable, but to be used sparingly)
+
+## Commit Hooks
+
+The file `scripts/pre-commit.sh` should be copied over to `.git/hooks/pre-commit` before making any commits to the code.

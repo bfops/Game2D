@@ -28,7 +28,7 @@ instance Ord a => Monoid (Range a) where
         where
             -- Overlap nonempty ranges
             overlapExtant r1 r2 = assert (validRange r1 && validRange r2)
-                                $ mcast validRange ((onBoth max `on` fst) r1 r2, (onBoth min `on` snd) r1 r2)
+                                $ cast validRange ((onBoth max `on` fst) r1 r2, (onBoth min `on` snd) r1 r2)
 
 instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
     arbitrary = maybe empty (\(x, y) -> range (min x y) (max x y)) <$> arbitrary
@@ -42,7 +42,7 @@ empty = Range Nothing
 
 -- | Create a range out of its endpoints
 range :: Ord a => Indeterminate a -> Indeterminate a -> Range a
-range x y = Range $ mcast validRange (x, y)
+range x y = Range $ cast validRange (x, y)
 
 -- | Get the beginning of the range.
 -- A return value of Nothing indicates an empty range,

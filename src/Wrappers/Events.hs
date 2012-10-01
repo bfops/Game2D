@@ -55,7 +55,7 @@ type EventPoller = [EventConstraint] -- ^ Event types to filter for
 
 -- | Push an event into the shared variable.
 addEvent :: TVar (Queue Event) -> Event -> IO ()
-addEvent es s = void $ atomically $ modifyTVar es $ enq s
+addEvent = void . atomically .$ modifyTVar .^ enq
 
 -- | Set up a queued event system
 -- `GLFW.initialize` must have been called
@@ -80,10 +80,10 @@ matchesMaybe = maybe True . (==)
 -- | Get a list of events matching any of the constraints, starting with the most recent
 poll :: TVar (Queue Event) -> EventPoller
 poll es constraints = atomically $ do
-        (es', ret) <- partition constraintMatch . toList <$> readTVar es
+        (es', ret) <- partition constraintMatch <$> toList <$> readTVar es
         ret <$ writeTVar es (fromList es')
     where
-        constraintMatch e = if (e `matchesConstraint`) `any` constraints
+        constraintMatch e = if (`any` constraints) $ matchesConstraint e
                             then Right e
                             else Left e
 

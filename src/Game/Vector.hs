@@ -11,11 +11,11 @@ module Game.Vector ( Vector
                    , component
                    ) where
 
-import Util.Prelewd
-
+import Data.Maybe
 import Data.Tuple
 
 import Util.Member
+import Util.Prelewd
 
 import Test.QuickCheck hiding (vector)
 import Text.Show
@@ -38,20 +38,20 @@ data Vector a = Vector !a !a
 instance Num a => Num (Vector a) where
     (+) = liftA2 (+)
     (*) = liftA2 (*)
-    negate = fmap negate
-    abs = fmap abs
-    signum = fmap signum
+    negate = map negate
+    abs = map abs
+    signum = map signum
     fromInteger = pure . fromInteger
 
 instance Fractional a => Fractional (Vector a) where
-    recip = fmap recip
+    recip = map recip
     fromRational = pure . fromRational
 
 instance Real a => Ord (Vector a) where
     compare = compare `on` (dot <*> id)
 
 instance Functor Vector where
-    fmap = apmap
+    fmap = liftA
 
 instance Applicative Vector where
     pure x = Vector x x 
