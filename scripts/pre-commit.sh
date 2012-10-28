@@ -8,6 +8,8 @@ cd /tmp/testbuild &&
 rm -f .git/hooks/pre-commit &&
 git commit -m "Temp" &&
 git reset --hard HEAD &&
+git clean -fd &&
+rm -rf dist/build/ &&
 scripts/build.sh &&
 echo &&
 scripts/test.sh &&
