@@ -1,13 +1,13 @@
 module Movement (test) where
 
-import Util.Prelewd
+import Prelewd
 
 import Data.List
 
 import Game.Movement
 import Game.Object
 import Game.Physics
-import Util.Map
+import Storage.Map
 
 import Test.HUnit hiding (Test, test)
 import Test.QuickCheck

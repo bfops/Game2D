@@ -9,8 +9,8 @@ module Wrappers.OpenGL ( module OGL
 
 import Data.Tuple.Curry
 
-import Util.IO
-import Util.Prelewd
+import IO
+import Prelewd
 
 import Graphics.Rendering.OpenGL as OGL
 

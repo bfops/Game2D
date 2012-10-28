@@ -23,14 +23,14 @@ module Game.Physics ( PhysicsValue
                     , fromAccel
                     ) where
 
-import Util.Prelewd
+import Prelewd
 
 import Data.Map (fromList)
 import Test.QuickCheck
 import Text.Show
 
 import Game.Vector
-import Util.Impure
+import Impure
 import Util.Unit
 
 data Units = Size | Time
@@ -101,7 +101,7 @@ accel a = speed a / time 1
 
 -- | Get a numeric value from one with units
 fromTime, fromDist, fromSpeed, fromAccel :: Num a => Unit Units a -> a
-fromTime = (error "fromTime with non-time" <?>) . strip (fromList [(Time, 1)])
-fromDist = (error "fromDist with non-distance" <?>) . strip (fromList [(Size, 1)])
+fromTime = (<?> error "fromTime with non-time") . strip (fromList [(Time, 1)])
+fromDist = (<?> error "fromDist with non-distance") . strip (fromList [(Size, 1)])
 fromSpeed = fromDist . (time 1 *)
 fromAccel = fromSpeed . (time 1 *)

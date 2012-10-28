@@ -14,8 +14,8 @@ import Control.Concurrent.STM.TVar as T hiding (modifyTVar, modifyTVar')
 import Control.Concurrent.STM.TChan as TC
 import Control.Concurrent.STM.TArray as TA
 
-import Util.IO
-import Util.Prelewd
+import IO
+import Prelewd
 
 -- | Perform an STM transaction atomically
 atomically :: STM.STM a -> IO a

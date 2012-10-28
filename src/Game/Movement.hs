@@ -2,15 +2,18 @@
 module Game.Movement ( move
                      ) where
 
+import Prelewd hiding (empty)
+
+import Impure
+
 import Control.Arrow
+import Num.Indeterminate
+import Storage.Map
+import Storage.Member
+import Storage.Set
 import Text.Show
 
-import Util.Impure
-import Util.Map
-import Util.Member
-import Util.Prelewd hiding (empty)
 import Util.Range as Range
-import Util.Set
 
 import Game.Object
 import Game.Physics
@@ -33,7 +36,7 @@ overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
                                                                 else overlapNonempty r1 r2
                                                       in TaggedRange tag rng
         where
-            overlapNonempty = overlap `on` (error "Empty overlap produced non-empty range" <?>) . start
+            overlapNonempty = overlap `on` (<?> error "Empty overlap produced non-empty range") . start
             overlap s1 s2 = case (compare `on` indfToMaybe) s1 s2 of
                                 LT -> y
                                 EQ -> x <> y

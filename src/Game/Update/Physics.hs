@@ -2,7 +2,7 @@
 module Game.Update.Physics ( update
                            ) where
 
-import Util.Prelewd hiding (join, filter)
+import Prelewd hiding (join, filter)
 
 import Control.Arrow
 import Data.Tuple
@@ -13,10 +13,10 @@ import Game.Physics
 import Game.State
 import Game.Vector
 import Game.Update.Collisions hiding (update)
-import Util.Impure
-import Util.Pair
-import Util.Map
-import Util.Set
+import Impure
+import Storage.Pair
+import Storage.Map
+import Storage.Set
 
 -- | Put each component in its own vector, in the correct location
 isolate :: a -> Vector a -> Vector (Vector a)

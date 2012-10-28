@@ -1,11 +1,11 @@
 module Vector (test) where
 
-import Util.Prelewd
+import Prelewd
 
 import Text.Show
 
 import Game.Vector
-import Util.Member
+import Storage.Member
 
 import Test.Framework
 import Test.Framework.TH

@@ -8,7 +8,7 @@ import Game.State
 import Game.Update.Collisions as Collisions
 import Game.Update.Input as Input
 import Game.Update.Physics as Physics
-import Util.Prelewd
+import Prelewd
 
 import Data.Tuple
 

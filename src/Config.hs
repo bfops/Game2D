@@ -9,13 +9,16 @@ module Config ( viewDist
               , keymap
               ) where
 
+import Prelewd
+
+import Storage.List
+import Storage.Map
+
 import Game.Input
 import Game.Object
 import Game.Physics
 import Game.State
 import Game.Vector
-import Util.Map
-import Util.Prelewd
 import Wrappers.Events
 
 -- | Viewing distance of the camera
@@ -44,7 +47,7 @@ gravity :: Vector Acceleration
 gravity = accel <$> singleV 0 Height (-32)
 
 -- | Title of the game window
-title :: String
+title :: Text
 title = "Game"
 
 -- | Dimensions of the game window

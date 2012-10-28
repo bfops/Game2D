@@ -11,8 +11,8 @@ module Game.Object ( GameObject (..)
 import Text.Show
 
 import Game.Physics
-import Util.Prelewd
-import Util.Map
+import Prelewd
+import Storage.Map
 
 -- | An object in the game world
 data GameObject

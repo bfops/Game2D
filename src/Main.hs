@@ -1,19 +1,21 @@
 -- | Main module, entry point
 module Main (main) where
 
+import Prelewd
+
+import Impure
+import IO
+
 import Data.Tuple
 import Data.Tuple.Curry
-import qualified System.IO as IO
+import Storage.List
+import Storage.Map
 
 import Game.Input
 import Game.Physics hiding (Size)
 import Game.Render
 import Game.State
 import Game.Update
-import Util.Impure
-import Util.IO
-import Util.Prelewd
-import Util.Map
 
 import Wrappers.Events
 import Wrappers.OpenGL as OGL hiding (windowPos)
@@ -143,7 +145,7 @@ getInitState :: IO State
 getInitState = State initState <$> io GLFW.getTime
 
 -- | Run the program
-main :: IO.IO ()
+main :: SystemIO ()
 main = runIO $ runGLFW $ do
         initOpenGL
         poll <- createEventPoller

@@ -2,8 +2,9 @@ module Range (test) where
 
 import Data.Maybe
 
-import Util.Fraction
-import Util.Prelewd hiding (empty)
+import Num.Indeterminate
+import Num.Fraction
+import Prelewd hiding (empty)
 import Util.Range
 
 import Test.Framework
@@ -20,7 +21,7 @@ prop_create :: (Indeterminate Integer, Indeterminate Integer) -> Bool
 prop_create (s, e) = let s' = min s e
                          e' = max s e
                          rng = range (min s e) (max s e)
-                     in (s == e && s /= Infinite) <?> (endsMatch s' e' <$> start rng <*> end rng)
+                     in (endsMatch s' e' <$> start rng <*> end rng) <?> (s == e && s /= Infinite)
     where
         endsMatch s1 e1 s2 e2 =  s1 == s2
                               && e1 == e2

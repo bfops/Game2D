@@ -13,9 +13,9 @@ import Game.Physics
 import Game.Object
 import Game.State
 import Game.Vector
-import Util.Impure
-import Util.Map as Map
-import Util.Prelewd
+import Impure
+import Storage.Map as Map
+import Prelewd
 import Wrappers.Events
 
 puref :: Functor f => (a -> f b) -> a -> f a
@@ -62,7 +62,7 @@ update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
 
         -- Step the folded parameter with a new input
         perpetuate (i, Press) = insert i 0 *** (i:)
-        perpetuate (i, Release) = ((<?>) <*> delete i) *** List.delete i
+        perpetuate (i, Release) = ((<?>) =<< delete i) *** List.delete i
 
 pushActions, holdActions :: [InputAction]
 [pushActions, holdActions] = fmap puref [fromPush, fromHold 0] <&> (`mapMaybe` actions)
@@ -74,7 +74,7 @@ jumpVcty = assert (jumpSpeed >= 0) $ singleV 0 Height jumpSpeed
 player' :: (GameObject -> GameObject) -> GameState -> GameState
 player' = object' <&> (=<< getPlayer)
     where
-        getPlayer = (error "No player!" <?>) . listToMaybe . keys . Map.filter isPlayer . objects
+        getPlayer = (<?> error "No player!") . listToMaybe . keys . Map.filter isPlayer . objects
 
 addVcty :: Velocity -> GameObject -> GameObject
 addVcty = phys' . vcty' . (+)

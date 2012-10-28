@@ -14,8 +14,8 @@ module Game.Vector ( Vector
 import Data.Maybe
 import Data.Tuple
 
-import Util.Member
-import Util.Prelewd
+import Storage.Member
+import Prelewd
 
 import Test.QuickCheck hiding (vector)
 import Text.Show

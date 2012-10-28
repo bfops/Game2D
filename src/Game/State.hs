@@ -15,9 +15,9 @@ import Text.Show
 import Game.Input
 import Game.Physics
 import Game.Object
-import Util.Impure
-import Util.Map
-import Util.Prelewd
+import Impure
+import Storage.Map
+import Prelewd
 
 -- | Game state structure
 data GameState = GameState [ID] ObjectGroup (Map Input Time)
@@ -39,7 +39,7 @@ inputs (GameState _ _ is) = is
 
 -- | Fetch a specific object
 object :: ID -> GameState -> GameObject
-object i g = error ("Couldn't find object " <> show i) <?> lookup i (objects g)
+object i g = lookup i (objects g) <?> error ("Couldn't find object " <> show i) 
 
 -- | Update an object
 object' :: (GameObject -> GameObject) -> ID -> GameState -> GameState

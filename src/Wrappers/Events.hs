@@ -10,13 +10,15 @@ module Wrappers.Events ( Event (..)
                        , createEventPoller
                        ) where
 
-import Util.Prelewd
+import Prelewd
+
+import IO
 
 import Data.Either
 import Text.Show
 
-import Util.IO
-import Util.Queue
+import Storage.List
+import Storage.Queue
 
 import Wrappers.OpenGL
 import Wrappers.STM

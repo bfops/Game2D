@@ -3,14 +3,15 @@ module Game.Update.Collisions ( update
                               , Collisions
                               ) where
 
+import Prelewd
+
 import Game.Physics
 import Game.Object
 import Game.State
 import Game.Vector
-import Util.Map
-import Util.Pair
-import Util.Prelewd hiding (partition)
-import Util.Set
+import Storage.Map
+import Storage.Pair
+import Storage.Set
 import Util.Unit
 
 -- | Map object interactions to their collision dimensions

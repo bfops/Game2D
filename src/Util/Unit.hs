@@ -5,12 +5,13 @@ module Util.Unit ( Unit
                  , strip
                  ) where
 
+import Prelewd hiding (empty)
+
 import Data.Map
 import Test.QuickCheck
 import Text.Show
 
-import Util.Impure
-import Util.Prelewd hiding (empty)
+import Impure
 
 -- | `Unit t v` is a unit with a unit in `t`, and a value in `v`
 data Unit t v = Unit { units :: Maybe (Map t Integer), val :: v }

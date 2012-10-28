@@ -6,14 +6,14 @@ module Util.Range ( Range
                   , end
                   ) where
 
-import Util.Prelewd hiding (empty)
+import Prelewd hiding (empty)
 
 import Data.Tuple
-
+import Num.Indeterminate
 import Test.QuickCheck
 import Text.Show
 
-import Util.Impure
+import Impure
 
 -- | Continuous range
 -- Monoid instances selects the overlap of both ranges
