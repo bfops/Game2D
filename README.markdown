@@ -17,12 +17,7 @@ All scripts should be run from the project root directory.
 
 # Building
 
-First, configure the project with
-
-    cabal configure
-
-If there are unsatisfied dependencies, run `cabal install [dependency ..]` for each one.
-When the project has been successfully configured, it can be built with
+When the environment has been successfully set up, the project can be built with
 
     scripts/build.sh
 
