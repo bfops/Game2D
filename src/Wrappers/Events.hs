@@ -2,12 +2,10 @@
 module Wrappers.Events ( Event (..)
                        , Button (..)
                        , GLFW.Key (..)
-                       , GLFW.SpecialKey (..)
                        , GLFW.MouseButton (..)
-                       , GLFW.KeyButtonState (..)
                        , EventConstraint (..)
                        , Size (..)
-                       , ButtonState
+                       , ButtonState (..)
                        , EventPoller
                        , createEventPoller
                        ) where
@@ -26,7 +24,12 @@ import Wrappers.STM
 import qualified Graphics.UI.GLFW as GLFW
 
 -- | The state of an input device button
-type ButtonState = GLFW.KeyButtonState
+data ButtonState = Press | Release
+    deriving (Show, Eq)
+
+btnState :: Bool -> ButtonState
+btnState True = Press
+btnState False = Release
 
 -- | Event data structure dictates what events we can accept
 data Event = ButtonEvent Button ButtonState
@@ -64,13 +67,16 @@ createEventPoller = atomically (newTVar mempty) >>= go
     where
         go events = mfilter id (io GLFW.initialize) >> io (setCallbacks events) $> poll events
 
+        toSize = on Size fromIntegral
+        toPos = on Position fromIntegral
+
         setCallbacks events = sequence_
-            [ GLFW.windowCloseCallback $= True <$ (runIO $ addEvent events CloseEvent)
-            , GLFW.windowSizeCallback $= runIO . addEvent events . ResizeEvent
-            , GLFW.windowRefreshCallback $= runIO (addEvent events RefreshEvent)
-            , GLFW.keyCallback $= runIO . addEvent events .$ ButtonEvent . KeyButton
-            , GLFW.mouseButtonCallback $= runIO . addEvent events .$ ButtonEvent . MouseButton
-            , GLFW.mousePosCallback $= runIO . addEvent events . MouseMoveEvent
+            [ GLFW.setWindowCloseCallback $ True <$ (runIO $ addEvent events CloseEvent)
+            , GLFW.setWindowSizeCallback $ runIO . addEvent events . ResizeEvent .$ toSize
+            , GLFW.setWindowRefreshCallback $ runIO (addEvent events RefreshEvent)
+            , GLFW.setKeyCallback $ runIO . addEvent events .$ ButtonEvent . KeyButton .^ btnState
+            , GLFW.setMouseButtonCallback $ runIO . addEvent events .$ ButtonEvent . MouseButton .^ btnState
+            , GLFW.setMousePositionCallback $ runIO . addEvent events . MouseMoveEvent .$ toPos
             ]
 
 -- | True if the maybe is Nothing, or the value it holds matches

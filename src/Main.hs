@@ -1,6 +1,7 @@
 -- | Main module, entry point
 module Main (main) where
 
+import Data.Tuple
 import Data.Tuple.Curry
 import qualified System.IO as IO
 
@@ -48,10 +49,14 @@ runGLFW body =  initGLFW
 initGLFW :: IO ()
 initGLFW = io $ do
         True <- GLFW.initialize
-        True <- GLFW.openWindow (uncurryN Size windowSize) [] GLFW.Window
+        True <- GLFW.openWindow $ GLFW.defaultDisplayOptions
+                    { GLFW.displayOptions_width = fst windowSize
+                    , GLFW.displayOptions_height = snd windowSize
+                    , GLFW.displayOptions_windowIsResizable = False
+                    }
 
-        GLFW.windowPos $= Position 0 0
-        GLFW.windowTitle $= title
+        GLFW.setWindowPosition 0 0
+        GLFW.setWindowTitle title
 
 closeGLFW :: IO ()
 closeGLFW = io $  GLFW.closeWindow
@@ -123,7 +128,7 @@ mainLoop poll s0 =   isOpen poll
                  >>  visualize
                  >>  updateState
     where
-        updateState = newState s0 <$> getInputs poll <*> io (get GLFW.time)
+        updateState = newState s0 <$> getInputs poll <*> io GLFW.getTime
 
         visualize = do
             -- Since we're drawing, all the window refresh events are taken care of
@@ -135,7 +140,7 @@ mainLoop poll s0 =   isOpen poll
 
 -- | Create initial program state
 getInitState :: IO State
-getInitState = State initState <$> io (get GLFW.time)
+getInitState = State initState <$> io GLFW.getTime
 
 -- | Run the program
 main :: IO.IO ()

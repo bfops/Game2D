@@ -17,7 +17,7 @@ Executable Game2D
 
     Build-Depends: 
                     OpenGL,
-                    GLFW,
+                    GLFW-b,
                     stm,
                     tuple,
                     containers,
