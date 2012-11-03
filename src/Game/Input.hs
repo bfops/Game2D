@@ -12,4 +12,5 @@ import Wrappers.Events
 data Input = Jump
            | Left
            | Right
+           | Reset
     deriving (Show, Eq, Ord)

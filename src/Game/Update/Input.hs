@@ -46,6 +46,7 @@ actions :: [InputAction]
 actions = [ Push Jump $ player' $ addVcty $ jumpVcty
           , Push Left $ player' $ addVcty $ negate moveVcty
           , Push Right $ player' $ addVcty moveVcty
+          , Push Reset $ const initState
           ]
 
 -- | Advance game state to deal with user input

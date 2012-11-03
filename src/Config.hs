@@ -65,4 +65,5 @@ keymap = mapKeys CharKey $ fromList
        , ('W', Jump)
        , ('A', Left)
        , ('D', Right)
+       , ('R', Reset)
        ]
