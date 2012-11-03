@@ -1,22 +1,18 @@
 #!/bin/bash
 
-dir=`pwd`
-
 rm -rf /tmp/testbuild &&
-cp -r ./ /tmp/testbuild &&
+mkdir /tmp/testbuild &&
+cp -r `ls -A --color=never | grep -v "^dist$"` /tmp/testbuild/ &&
+cd dist &&
+mkdir /tmp/testbuild/dist
+cp -r `ls -A --color=never | grep -v "^build$"` /tmp/testbuild/dist &&
 cd /tmp/testbuild &&
 rm -f .git/hooks/pre-commit &&
-git commit -m "Temp" &&
-git reset --hard HEAD &&
+git commit -m "Temp" > /dev/null &&
+git reset --hard HEAD > /dev/null &&
 git clean -fd &&
-rm -rf dist/build/ &&
 scripts/build.sh &&
 echo &&
 scripts/test.sh &&
 echo &&
 scripts/linecheck.sh
-
-ret=$?
-
-cd "$dir"
-exit $ret
