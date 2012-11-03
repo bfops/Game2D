@@ -32,7 +32,7 @@ initState = stateFromObjs [ Platform $ Physics (toPosn [4, 1]) (toPosn [-3, -1])
                           ]
     where
         stateFromObjs = foldr addObject emptyState
-        toPosn = fmap dist . vector 0 . zip (toList dimensions)
+        toPosn = map dist . vector 0 . zip (toList dimensions)
 
 -- | Speed boost for a jump
 jumpSpeed :: Speed

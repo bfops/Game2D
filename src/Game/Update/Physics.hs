@@ -2,7 +2,7 @@
 module Game.Update.Physics ( update
                            ) where
 
-import Prelewd hiding (join, filter)
+import Prelewd hiding (filter)
 
 import Control.Arrow
 import Data.Tuple
@@ -24,7 +24,7 @@ isolate zero = liftA2 (singleV zero) dimensions
 
 -- | Update a single object's physics
 update1 :: Time -> GameState -> ID -> GameObject
-                 -> (GameObject, Map ID (Set Dimension))    -- ^ (object, collisions)
+                -> (GameObject, Map ID (Set Dimension))    -- ^ (object, collisions)
 update1 t s i = updatePosn . phys' updateVcty
     where
         updateVcty p = p { vcty = vcty p + ((t*) <$> accl p) }
@@ -33,7 +33,7 @@ update1 t s i = updatePosn . phys' updateVcty
         moveAndCollide mv (obj, allCollides) = let physLookup = phys <$> objects s
                                                    (deltaP, collides) = move ((t*) <$> mv) i (phys obj) $ physLookup
                                                in ( makeMove deltaP obj
-                                                  , allCollides `join` filter (not.null) collides
+                                                  , allCollides <> filter (not.null) collides
                                                   )
 
         makeMove :: Position -> GameObject -> GameObject
@@ -52,5 +52,5 @@ update t = foldr updateID <$> (mempty, ) <*> keys . objects
 updateWCollisions :: Time -> ID -> GameObject -> Collisions -> GameState -> (GameState, Collisions)
 updateWCollisions t i obj cs g = (rotateL $ object'.const) i g *** addCollides $ update1 t g i obj
     where
-        addCollides = joinWith checkEqual cs . mapKeys (Pair i)
+        addCollides = unionWith checkEqual cs . mapKeys (Pair i)
         checkEqual x = assert =<< (== x)

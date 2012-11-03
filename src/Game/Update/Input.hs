@@ -65,7 +65,7 @@ update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
         perpetuate (i, Release) = ((<?>) =<< delete i) *** List.delete i
 
 pushActions, holdActions :: [InputAction]
-[pushActions, holdActions] = fmap puref [fromPush, fromHold 0] <&> (`mapMaybe` actions)
+[pushActions, holdActions] = map puref [fromPush, fromHold 0] <&> (`mapMaybe` actions)
 
 moveVcty, jumpVcty :: Velocity
 moveVcty = assert (moveSpeed >= 0) $ singleV 0 Width moveSpeed

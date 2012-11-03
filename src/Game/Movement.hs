@@ -2,7 +2,7 @@
 module Game.Movement ( move
                      ) where
 
-import Prelewd hiding (empty)
+import Prelewd
 
 import Impure
 
@@ -55,7 +55,7 @@ shift deltaP ph1 ph2 = let
         recast Infinite = error "recast parameter should be finite"
 
         -- Chop all time ranges to [0, 1]
-        normalize (TaggedRange t r) = let r' = range (Finite 0) (Finite 1) <> r
+        normalize (TaggedRange t r) = let r' = range 0 1 <> r
                                       in if r' == emptyRange
                                          then TaggedRange mempty emptyRange
                                          else TaggedRange t r'

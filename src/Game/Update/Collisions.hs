@@ -9,7 +9,7 @@ import Game.Physics
 import Game.Object
 import Game.State
 import Game.Vector
-import Storage.Map
+import Storage.Map hiding (difference)
 import Storage.Pair
 import Storage.Set
 import Util.Unit
@@ -47,7 +47,6 @@ applyFriction t dims collidee obj = let
                                     in phys' (vcty' $ friction $ t * f) obj
 
 friction :: Speed -> Velocity -> Velocity
-friction s = liftA2 magSub <*> fmap ((s *) . scalar) . normalize . fmap fromSpeed
+friction s = liftA2 magSub <*> map ((s *) . scalar) . normalize . map fromSpeed
     where
         magSub x y = scalar (fromSpeed $ signum x) * max 0 (abs x - abs y)
-

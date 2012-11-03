@@ -5,9 +5,9 @@ module Util.Unit ( Unit
                  , strip
                  ) where
 
-import Prelewd hiding (empty)
+import Prelewd
 
-import Data.Map
+import Storage.Map
 import Test.QuickCheck
 import Text.Show
 
@@ -25,7 +25,9 @@ instance (Ord t, Eq v, Num v) => Eq (Unit t v) where
     (==) = (&&) .$ ((==) `on` val) $$ (compatible `on` units)
 
 instance (Ord t, Num v, Ord v) => Ord (Unit t v) where
-    compare = bool (error "Can't compare different units") .$ (compare `on` val) $$ (compatible `on` units)
+    compare x y = if (compatible `on` units) x y
+                  then (compare `on` val) x y
+                  else error "Can't compare different units"
 
 instance (Show t, Ord t, Num v) => Num (Unit t v) where
     (+) = Unit .$ (combine `on` units) $$ ((+) `on` val)
@@ -37,11 +39,11 @@ instance (Show t, Ord t, Num v) => Num (Unit t v) where
     fromInteger = flexScalar . fromInteger
 
 instance (Show t, Ord t, Fractional v) => Fractional (Unit t v) where
-    recip (Unit t v) = Unit (fmap negate <$> t) (recip v)
+    recip (Unit t v) = Unit (map negate <$> t) (recip v)
     fromRational = flexScalar . fromRational
 
 instance (Ord t, Arbitrary t, Arbitrary v) => Arbitrary (Unit t v) where
-    arbitrary = Unit . fmap fromList <$> arbitrary <*> arbitrary
+    arbitrary = Unit . map fromList <$> arbitrary <*> arbitrary
 
 compatible :: (Ord t, Eq v, Num v) => Maybe (Map t v) -> Maybe (Map t v) -> Bool
 compatible x y = maybe True (all (== 0)) $ difference <$> x <*> y
@@ -53,8 +55,8 @@ unit :: v -> t -> Unit t v
 unit v t = Unit (Just $ singleton t 1) v
 
 -- | A unitless value
-scalar :: v -> Unit t v
-scalar = Unit $ Just empty
+scalar :: Ord t => v -> Unit t v
+scalar = Unit $ Just mempty
 
 -- | A value with inferred units
 flexScalar :: v -> Unit t v

@@ -25,12 +25,13 @@ module Game.Physics ( PhysicsValue
 
 import Prelewd
 
-import Data.Map (fromList)
+import Impure
+
+import Storage.Map
 import Test.QuickCheck
 import Text.Show
 
 import Game.Vector
-import Impure
 import Util.Unit
 
 data Units = Size | Time
