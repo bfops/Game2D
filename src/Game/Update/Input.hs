@@ -4,7 +4,6 @@ module Game.Update.Input ( update
 
 import Control.Arrow
 import qualified Data.List as List
-import Data.Maybe (listToMaybe)
 
 import Config
 
@@ -71,11 +70,6 @@ pushActions, holdActions :: [InputAction]
 moveVcty, jumpVcty :: Velocity
 moveVcty = assert (moveSpeed >= 0) $ singleV 0 Width moveSpeed
 jumpVcty = assert (jumpSpeed >= 0) $ singleV 0 Height jumpSpeed
-
-player' :: (GameObject -> GameObject) -> GameState -> GameState
-player' = object' <&> (=<< getPlayer)
-    where
-        getPlayer = (<?> error "No player!") . listToMaybe . keys . Map.filter isPlayer . objects
 
 addVcty :: Velocity -> GameObject -> GameObject
 addVcty = phys' . vcty' . (+)

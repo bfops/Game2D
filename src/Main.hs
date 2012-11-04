@@ -12,10 +12,12 @@ import Storage.List
 import Storage.Map
 
 import Game.Input
+import Game.Object
 import Game.Physics hiding (Size)
 import Game.Render
 import Game.State
 import Game.Update
+import Game.Vector
 
 import Wrappers.Events
 import Wrappers.OpenGL as OGL hiding (windowPos)
@@ -72,8 +74,11 @@ drawFrame g = do
                 -- Reset the view
                 loadIdentity
 
+                let v = negate $ map fromDist $ posn $ phys $ object (player g) g
+                    [x, y] = map (realToFrac.(`component` v)) [Width, Height]
+
                 -- Move to the render location
-                translate $ Vector3 0 0 (negate $ fromIntegral viewDist :: GLdouble)
+                translate $ Vector3 x y (negate $ fromIntegral viewDist :: GLdouble)
 
         draw g
         -- Write it all to the buffer

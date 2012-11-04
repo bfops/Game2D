@@ -3,6 +3,8 @@ module Game.State ( GameState
                   , objects
                   , object
                   , object'
+                  , player
+                  , player'
                   , inputs
                   , inputs'
                   , addObject
@@ -10,6 +12,9 @@ module Game.State ( GameState
                   , emptyState
                   ) where
 
+import Prelewd hiding (filter)
+
+import Data.Maybe (listToMaybe)
 import Text.Show
 
 import Game.Input
@@ -17,7 +22,6 @@ import Game.Physics
 import Game.Object
 import Impure
 import Storage.Map
-import Prelewd
 
 -- | Game state structure
 data GameState = GameState [ID] ObjectGroup (Map Input Time)
@@ -48,6 +52,12 @@ object' f i g = maybe (error $ "Couldn't update object " <> show i) ((`objects'`
 
 objects' :: (ObjectGroup -> ObjectGroup) -> GameState -> GameState
 objects' f (GameState x objs y) = GameState x (f objs) y
+
+player :: GameState -> ID
+player = (<?> error "No player!") . listToMaybe . keys . filter isPlayer . objects
+
+player' :: (GameObject -> GameObject) -> GameState -> GameState
+player' f = object' f =<< player
 
 -- | Transform information about the current input state
 inputs' :: (Map Input Time -> Map Input Time) -> GameState -> GameState
