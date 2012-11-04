@@ -2,13 +2,14 @@
 module Game.Vector ( Vector
                    , Dimension (..)
                    , dimensions
+                   , component
+                   , component'
                    , setV
                    , singleV
                    , vector
                    , magnitude
                    , normalize
                    , dot
-                   , component
                    ) where
 
 import Data.Maybe
@@ -73,6 +74,10 @@ instance Arbitrary a => Arbitrary (Vector a) where
 -- | Get a single component from a vector
 component :: Dimension -> Vector a -> a
 component d = fromJust . foldr (\(d', x) a -> a <|> mcond (d == d') x) Nothing . liftA2 (,) dimensions
+
+-- | Transform a single component from a vector
+component' :: Dimension -> (a -> a) -> Vector a -> Vector a
+component' = (<*>) .$ singleV id
 
 -- | Set one dimension of a vector
 setV :: Dimension -> a -> Vector a -> Vector a
