@@ -24,6 +24,12 @@ val' f x = x { val = f (val x) }
 instance (Ord t, Eq v, Num v) => Eq (Unit t v) where
     (==) = (&&) .$ ((==) `on` val) $$ (compatible `on` units)
 
+instance Enum v => Enum (Unit t v) where
+    succ = val' succ
+    pred = val' pred
+    toEnum = flexScalar . toEnum
+    fromEnum = fromEnum . val
+
 instance (Ord t, Num v, Ord v) => Ord (Unit t v) where
     compare x y = if (compatible `on` units) x y
                   then (compare `on` val) x y
