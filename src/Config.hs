@@ -27,8 +27,9 @@ viewDist = 16
 
 -- | Start state of the game world
 initState :: GameState
-initState = stateFromObjs [ Platform $ Physics (toPosn [4, 1]) (toPosn [-3, -1]) 0 0       1
-                          , Player   $ Physics (toPosn [1, 2]) (toPosn [-3, 0])  0 gravity 1
+initState = stateFromObjs [ Platform $ Physics (toPosn [4, 1]) (toPosn [-3, -1]) 0    0    2
+                          , Platform $ Physics (toPosn [4, 1]) (toPosn [ 3, -1]) 0    0    0.4
+                          , Player   $ Physics (toPosn [1, 2]) (toPosn [-3,  0]) 0 gravity 1
                           ]
     where
         stateFromObjs = foldr addObject emptyState
