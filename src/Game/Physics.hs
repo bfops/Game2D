@@ -27,6 +27,7 @@ import Prelewd
 
 import Impure
 
+import Data.Fixed
 import Storage.Map
 import Test.QuickCheck
 import Text.Show
@@ -41,7 +42,7 @@ instance Arbitrary Units where
     arbitrary = elements [minBound..maxBound]
 
 -- | Value in the Physics world
-type PhysicsValue = Unit Units Double
+type PhysicsValue = Unit Units Milli
 -- | Unitless value
 type Scalar = PhysicsValue
 -- | Frictional coefficient

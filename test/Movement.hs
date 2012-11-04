@@ -4,6 +4,7 @@ import Prelewd hiding (Down)
 
 import Impure
 
+import Data.Fixed
 import Storage.Map
 import Storage.Member
 import Storage.Set
@@ -33,7 +34,7 @@ instance Arbitrary Direction where
 prop_emptyMove :: (Physics, Position) -> Bool
 prop_emptyMove (p, shift) = move shift 0 p mempty == (shift, mempty)
 
-prop_moveApart :: (Physics, Physics, Vector Double, Direction) -> Bool
+prop_moveApart :: (Physics, Physics, Vector Milli, Direction) -> Bool
 prop_moveApart (p1, p2, shift, d) = move shift' 0 p1 (singleton 1 p2') == (shift', mempty)
     where
         p2' :: Physics
@@ -46,7 +47,7 @@ prop_moveApart (p1, p2, shift, d) = move shift' 0 p1 (singleton 1 p2') == (shift
 
         setup dim flag = (placeBehind p1 p2 dim flag, dist <$> directShift dim flag shift)
 
-prop_moveTogether :: (Physics, Physics, Vector Double, Direction) -> Property
+prop_moveTogether :: (Physics, Physics, Vector Milli, Direction) -> Property
 prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
                                      ==> let (s, cs) = move shift' 0 p1 (singleton 1 p2')
                                          in s == pure 0
