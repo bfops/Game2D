@@ -73,7 +73,12 @@ data Physics = Physics
     deriving (Show, Eq)
 
 instance Arbitrary Physics where
-    arbitrary = Physics <$> (abs <$> arbitrary) <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+    arbitrary = Physics
+              <$> sequence (pure $ dist.abs <$> arbitrary `suchThat` (/= 0))
+              <*> (arbitrary <&> map dist)
+              <*> (arbitrary <&> map speed)
+              <*> (arbitrary <&> map accel)
+              <*> (arbitrary <&> scalar)
 
 -- | Transform size
 size' :: (Size -> Size) -> Physics -> Physics
