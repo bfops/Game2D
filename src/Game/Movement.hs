@@ -6,7 +6,6 @@ import Prelewd
 
 import Impure
 
-import Control.Arrow
 import Num.Indeterminate
 import Storage.Map
 import Storage.Member
@@ -44,31 +43,26 @@ overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
 
 -- Shift one object through a vector towards another object
 shift :: Position -> Physics -> Physics
-      -> (Set Dimension, Scalar)        -- ^ (Collision dimensions, fraction of distance which can be travelled)
+      -> (Set Dimension, Indeterminate Scalar)  -- ^ (Collision dimensions, fraction of distance to be travelled)
+                                                -- scalar is Infinite when no collisions take place
 shift deltaP ph1 ph2 = let
                         -- Collisions individually in each dimension
                         collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
                         TaggedRange dims rng = normalize $ foldr1 overlapTagged $ collides1
-                     in maybe (mempty, 1) ((dims,) . recast) $ start rng
+                     in (dims, start rng <?> Infinite)
     where
-        recast (Finite x) = x
-        recast Infinite = error "recast parameter should be finite"
-
-        -- Chop all time ranges to [0, 1]
-        normalize (TaggedRange t r) = let r' = range 0 1 <> r
-                                      in if r' == emptyRange
-                                         then TaggedRange mempty emptyRange
-                                         else TaggedRange t r'
+        -- Chop all time ranges to (-Infinity, 1)
+        normalize (TaggedRange t r) = TaggedRange t $ range 0 1 <> r
 
         -- Range of time during which the line (x1, w1) moving at shift towards overlaps (x2, w2)
         shift1 d v x1 w1 x2 w2 = TaggedRange (set [d]) $ pass1 v (x1 + w1) x2 <> pass1 (negate v) (x2 + w2) x1
 
-        -- Range of time during which the point x0, moving at v, is on the right side of x
+        -- Range of time during which the point `x0`, moving at velocity `v`, is on the right side of `x`
         pass1 :: Speed -> Distance -> Distance -> Range Time
         pass1 v x0 x = let t = (x - x0) / v
                        in case compare v 0 of
                         LT -> range Infinite (Finite t)
-                        EQ -> iff (x0 <= x) emptyRange $ range Infinite Infinite
+                        EQ -> iff (x0 <= x) emptyRange mempty
                         GT -> range (Finite t) Infinite
 
 -- | Retrieve information about a potential object movement
@@ -78,17 +72,16 @@ move :: Position                            -- The movement to make (i.e. delta 
      -> Map ID Physics                      -- All of the objects (this can include the object being moved)
      -> (Position, Map ID (Set Dimension))  -- The amount the object can be moved,
                                             -- and a map of collision object ID's to collision dimensions
-move deltaP i p = first resolveT . foldrWithKey (\j obj -> if' (i /= j) $ earliestBump j obj) (Infinite, mempty)
+move deltaP i p = resolveT . foldrWithKey (\j -> if' (i /= j) . earliestBump j) (Infinite, mempty)
     where
-        resolveT Infinite = deltaP
-        resolveT (Finite t) = assert (t >= 0 && t <= 1) $ (t *) <$> deltaP
+        resolveT (Infinite, _) = (deltaP, mempty)
+        resolveT (Finite t, s) = ((t *) <$> deltaP, s)
 
         -- Take an object, some bump information and produce update earliest bump information
         earliestBump j q accum = keepEarlyColisns j accum $ shift deltaP p q
 
-        keepEarlyColisns j (c1, collides) (ds, k) = assert (not $ elem j $ keys collides)
-                                                  $ let c2 = Finite k
-                                                    in case compare c1 c2 of
+        keepEarlyColisns j (c1, collides) (ds, c2) = assert (not $ elem j $ keys collides)
+                                                   $ case compare c1 c2 of
                                                         LT -> (c1, collides)
                                                         EQ -> (c2, insert j ds collides)
                                                         GT -> (c2, singleton j ds)
