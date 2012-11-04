@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cabal test | grep "^Test suite" | grep -v ^"Test suite logged" | grep -v ": RUNNING.."
+cabal test | grep -v ^"Test suite logged" | grep -v ": RUNNING.." | grep -v "^Running " | grep -v "^[0-9]* of [0-9]* test suites"
