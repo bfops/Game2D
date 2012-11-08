@@ -37,26 +37,8 @@ prop_emptyMove (p, shift) = move shift 0 p mempty == (shift, mempty)
 prop_moveApart :: (Physics, Physics, Vector Milli, Direction) -> Bool
 prop_moveApart (p1, p2, shift, d) = move shift' 0 p1 (singleton 1 p2') == (shift', mempty)
     where
-        p2' :: Physics
-        shift' :: Position
-        (p2', shift') = case d of
-            Up -> setup Height False
-            Down -> setup Height False
-            Right -> setup Width True
-            Left -> setup Width False
-
-        setup dim flag = (placeBehind p1 p2 dim flag, dist <$> directShift dim flag shift)
-
-prop_moveTogether :: (Physics, Physics, Vector Milli, Direction) -> Property
-prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
-                                     ==> let (s, cs) = move shift' 0 p1 (singleton 1 p2')
-                                         in s == pure 0
-                                         && keys cs == [1]
-                                         && (elem dim <$> lookup 1 cs) == Just True
-    where
-        p2' :: Physics
-        shift' :: Position
-        (p2', shift') = setup dim flag
+        p2' = placeBehind p1 p2 dim flag
+        shift' = directShift dim flag shift
 
         dim | elem d [Up, Down] = Height
             | elem d [Left, Right] = Width
@@ -64,11 +46,27 @@ prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
         flag | elem d [Up, Right] = True
              | elem d [Down, Left] = False
 
-        setup dim flag = (placeBehind p1 p2 dim flag, dist <$> directShift dim (not flag) shift)
+prop_moveTogether :: (Physics, Physics, Vector Milli, Direction) -> Property
+prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
+                                     && all (< 1000) (abs $ shift <&> (/) <*> map fromDist (size p1))
+                                     && all (< 1000) (abs $ shift <&> (/) <*> map fromDist (size p2))
+                                     ==> let (s, cs) = move shift' 0 p1 (singleton 1 p2')
+                                         in s == pure 0
+                                         && keys cs == [1]
+                                         && (elem dim <$> lookup 1 cs) == Just True
+    where
+        p2' = placeBehind p1 p2 dim flag
+        shift' = directShift dim (not flag) shift
+
+        dim | elem d [Up, Down] = Height
+            | elem d [Left, Right] = Width
+
+        flag | elem d [Up, Right] = True
+             | elem d [Down, Left] = False
 
 placeBehind :: Physics -> Physics -> Dimension -> Bool -> Physics
 placeBehind p1 p2 dim pos = let diff = abs $ component dim $ size $ iff pos p1 p2
                             in p2 { posn = posn p1 <&> iff pos (+) (-) <*> singleV 0 dim diff }
 
-directShift :: Num a => Dimension -> Bool -> Vector a -> Vector a
-directShift dim neg = component' dim $ if' neg (negate.) abs
+directShift :: Dimension -> Bool -> Vector Milli -> Position
+directShift dim neg = map dist . component' dim (if' neg negate . abs)

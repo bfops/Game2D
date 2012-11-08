@@ -49,10 +49,10 @@ shift deltaP ph1 ph2 = let
                         -- Collisions individually in each dimension
                         collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
                         TaggedRange dims rng = normalize $ foldr1 overlapTagged $ collides1
-                     in (dims, start rng <?> Infinite)
+                     in (dims, iff (end rng <= Just 0) Infinite $ start rng <?> Infinite)
     where
-        -- Chop all time ranges to (-Infinity, 1)
-        normalize (TaggedRange t r) = TaggedRange t $ range 0 1 <> r
+        -- Chop time ranges to [-Infinity, 1]
+        normalize (TaggedRange t r) = TaggedRange t $ range Infinite 1 <> r
 
         -- Range of time during which the line (x1, w1) moving at shift towards overlaps (x2, w2)
         shift1 d v x1 w1 x2 w2 = TaggedRange (set [d]) $ pass1 v (x1 + w1) x2 <> pass1 (negate v) (x2 + w2) x1

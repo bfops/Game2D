@@ -34,7 +34,7 @@ instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
     arbitrary = maybe empty (\(x, y) -> range (min x y) (max x y)) <$> arbitrary
 
 validRange :: Ord a => (Indeterminate a, Indeterminate a) -> Bool
-validRange (t1, t2) = liftA2 (>=) t1 t2 /= pure True
+validRange (t1, t2) = liftA2 (>) t1 t2 /= pure True
 
 -- | Range with nothing in it
 empty :: Range a
