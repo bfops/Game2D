@@ -2,20 +2,22 @@
 module Game.Update.Input ( update
                          ) where
 
-import Control.Arrow
-import qualified Data.List as List
+import Prelewd
 
-import Config
+import Impure
+
+import Control.Arrow
+import Storage.Map as Map
+import Storage.List as List
 
 import Game.Input
 import Game.Physics
 import Game.Object
 import Game.State
 import Game.Vector
-import Impure
-import Storage.Map as Map
-import Prelewd
 import Wrappers.Events
+
+import Config
 
 puref :: Functor f => (a -> f b) -> a -> f a
 puref f x = x <$ f x
@@ -62,7 +64,7 @@ update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
 
         -- Step the folded parameter with a new input
         perpetuate (i, Press) = insert i 0 *** (i:)
-        perpetuate (i, Release) = ((<?>) =<< delete i) *** List.delete i
+        perpetuate (i, Release) = ((<?>) =<< Map.delete i) *** ((<?>) =<< List.delete i)
 
 pushActions, holdActions :: [InputAction]
 [pushActions, holdActions] = map puref [fromPush, fromHold 0] <&> (`mapMaybe` actions)
