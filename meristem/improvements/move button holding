@@ -1,3 +1,0 @@
-Player won't move for an extended period of time with the move button held.
-
-Acceleration should be more versatile, including a Time->GameState->Bool function for choosing whether to terminate.

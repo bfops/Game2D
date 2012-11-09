@@ -3,6 +3,7 @@ module Config ( viewDist
               , initState
               , jumpSpeed
               , moveSpeed
+              , speedCap
               , title
               , windowSize
               , bgColor
@@ -41,7 +42,11 @@ jumpSpeed = speed 12
 
 -- | Speed boost for movement
 moveSpeed :: Speed
-moveSpeed = speed 8
+moveSpeed = speed 0.3
+
+-- | Fastest you can walk
+speedCap :: Speed
+speedCap = speed 8
 
 -- | Acceleration due to gravity
 gravity :: Vector Acceleration

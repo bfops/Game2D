@@ -15,6 +15,7 @@ import Game.Physics
 import Game.Object
 import Game.State
 import Game.Vector
+import Util.Unit
 import Wrappers.Events
 
 import Config
@@ -45,8 +46,8 @@ actionUpdate t (Hold _ f) = f t
 
 actions :: [InputAction]
 actions = [ Push Jump $ player' $ addVcty $ jumpVcty
-          , Push Left $ player' $ addVcty $ negate moveVcty
-          , Push Right $ player' $ addVcty moveVcty
+          , Hold Left $ const $ player' $ walk $ negate moveSpeed
+          , Hold Right $ const $ player' $ walk moveSpeed
           , Push Reset $ const initState
           ]
 
@@ -69,9 +70,14 @@ update ins dt g = let (ins', pushes) = foldr perpetuate (inputs g, []) ins
 pushActions, holdActions :: [InputAction]
 [pushActions, holdActions] = map puref [fromPush, fromHold 0] <&> (`mapMaybe` actions)
 
-moveVcty, jumpVcty :: Velocity
-moveVcty = assert (moveSpeed >= 0) $ singleV 0 Width moveSpeed
+jumpVcty :: Velocity
 jumpVcty = assert (jumpSpeed >= 0) $ singleV 0 Height jumpSpeed
 
 addVcty :: Velocity -> GameObject -> GameObject
 addVcty = phys' . vcty' . (+)
+
+walk :: Speed -> GameObject -> GameObject
+walk = phys' . vcty' . component' Width . (cap speedCap .$ (+))
+
+cap :: Speed -> Speed -> Speed
+cap c = scalar.fromSpeed.signum <&> (*) <*> (min `on` abs) c
