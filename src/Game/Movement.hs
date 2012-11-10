@@ -72,7 +72,7 @@ move :: Position                            -- The movement to make (i.e. delta 
      -> Map ID Physics                      -- All of the objects (this can include the object being moved)
      -> (Position, Map ID (Set Dimension))  -- The amount the object can be moved,
                                             -- and a map of collision object ID's to collision dimensions
-move deltaP i p = resolveT . foldrWithKey (\j -> if' (i /= j) . earliestBump j) (Infinite, mempty)
+move deltaP id p = resolveT . foldrWithKey (\i -> if' (id /= i) . earliestBump i) (Infinite, mempty)
     where
         resolveT (Infinite, _) = (deltaP, mempty)
         resolveT (Finite t, s) = ((t *) <$> deltaP, s)

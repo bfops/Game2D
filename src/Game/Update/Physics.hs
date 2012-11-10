@@ -25,13 +25,13 @@ isolate zero = liftA2 (singleV zero) dimensions
 -- | Update a single object's physics
 update1 :: Time -> GameState -> ID -> GameObject
                 -> (GameObject, Map ID (Set Dimension))    -- ^ (object, collisions)
-update1 t s i = updatePosn . phys' updateVcty
+update1 t s id = updatePosn . phys' updateVcty
     where
         updateVcty p = p { vcty = vcty p + ((t*) <$> accl p) }
         updatePosn obj = foldr moveAndCollide (obj, mempty) $ isolate 0 $ vcty $ phys obj
 
         moveAndCollide mv (obj, allCollides) = let physLookup = phys <$> objects s
-                                                   (deltaP, collides) = move ((t*) <$> mv) i (phys obj) $ physLookup
+                                                   (deltaP, collides) = move ((t*) <$> mv) id (phys obj) $ physLookup
                                                in ( makeMove deltaP obj
                                                   , allCollides <> filter (not.null) collides
                                                   )
@@ -47,10 +47,10 @@ rotateL f y z x = f x y z
 update :: Time -> GameState -> (Collisions, GameState)
 update t = foldr updateID <$> (mempty, ) <*> keys . objects
     where
-        updateID i (cs, g) = swap $ updateWCollisions t i (object i g) cs g
+        updateID id (cs, g) = swap $ updateWCollisions t id (object id g) cs g
 
 updateWCollisions :: Time -> ID -> GameObject -> Collisions -> GameState -> (GameState, Collisions)
-updateWCollisions t i obj cs g = (rotateL $ object'.const) i g *** addCollides $ update1 t g i obj
+updateWCollisions t id obj cs g = (rotateL $ object'.const) id g *** addCollides $ update1 t g id obj
     where
-        addCollides = unionWith checkEqual cs . mapKeys (Pair i)
+        addCollides = unionWith checkEqual cs . mapKeys (Pair id)
         checkEqual x = assert =<< (== x)

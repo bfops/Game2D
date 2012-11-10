@@ -14,24 +14,23 @@ module Game.State ( GameState
 
 import Prelewd hiding (filter)
 
+import Impure
+
 import Data.Maybe (listToMaybe)
+import Storage.Map
 import Text.Show
 
 import Game.Input
 import Game.Physics
 import Game.Object
-import Impure
-import Storage.Map
 
 -- | Game state structure
 data GameState = GameState [ID] ObjectGroup (Map Input Time)
 
--- Infinite lists of available IDs don't play nicely with deriving Show
+-- Infinite lists of available IDs don't play nicely with derived Show
 instance Show GameState where
     show g = "GameState {objects = " <> show (objects g) <> "}"
 
-ids :: GameState -> [ID]
-ids (GameState is _ _) = is
 
 -- | Get the objects in the game
 objects :: GameState -> ObjectGroup
@@ -43,15 +42,18 @@ inputs (GameState _ _ is) = is
 
 -- | Fetch a specific object
 object :: ID -> GameState -> GameObject
-object i g = lookup i (objects g) <?> error ("Couldn't find object " <> show i) 
+object id g = lookup id (objects g) <?> error ("Couldn't find object " <> show id)
 
 -- | Update an object
 object' :: (GameObject -> GameObject) -> ID -> GameState -> GameState
-object' f i g = maybe (error $ "Couldn't update object " <> show i) ((`objects'` g) . const)
-              $ modify (Just . f) i $ objects g
+object' f id g = maybe (error $ "Couldn't update object " <> show id) ((`objects'` g) . const)
+               $ modify (Just . f) id $ objects g
 
 objects' :: (ObjectGroup -> ObjectGroup) -> GameState -> GameState
 objects' f (GameState x objs y) = GameState x (f objs) y
+
+ids' :: ([ID] -> [ID]) -> GameState -> GameState
+ids' f (GameState is x y) = GameState (f is) x y
 
 player :: GameState -> ID
 player = (<?> error "No player!") . listToMaybe . keys . filter isPlayer . objects
@@ -67,12 +69,12 @@ inputs' f (GameState x y ins) = GameState x y (f ins)
 addObject :: GameObject -> GameState -> GameState
 addObject obj (GameState (i:is) objs ins)
              = GameState    is (insert i obj objs) ins
-addObject _ (GameState [] _ _) = error "Ran out of IDs"
+addObject _ _ = error "Ran out of IDs"
 
 -- | Try to remove an object
 deleteObj :: ID -> GameState -> GameState
-deleteObj i s = maybe (error $ "Object " <> show i <> " doesn't exist") (\o -> GameState (i:ids s) o $ inputs s)
-              $ delete i $ objects s
+deleteObj id s = maybe (error $ "Object " <> show id <> " doesn't exist") (\o -> objects' (const o) $ ids' (id:) s)
+               $ delete id $ objects s
 
 -- | Game state with nothing in it
 emptyState :: GameState
