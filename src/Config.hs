@@ -33,8 +33,14 @@ initState = stateFromObjs [ Platform $ Physics (toPosn [4, 1]) (toPosn [-3, -1])
                           , Player   $ Physics (toPosn [1, 2]) (toPosn [-3,  0]) 0 gravity 1
                           ]
     where
-        stateFromObjs = foldr addObject emptyState
+        stateFromObjs = foldr addObject $ emptyState border
         toPosn = map dist . vector 0 . zip (toList dimensions)
+
+-- | Edge for the game world
+border :: Bounds
+border = vector (0, 0) [ (Width , (-12, 16))
+                       , (Height, (-8, 8))
+                       ]
 
 -- | Speed boost for a jump
 jumpSpeed :: Speed

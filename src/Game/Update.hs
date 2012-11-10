@@ -7,6 +7,7 @@ import Prelewd
 import Data.Tuple
 
 import Game.Input
+import Game.Object
 import Game.Physics
 import Game.State
 import Game.Update.Collisions as Collisions
@@ -22,4 +23,9 @@ update is t g = foldr ($) g
         [ Input.update is t
         , uncurry (Collisions.update t)
         . Physics.update t
+        -- Wraparound in every dimension, based on the world bounds
+        , player' . phys' . posn' . liftA2 wraparound . bounds >>= ($)
         ]
+
+wraparound :: (Distance, Distance) -> Distance -> Distance
+wraparound (start, end) s = start + ((s - start) `mod` (end - start))
