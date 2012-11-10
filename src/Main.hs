@@ -10,6 +10,7 @@ import Data.Tuple
 import Data.Tuple.Curry
 import Storage.List
 import Storage.Map
+import Template.MemberTransformer
 
 import Game.Input
 import Game.Object
@@ -31,8 +32,7 @@ data State = State { game       :: GameState
                    , lastUpdate :: Double
                    }
 
-game' :: (GameState -> GameState) -> State -> State
-game' f s = s { game = f (game s) }
+$(memberTransformers ''State)
 
 initOpenGL :: IO ()
 initOpenGL = io $ do
@@ -106,11 +106,11 @@ isOpen poll = null <$> poll [CloseEvents]
 clearResizeEvents :: EventPoller -> IO ()
 clearResizeEvents poll = tryResize . last =<< poll [ResizeEvents]
     where
-        tryResize = maybe (return ()) resize'
+        tryResize = maybe (return ()) resizeEvent
 
-        resize' :: Event -> IO ()
-        resize' (ResizeEvent s) = resize s
-        resize' _ = error "poll [ResizeEvents] returned an invalid list."
+        resizeEvent :: Event -> IO ()
+        resizeEvent (ResizeEvent s) = resize s
+        resizeEvent _ = error "poll [ResizeEvents] returned an invalid list."
 
 clearRefreshEvents :: EventPoller -> IO ()
 clearRefreshEvents poll = poll [RefreshEvents] $> ()
@@ -127,7 +127,7 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
 -- | Update the program state with input and time elapsed
 newState :: State -> [(Input, ButtonState)] -> Double -> State
 newState s is t = let deltaT = time $ realToFrac $ t - lastUpdate s
-                  in game' (update is deltaT) $ s { lastUpdate = t }
+                  in game' (update is deltaT) $ lastUpdate' (const t) s
 
 mainLoop :: EventPoller -> State -> IO State
 mainLoop poll s0 =   isOpen poll

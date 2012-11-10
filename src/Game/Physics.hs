@@ -13,6 +13,7 @@ module Game.Physics ( PhysicsValue
                     , posn'
                     , vcty'
                     , accl'
+                    , mu'
                     , time
                     , fromTime
                     , dist
@@ -29,6 +30,7 @@ import Impure
 
 import Data.Fixed
 import Storage.Map
+import Template.MemberTransformer
 import Test.QuickCheck
 import Text.Show
 
@@ -73,6 +75,8 @@ data Physics = Physics
         }
     deriving (Show, Eq)
 
+$(memberTransformers ''Physics)
+
 instance Arbitrary Physics where
     arbitrary = Physics
               <$> sequence (pure $ dist.abs <$> arbitrary `suchThat` (/= 0))
@@ -81,28 +85,13 @@ instance Arbitrary Physics where
               <*> (arbitrary <&> map accel)
               <*> (arbitrary <&> scalar)
 
--- | Transform size
-size' :: (Size -> Size) -> Physics -> Physics
-size' f p = p { size = f (size p) }
-
--- | Transform position
-posn' :: (Position -> Position) -> Physics -> Physics
-posn' f p = p { posn = f (posn p) }
-
--- | Transform velocity
-vcty' :: (Velocity -> Velocity) -> Physics -> Physics
-vcty' f p = p { vcty = f (vcty p) }
-
--- | Transform acceleration
-accl' :: (Vector Acceleration -> Vector Acceleration) -> Physics -> Physics
-accl' f p = p { accl = f (accl p) }
-
 -- | Create a value with basic units
 time, dist :: a -> Unit Units a
 -- | Create a unit with derived units
 speed, accel :: Fractional a => a -> Unit Units a
 time t = t `unit` Time
 dist d = d `unit` Size
+
 speed v = dist v / time 1
 accel a = speed a / time 1
 

@@ -77,7 +77,7 @@ component d = fromJust . foldr (\(d', x) a -> a <|> mcond (d == d') x) Nothing .
 
 -- | Transform a single component from a vector
 component' :: Dimension -> (a -> a) -> Vector a -> Vector a
-component' = (<*>) .$ singleV identity
+component' = transform <$> component <*> setV
 
 -- | Set one dimension of a vector
 setV :: Dimension -> a -> Vector a -> Vector a

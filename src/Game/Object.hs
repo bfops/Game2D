@@ -8,11 +8,13 @@ module Game.Object ( GameObject (..)
                    , isPlayer
                    ) where
 
+import Prelewd
+
+import Storage.Map
+import Template.MemberTransformer
 import Text.Show
 
 import Game.Physics
-import Prelewd
-import Storage.Map
 
 -- | An object in the game world
 data GameObject
@@ -21,9 +23,7 @@ data GameObject
         | Player   { phys :: Physics }
     deriving Show
 
--- | Transform physics
-phys' :: (Physics -> Physics) -> GameObject -> GameObject
-phys' f g = g { phys = f (phys g) }
+$(memberTransformers ''GameObject)
 
 -- | Is the object a block?
 isBlock :: GameObject -> Bool
