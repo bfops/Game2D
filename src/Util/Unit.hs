@@ -44,6 +44,9 @@ instance (Show t, Ord t, Num v) => Num (Unit t v) where
     signum = val' signum
     fromInteger = flexScalar . fromInteger
 
+instance (Show t, Ord t, Real v) => Real (Unit t v) where
+    toRational = toRational . val
+
 instance (Show t, Ord t, Fractional v) => Fractional (Unit t v) where
     recip (Unit t v) = Unit (map negate <$> t) (recip v)
     fromRational = flexScalar . fromRational
