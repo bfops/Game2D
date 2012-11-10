@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cabal build | grep -v "^Loading package"
+cabal build $@ | grep -v "^Loading package"
 exit $PIPESTATUS

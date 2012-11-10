@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Files with incomplete Haddock coverage:"
-cabal haddock --executables | grep "^  [ 0-9][0-9]%"
+cabal haddock --executables $@ | grep "^  [ 0-9][0-9]%"
 
 ret=$?
 pret=$PIPESTATUS
