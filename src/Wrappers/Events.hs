@@ -67,7 +67,7 @@ addEvent = void . atomically .$ modifyTVar .^ enq
 createEventPoller :: IO EventPoller
 createEventPoller = atomically (newTVar mempty) >>= go
     where
-        go events = mfilter id (io GLFW.initialize) >> io (setCallbacks events) $> poll events
+        go events = mfilter identity (io GLFW.initialize) >> io (setCallbacks events) $> poll events
 
         toSize = on Size fromIntegral
         toPos = on Position fromIntegral

@@ -49,7 +49,7 @@ instance Fractional a => Fractional (Vector a) where
     fromRational = pure . fromRational
 
 instance Real a => Ord (Vector a) where
-    compare = compare `on` (dot <*> id)
+    compare = compare `on` (dot <*> identity)
 
 instance Functor Vector where
     fmap = liftA
@@ -77,7 +77,7 @@ component d = fromJust . foldr (\(d', x) a -> a <|> mcond (d == d') x) Nothing .
 
 -- | Transform a single component from a vector
 component' :: Dimension -> (a -> a) -> Vector a -> Vector a
-component' = (<*>) .$ singleV id
+component' = (<*>) .$ singleV identity
 
 -- | Set one dimension of a vector
 setV :: Dimension -> a -> Vector a -> Vector a

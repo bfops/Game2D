@@ -17,7 +17,7 @@ update :: [(Input, ButtonState)] -- ^ List of input events, in order of ascendin
        -> Time                   -- ^ Time elapsed for this step
        -> GameState
        -> GameState
-update is t = foldr (.) id
+update is t = foldr (.) identity
         [ Input.update is t
         , uncurry (Collisions.update t)
         . Physics.update t

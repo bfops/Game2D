@@ -29,7 +29,7 @@ fromDouble d = let precision = 100 :: Integer
                in ((/) `on` fromIntegral) (round $ fromIntegral precision * d) precision
 
 collide :: Time -> Set Dimension -> GameObject -> GameObject -> GameObject
-collide t dims collidee = foldr (.) id
+collide t dims collidee = foldr (.) identity
             [ applyFriction t dims collidee
             , phys' $ vcty' $ setSeveral 0 dims
             ]
