@@ -5,11 +5,13 @@ module Game.Physics ( PhysicsValue
                     , Distance
                     , Speed
                     , Acceleration
+                    , Mass
                     , Size
                     , Position
                     , Velocity
                     , Physics (..)
                     , size'
+                    , mass'
                     , posn'
                     , vcty'
                     , accl'
@@ -19,6 +21,7 @@ module Game.Physics ( PhysicsValue
 import Prelewd
 
 import Data.Fixed
+import Num.Indeterminate
 import Template.MemberTransformer
 import Test.QuickCheck
 import Text.Show
@@ -31,6 +34,7 @@ data DistInternal = Dist deriving (Show, Eq, Enum, Bounded, Ord)
 data TimeInternal = Time deriving (Show, Eq, Enum, Bounded, Ord)
 data SpeedInternal = Speed deriving (Show, Eq, Enum, Bounded, Ord)
 data AccelInternal = Accel deriving (Show, Eq, Enum, Bounded, Ord)
+data MassInternal = Mass deriving (Show, Eq, Enum, Bounded, Ord)
 
 instance UnitMult ScalarInternal a a
 instance UnitMult TimeInternal SpeedInternal DistInternal
@@ -52,6 +56,8 @@ type Distance = Unit DistInternal PhysicsValue
 type Speed = Unit SpeedInternal PhysicsValue
 -- | Rate of speed
 type Acceleration = Unit AccelInternal PhysicsValue
+-- | Resistance to acceleration
+type Mass = Unit MassInternal (Indeterminate PhysicsValue)
 
 -- | Dimensions of an object
 type Size = Vector Distance
@@ -63,6 +69,7 @@ type Velocity = Vector Speed
 -- | Collection of physical properties for an object
 data Physics = Physics
         { size :: Size
+        , mass :: Mass
         , posn :: Position
         , vcty :: Velocity
         , accl :: Vector Acceleration
@@ -75,6 +82,7 @@ $(memberTransformers ''Physics)
 instance Arbitrary Physics where
     arbitrary = Physics
               <$> sequence (pure $ abs <$> (arbitrary `suchThat` (/= 0)))
+              <*> (abs <$> arbitrary)
               <*> arbitrary
               <*> arbitrary
               <*> arbitrary

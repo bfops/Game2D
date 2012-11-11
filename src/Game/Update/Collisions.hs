@@ -5,7 +5,11 @@ module Game.Update.Collisions ( update
 
 import Prelewd
 
+import Impure
+
+import Num.Indeterminate
 import Storage.Map hiding (difference)
+import Storage.Member
 import Storage.Pair
 import Storage.Set
 
@@ -28,20 +32,31 @@ fromDouble :: Fractional b => Double -> b
 fromDouble d = let precision = 100 :: Integer
                in ((/) `on` fromIntegral) (round $ fromIntegral precision * d) precision
 
-collide :: Time -> Set Dimension -> GameObject -> GameObject -> GameObject
-collide t dims collidee = foldr (.) identity
-            [ applyFriction t dims collidee
-            , phys' $ vcty' $ setSeveral 0 dims
-            ]
-
 setSeveral :: Foldable t => a -> t Dimension -> Vector a -> Vector a
 setSeveral x = flip $ foldr (`setV` x)
 
 -- | Run both objects' collision functions
 collideBoth :: Time -> (ID, ID) -> Set Dimension -> GameState -> GameState
-collideBoth t (i1, i2) dims g = object' (collide t dims $ object i2 g) i1
-                              $ object' (collide t dims $ object i1 g) i2
+collideBoth t (i1, i2) dims g = object' (collide o2) i1
+                              $ object' (collide o1) i2
                               $ g
+    where
+        o1 = object i1 g
+        o2 = object i2 g
+        collide = phys' (vcty' $ collideSet $ inelastic o1 o2) .$ applyFriction t dims
+
+        collideSet :: Velocity -> Velocity -> Velocity
+        collideSet = liftA3 (iff . (`elem` dims)) dimensions
+
+inelastic :: GameObject -> GameObject -> Velocity
+inelastic o1 o2 = let m1 = mass $ phys o1
+                      m2 = mass $ phys o2
+                  in term m1 m2 (vcty $ phys o1) + term m2 m1 (vcty $ phys o2)
+    where
+        term m1 m2 = map $ map toFinite . (/ Unit (unitless $ 1 + m2/m1)) . map Finite
+
+        toFinite Infinite = error "Infinite is not finite"
+        toFinite (Finite x) = x
 
 -- | Advance a game state based on collisions
 update :: Time -> Collisions -> GameState -> GameState

@@ -14,6 +14,7 @@ import Prelewd
 
 import Impure
 
+import Num.Indeterminate
 import Storage.List
 import Storage.Map
 
@@ -22,6 +23,7 @@ import Game.Object
 import Game.Physics
 import Game.State
 import Game.Vector
+import Util.Unit
 import Wrappers.Events
 
 -- | Viewing distance of the camera
@@ -33,9 +35,9 @@ vec = vector undefined . zip (toList dimensions)
 
 -- | Start state of the game world
 initState :: GameState
-initState = stateFromObjs [ Platform $ Physics (vec [4, 1]) (vec [-3, -1]) 0    0    2
-                          , Platform $ Physics (vec [4, 1]) (vec [ 3, -1]) 0    0    0.4
-                          , Player   $ Physics (vec [1, 2]) (vec [-3,  0]) 0 gravity 1
+initState = stateFromObjs [ Platform $ Physics (vec [4, 1]) (Unit Infinite) (vec [-3, -1]) 0    0    2
+                          , Platform $ Physics (vec [4, 1]) (Unit Infinite) (vec [ 3, -1]) 0    0    0.4
+                          , Player   $ Physics (vec [1, 2])        1        (vec [-3,  0]) 0 gravity 1
                           ]
     where
         stateFromObjs = foldr addObject $ emptyState border
