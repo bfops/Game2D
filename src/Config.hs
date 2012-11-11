@@ -12,6 +12,8 @@ module Config ( viewDist
 
 import Prelewd
 
+import Impure
+
 import Storage.List
 import Storage.Map
 
@@ -26,37 +28,40 @@ import Wrappers.Events
 viewDist :: Int
 viewDist = 16
 
+vec :: [a] -> Vector a
+vec = vector undefined . zip (toList dimensions)
+
 -- | Start state of the game world
 initState :: GameState
-initState = stateFromObjs [ Platform $ Physics (toPosn [4, 1]) (toPosn [-3, -1]) 0    0    2
-                          , Platform $ Physics (toPosn [4, 1]) (toPosn [ 3, -1]) 0    0    0.4
-                          , Player   $ Physics (toPosn [1, 2]) (toPosn [-3,  0]) 0 gravity 1
+initState = stateFromObjs [ Platform $ Physics (vec [4, 1]) (vec [-3, -1]) 0    0    2
+                          , Platform $ Physics (vec [4, 1]) (vec [ 3, -1]) 0    0    0.4
+                          , Player   $ Physics (vec [1, 2]) (vec [-3,  0]) 0 gravity 1
                           ]
     where
         stateFromObjs = foldr addObject $ emptyState border
-        toPosn = map dist . vector 0 . zip (toList dimensions)
 
 -- | Edge for the game world
 border :: Bounds
-border = vector (0, 0) [ (Width , (-12, 16))
-                       , (Height, (-8, 8))
-                       ]
+border = vector undefined
+       $ [ (Width , (-12, 16))
+         , (Height, (-8, 8))
+         ]
 
 -- | Speed boost for a jump
 jumpSpeed :: Speed
-jumpSpeed = speed 12
+jumpSpeed = 12
 
 -- | Speed boost for movement
 moveSpeed :: Speed
-moveSpeed = speed 0.3
+moveSpeed = 0.3
 
 -- | Fastest you can walk
 speedCap :: Speed
-speedCap = speed 8
+speedCap = 8
 
 -- | Acceleration due to gravity
 gravity :: Vector Acceleration
-gravity = accel <$> singleV 0 Height (-32)
+gravity = singleV 0 Height (-32)
 
 -- | Title of the game window
 title :: Text

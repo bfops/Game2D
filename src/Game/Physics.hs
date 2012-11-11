@@ -14,11 +14,6 @@ module Game.Physics ( PhysicsValue
                     , vcty'
                     , accl'
                     , mu'
-                    , scalar
-                    , time
-                    , dist
-                    , speed
-                    , accel
                     ) where
 
 import Prelewd
@@ -67,11 +62,11 @@ type Velocity = Vector Speed
 
 -- | Collection of physical properties for an object
 data Physics = Physics
-        { size  :: Size
-        , posn  :: Position
-        , vcty  :: Velocity
-        , accl  :: Vector Acceleration
-        , mu    :: Mu
+        { size :: Size
+        , posn :: Position
+        , vcty :: Velocity
+        , accl :: Vector Acceleration
+        , mu   :: Mu
         }
     deriving (Show, Eq)
 
@@ -79,23 +74,8 @@ $(memberTransformers ''Physics)
 
 instance Arbitrary Physics where
     arbitrary = Physics
-              <$> sequence (pure $ dist.abs <$> arbitrary `suchThat` (/= 0))
-              <*> (arbitrary <&> map dist)
-              <*> (arbitrary <&> map speed)
-              <*> (arbitrary <&> map accel)
-              <*> (arbitrary <&> scalar)
-
-scalar :: PhysicsValue -> Scalar
-scalar = Unit
-
-time :: PhysicsValue -> Time
-time = Unit
-
-dist :: PhysicsValue -> Distance
-dist = Unit
-
-speed :: PhysicsValue -> Speed
-speed = Unit
-
-accel :: PhysicsValue -> Acceleration
-accel = Unit
+              <$> sequence (pure $ abs <$> (arbitrary `suchThat` (/= 0)))
+              <*> arbitrary
+              <*> arbitrary
+              <*> arbitrary
+              <*> arbitrary

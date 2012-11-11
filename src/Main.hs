@@ -127,7 +127,7 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
 
 -- | Update the program state with input and time elapsed
 newState :: State -> [(Input, ButtonState)] -> Double -> State
-newState s is t = let deltaT = time $ realToFrac $ t - lastUpdate s
+newState s is t = let deltaT = Unit $ realToFrac $ t - lastUpdate s
                   in game' (update is deltaT) $ lastUpdate' (const t) s
 
 mainLoop :: EventPoller -> State -> IO State
