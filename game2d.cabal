@@ -13,7 +13,8 @@ Executable Game2D
     main-is:           Main.hs
     ghc-options:       -Wall -Werror -threaded -rtsopts=all -fllvm -fno-warn-orphans
     extensions:        FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
-                       ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies
+                       ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies,
+                       DeriveFunctor
 
     build-depends:
                     OpenGL,
@@ -33,7 +34,8 @@ test-suite Tests
     main-is:        Test.hs
     ghc-options:    -Wall -Werror -fno-warn-orphans
     extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
-                    ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies
+                    ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies,
+                    DeriveFunctor
 
     build-depends: 
                     QuickCheck >= 2,

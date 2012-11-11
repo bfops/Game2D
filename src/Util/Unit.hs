@@ -13,7 +13,7 @@ infix 9 `Unit`
 
 -- | `Unit t v` is a unit with a unit in `t`, and a value in `v`
 newtype Unit t v = Unit { unitless :: v }
-    deriving (Show, Eq, Ord, Enum, Num, Real, Fractional)
+    deriving (Show, Eq, Ord, Enum, Num, Real, Fractional, Functor)
 
 instance Arbitrary v => Arbitrary (Unit t v) where
     arbitrary = Unit <$> arbitrary
