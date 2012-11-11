@@ -3,15 +3,11 @@ module Range (test) where
 import Data.Maybe
 
 import Num.Indeterminate
-import Num.Fraction
 import Prelewd hiding (empty)
 import Util.Range
 
 import Test.Framework
 import Test.Framework.TH
-import Test.HUnit hiding (Test, test)
-import Test.QuickCheck
-import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2
 
 test :: Test

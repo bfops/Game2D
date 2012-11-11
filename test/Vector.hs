@@ -2,14 +2,11 @@ module Vector (test) where
 
 import Prelewd
 
-import Text.Show
-
 import Game.Vector
 import Storage.Member
 
 import Test.Framework
 import Test.Framework.TH
-import Test.QuickCheck hiding (vector)
 import Test.Framework.Providers.QuickCheck2
 
 test :: Test

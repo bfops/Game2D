@@ -32,6 +32,7 @@ test-suite Tests
     hs-source-dirs: test/
                     src/
     main-is:        Test.hs
+    ghc-options:    -Wall -Werror -fno-warn-orphans
     extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
                     BangPatterns, ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts,
                     FunctionalDependencies

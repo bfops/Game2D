@@ -7,30 +7,40 @@ import Impure
 import Data.Fixed
 import Storage.Map
 import Storage.Member
-import Storage.Set
 import Text.Show
 
 import Game.Movement
-import Game.Object
 import Game.Physics
 import Game.Vector
 import Util.Unit
 
-import Test.HUnit hiding (Test, test)
 import Test.QuickCheck
 import Test.Framework
 import Test.Framework.TH
-import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2
 
 test :: Test
 test = $(testGroupGenerator)
 
 data Direction = Up | Down | Left | Right
-    deriving (Show, Eq, Enum, Bounded)
+    deriving (Show, Eq, Enum, Bounded, Ord)
 
 instance Arbitrary Direction where
     arbitrary = elements [ minBound .. maxBound ]
+
+dirToDim :: Direction -> Dimension
+dirToDim d = lookup d (fromList
+           $ [ (Left, Width), (Right, Width)
+             , (Down, Height), (Up, Height)
+             ])
+           <?> error "Couldn't map direction to dimension"
+
+sign :: Direction -> Bool
+sign d = lookup d (fromList
+       $ [ (Left, False), (Right, True)
+         , (Down, False), (   Up, True)
+         ])
+     <?> error "Couldn't map direction to sign"
 
 prop_emptyMove :: (Physics, Position) -> Bool
 prop_emptyMove (p, shift) = move shift 0 p mempty == (shift, mempty)
@@ -41,11 +51,8 @@ prop_moveApart (p1, p2, shift, d) = move shift' 0 p1 (singleton 1 p2') == (shift
         p2' = placeBehind p1 p2 dim flag
         shift' = directShift dim flag shift
 
-        dim | elem d [Up, Down] = Height
-            | elem d [Left, Right] = Width
-
-        flag | elem d [Up, Right] = True
-             | elem d [Down, Left] = False
+        dim = dirToDim d
+        flag = sign d
 
 prop_moveTogether :: (Physics, Physics, Vector Milli, Direction) -> Property
 prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
@@ -59,15 +66,12 @@ prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
         p2' = placeBehind p1 p2 dim flag
         shift' = directShift dim (not flag) shift
 
-        dim | elem d [Up, Down] = Height
-            | elem d [Left, Right] = Width
-
-        flag | elem d [Up, Right] = True
-             | elem d [Down, Left] = False
+        dim = dirToDim d
+        flag = sign d
 
 placeBehind :: Physics -> Physics -> Dimension -> Bool -> Physics
 placeBehind p1 p2 dim pos = let diff = abs $ component dim $ size $ iff pos p1 p2
                             in p2 { posn = posn p1 <&> iff pos (+) (-) <*> singleV 0 dim diff }
 
 directShift :: Dimension -> Bool -> Vector Milli -> Position
-directShift dim neg = map dist . component' dim (if' neg negate . abs)
+directShift dim neg = map Unit . component' dim (if' neg negate . abs)
