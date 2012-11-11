@@ -10,13 +10,13 @@ Cabal-Version:       >= 1.9.2
 
 Executable Game2D
     hs-source-dirs:    src/
-    Main-is:           Main.hs
-    GHC-Options:       -Wall -Werror -threaded -rtsopts=all -fllvm -fno-warn-orphans
-    Extensions:        FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
+    main-is:           Main.hs
+    ghc-options:       -Wall -Werror -threaded -rtsopts=all -fllvm -fno-warn-orphans
+    extensions:        FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
                        BangPatterns, ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts,
                        FunctionalDependencies
 
-    Build-Depends: 
+    build-depends:
                     OpenGL,
                     GLFW-b,
                     stm,
