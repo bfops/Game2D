@@ -16,4 +16,5 @@ scripts/build.sh &&
 echo &&
 scripts/test.sh &&
 echo &&
-scripts/linecheck.sh
+scripts/linecheck.sh &&
+echo
