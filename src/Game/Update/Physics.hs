@@ -4,8 +4,13 @@ module Game.Update.Physics ( update
 
 import Prelewd hiding (filter)
 
+import Impure
+
 import Control.Arrow
 import Data.Tuple
+import Storage.Pair
+import Storage.Map
+import Storage.Set
 
 import Game.Movement
 import Game.Object
@@ -13,10 +18,7 @@ import Game.Physics
 import Game.State
 import Game.Vector
 import Game.Update.Collisions hiding (update)
-import Impure
-import Storage.Pair
-import Storage.Map
-import Storage.Set
+import Util.Unit
 
 -- | Put each component in its own vector, in the correct location
 isolate :: a -> Vector a -> Vector (Vector a)
@@ -27,11 +29,11 @@ update1 :: Time -> GameState -> ID -> GameObject
                 -> (GameObject, Map ID (Set Dimension))    -- ^ (object, collisions)
 update1 t s id = updatePosn . phys' updateVcty
     where
-        updateVcty p = p { vcty = vcty p + ((t*) <$> accl p) }
+        updateVcty p = p { vcty = vcty p + ((t &*) <$> accl p) }
         updatePosn obj = foldr moveAndCollide (obj, mempty) $ isolate 0 $ vcty $ phys obj
 
         moveAndCollide mv (obj, allCollides) = let physLookup = phys <$> objects s
-                                                   (deltaP, collides) = move ((t*) <$> mv) id (phys obj) $ physLookup
+                                                   (deltaP, collides) = move ((t &*) <$> mv) id (phys obj) $ physLookup
                                                in ( makeMove deltaP obj
                                                   , allCollides <> filter (not.null) collides
                                                   )

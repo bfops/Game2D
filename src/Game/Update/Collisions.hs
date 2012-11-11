@@ -51,11 +51,11 @@ applyFriction :: Time -> Set Dimension -> GameObject -> GameObject -> GameObject
 applyFriction t dims collidee obj = let 
                                         moveDims = toSet dimensions `difference` dims
                                         norm = setSeveral 0 moveDims $ accl $ phys obj
-                                        a = accel $ fromDouble $ magnitude $ toDouble . fromAccel <$> norm
-                                        f = ((*) `on` mu.phys) collidee obj * a
-                                    in phys' (vcty' $ friction $ t * f) obj
+                                        a = accel $ fromDouble $ magnitude $ toDouble <$> norm
+                                        f = ((*) `on` mu.phys) collidee obj &* a
+                                    in phys' (vcty' $ friction $ t &* f) obj
 
 friction :: Speed -> Velocity -> Velocity
-friction s = liftA2 magSub <*> map ((s *) . scalar . fromDouble) . normalize . map (toDouble.fromSpeed)
+friction s = liftA2 magSub <*> map ((&* s) . scalar . fromDouble) . normalize . map toDouble
     where
-        magSub x y = scalar (fromSpeed $ signum x) * max 0 (abs x - abs y)
+        magSub x y = scalar (unitless $ signum x) &* max 0 (abs x - abs y)

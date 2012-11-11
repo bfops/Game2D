@@ -80,4 +80,4 @@ walk :: Speed -> GameObject -> GameObject
 walk = phys' . vcty' . component' Width . (cap speedCap .$ (+))
 
 cap :: Speed -> Speed -> Speed
-cap c = scalar.fromSpeed.signum <&> (*) <*> (min `on` abs) c
+cap c = scalar.unitless.signum <&> (&*) <*> (min `on` abs) c

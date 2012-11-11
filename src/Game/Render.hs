@@ -14,7 +14,7 @@ import Wrappers.OpenGL hiding (Size, Position)
 
 -- | Convert the game's vector to an OpenGL coordinate
 toGLVertex :: Position -> Vertex2 GLdouble
-toGLVertex v = on Vertex2 (realToFrac.fromDist) (component Width v) (component Height v)
+toGLVertex v = on Vertex2 realToFrac (component Width v) (component Height v)
 
 -- | Things which can be drawn
 class Drawable d where

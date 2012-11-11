@@ -14,6 +14,7 @@ import Game.Movement
 import Game.Object
 import Game.Physics
 import Game.Vector
+import Util.Unit
 
 import Test.HUnit hiding (Test, test)
 import Test.QuickCheck
@@ -48,8 +49,8 @@ prop_moveApart (p1, p2, shift, d) = move shift' 0 p1 (singleton 1 p2') == (shift
 
 prop_moveTogether :: (Physics, Physics, Vector Milli, Direction) -> Property
 prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
-                                     && all (< 1000) (abs $ shift <&> (/) <*> map fromDist (size p1))
-                                     && all (< 1000) (abs $ shift <&> (/) <*> map fromDist (size p2))
+                                     && all (< 1000) (abs $ shift <&> (/) <*> map unitless (size p1))
+                                     && all (< 1000) (abs $ shift <&> (/) <*> map unitless (size p2))
                                      ==> let (s, cs) = move shift' 0 p1 (singleton 1 p2')
                                          in s == pure 0
                                          && keys cs == [1]

@@ -11,9 +11,10 @@ Cabal-Version:       >= 1.9.2
 Executable Game2D
     hs-source-dirs:    src/
     Main-is:           Main.hs
-    GHC-Options:       -Wall -Werror -threaded -rtsopts=all -fllvm
+    GHC-Options:       -Wall -Werror -threaded -rtsopts=all -fllvm -fno-warn-orphans
     Extensions:        FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
-                       BangPatterns, ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts
+                       BangPatterns, ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts,
+                       FunctionalDependencies
 
     Build-Depends: 
                     OpenGL,
@@ -23,7 +24,7 @@ Executable Game2D
                     containers,
                     transformers,
                     QuickCheck >= 2,
-                    Step >= 0.2.5 && < 0.3,
+                    Step >= 0.2.6 && < 0.3,
                     base
 
 test-suite Tests
@@ -32,7 +33,8 @@ test-suite Tests
                     src/
     main-is:        Test.hs
     extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
-                    BangPatterns, ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts
+                    BangPatterns, ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts,
+                    FunctionalDependencies
 
     build-depends: 
                     QuickCheck >= 2,
@@ -43,5 +45,5 @@ test-suite Tests
                     test-framework,
                     containers,
                     Cabal,
-                    Step >= 0.2.5 && < 0.3,
+                    Step >= 0.2.6 && < 0.3,
                     base

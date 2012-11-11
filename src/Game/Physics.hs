@@ -14,22 +14,16 @@ module Game.Physics ( PhysicsValue
                     , vcty'
                     , accl'
                     , mu'
+                    , scalar
                     , time
-                    , fromTime
                     , dist
-                    , fromDist
                     , speed
-                    , fromSpeed
                     , accel
-                    , fromAccel
                     ) where
 
 import Prelewd
 
-import Impure
-
 import Data.Fixed
-import Storage.Map
 import Template.MemberTransformer
 import Test.QuickCheck
 import Text.Show
@@ -37,26 +31,32 @@ import Text.Show
 import Game.Vector
 import Util.Unit
 
-data Units = Size | Time
-    deriving (Show, Eq, Enum, Bounded, Ord)
+data ScalarInternal = Scalar deriving (Show, Eq, Enum, Bounded, Ord)
+data DistInternal = Dist deriving (Show, Eq, Enum, Bounded, Ord)
+data TimeInternal = Time deriving (Show, Eq, Enum, Bounded, Ord)
+data SpeedInternal = Speed deriving (Show, Eq, Enum, Bounded, Ord)
+data AccelInternal = Accel deriving (Show, Eq, Enum, Bounded, Ord)
 
-instance Arbitrary Units where
-    arbitrary = elements [minBound..maxBound]
+instance UnitMult ScalarInternal a a
+instance UnitMult TimeInternal SpeedInternal DistInternal
+instance UnitMult TimeInternal AccelInternal SpeedInternal
 
--- | Value in the Physics world
-type PhysicsValue = Unit Units Milli
+-- | Root value type
+type PhysicsValue = Milli
+
 -- | Unitless value
-type Scalar = PhysicsValue
+type Scalar = Unit ScalarInternal PhysicsValue
+
 -- | Frictional coefficient
 type Mu = Scalar
 -- | Against which rates are measured
-type Time = PhysicsValue
+type Time = Unit TimeInternal PhysicsValue
 -- | Measure of space
-type Distance = PhysicsValue
+type Distance = Unit DistInternal PhysicsValue
 -- | Rate of space
-type Speed = PhysicsValue
+type Speed = Unit SpeedInternal PhysicsValue
 -- | Rate of speed
-type Acceleration = PhysicsValue
+type Acceleration = Unit AccelInternal PhysicsValue
 
 -- | Dimensions of an object
 type Size = Vector Distance
@@ -85,19 +85,17 @@ instance Arbitrary Physics where
               <*> (arbitrary <&> map accel)
               <*> (arbitrary <&> scalar)
 
--- | Create a value with basic units
-time, dist :: a -> Unit Units a
--- | Create a unit with derived units
-speed, accel :: Fractional a => a -> Unit Units a
-time t = t `unit` Time
-dist d = d `unit` Size
+scalar :: PhysicsValue -> Scalar
+scalar = Unit
 
-speed v = dist v / time 1
-accel a = speed a / time 1
+time :: PhysicsValue -> Time
+time = Unit
 
--- | Get a numeric value from one with units
-fromTime, fromDist, fromSpeed, fromAccel :: Num a => Unit Units a -> a
-fromTime = (<?> error "fromTime with non-time") . strip (fromList [(Time, 1)])
-fromDist = (<?> error "fromDist with non-distance") . strip (fromList [(Size, 1)])
-fromSpeed = fromDist . (time 1 *)
-fromAccel = fromSpeed . (time 1 *)
+dist :: PhysicsValue -> Distance
+dist = Unit
+
+speed :: PhysicsValue -> Speed
+speed = Unit
+
+accel :: PhysicsValue -> Acceleration
+accel = Unit

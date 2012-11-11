@@ -11,12 +11,12 @@ import Storage.Map
 import Storage.Member
 import Storage.Set
 import Text.Show
-
 import Util.Range as Range
 
 import Game.Object
 import Game.Physics
 import Game.Vector hiding (normalize)
+import Util.Unit
 
 data TaggedRange a b = TaggedRange a (Range b)
     deriving Show
@@ -58,8 +58,8 @@ shift deltaP ph1 ph2 = let
         shift1 d v x1 w1 x2 w2 = TaggedRange (set [d]) $ pass1 v (x1 + w1) x2 <> pass1 (negate v) (x2 + w2) x1
 
         -- Range of time during which the point `x0`, moving at velocity `v`, is on the right side of `x`
-        pass1 :: Speed -> Distance -> Distance -> Range Time
-        pass1 v x0 x = let t = (x - x0) / v
+        pass1 :: Distance -> Distance -> Distance -> Range Scalar
+        pass1 v x0 x = let t = scalar $ unitless $ (x - x0) / v
                        in case compare v 0 of
                         LT -> range Infinite (Finite t)
                         EQ -> iff (x0 <= x) emptyRange mempty
@@ -75,7 +75,7 @@ move :: Position                            -- The movement to make (i.e. delta 
 move deltaP id p = resolveT . foldrWithKey (\i -> if' (id /= i) . earliestBump i) (Infinite, mempty)
     where
         resolveT (Infinite, _) = (deltaP, mempty)
-        resolveT (Finite t, s) = ((t *) <$> deltaP, s)
+        resolveT (Finite t, s) = ((t &*) <$> deltaP, s)
 
         -- Take an object, some bump information and produce update earliest bump information
         earliestBump j q accum = keepEarlyColisns j accum $ shift deltaP p q

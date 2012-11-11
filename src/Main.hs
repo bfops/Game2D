@@ -19,6 +19,7 @@ import Game.Render
 import Game.State
 import Game.Update
 import Game.Vector
+import Util.Unit
 
 import Wrappers.Events
 import Wrappers.OpenGL as OGL hiding (windowPos)
@@ -74,7 +75,7 @@ drawFrame g = do
                 -- Reset the view
                 loadIdentity
 
-                let v = negate $ map fromDist $ posn $ phys $ object (player g) g
+                let v = negate $ map unitless $ posn $ phys $ object (player g) g
                     [x, y] = map (realToFrac.(`component` v)) [Width, Height]
 
                 -- Move to the render location
