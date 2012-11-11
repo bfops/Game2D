@@ -23,7 +23,7 @@ atomically = io . STM.atomically
 
 -- | Write a value and return it
 writeTVar' :: T.TVar a -> a -> STM.STM a
-writeTVar' tv !v = v <$ writeTVar tv v
+writeTVar' tv v = v <$ writeTVar tv v
 
 -- | Apply the function inside the TVar
 modifyTVar :: T.TVar a -> (a -> a) -> STM.STM a
