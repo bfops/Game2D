@@ -4,6 +4,8 @@ module Game.Render ( Drawable (..)
 
 import Prelewd
 
+import Num.Positive
+
 import Game.Object
 import Game.Physics
 import Game.State
@@ -35,7 +37,7 @@ drawQuad c o = io $ renderPrimitive Quads $ runIO $ drawColored c
         where
             p = posn $ phys o
             (Vertex2 x y) = toGLVertex p
-            (Vertex2 x' y') = toGLVertex p <&> (+) <*> toGLVertex (size $ phys o)
+            (Vertex2 x' y') = toGLVertex p <&> (+) <*> toGLVertex (map num $ size $ phys o)
 
 instance Drawable GameObject where
     draw g = drawQuad objColor g

@@ -8,6 +8,7 @@ import IO
 
 import Data.Tuple
 import Data.Tuple.Curry
+import Num.Positive
 import Storage.List
 import Storage.Map
 import Template.MemberTransformer
@@ -55,8 +56,8 @@ initGLFW :: IO ()
 initGLFW = io $ do
         True <- GLFW.initialize
         True <- GLFW.openWindow $ GLFW.defaultDisplayOptions
-                    { GLFW.displayOptions_width = fst windowSize
-                    , GLFW.displayOptions_height = snd windowSize
+                    { GLFW.displayOptions_width = num $ fst windowSize
+                    , GLFW.displayOptions_height = num $ snd windowSize
                     , GLFW.displayOptions_windowIsResizable = False
                     }
 
@@ -127,7 +128,7 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
 
 -- | Update the program state with input and time elapsed
 newState :: State -> [(Input, ButtonState)] -> Double -> State
-newState s is t = let deltaT = Unit $ realToFrac $ t - lastUpdate s
+newState s is t = let deltaT = positive $ Unit $ realToFrac $ t - lastUpdate s
                   in game' (update is deltaT) $ lastUpdate' (const t) s
 
 mainLoop :: EventPoller -> State -> IO State

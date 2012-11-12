@@ -15,6 +15,7 @@ import Prelewd
 import Impure
 
 import Num.Indeterminate
+import Num.Positive
 import Storage.List
 import Storage.Map
 
@@ -35,9 +36,9 @@ vec = vector undefined . zip (toList dimensions)
 
 -- | Start state of the game world
 initState :: GameState
-initState = stateFromObjs [ Platform $ Physics (vec [4, 1]) (Unit Infinite) (vec [-3, -1]) 0    0    2
-                          , Platform $ Physics (vec [4, 1]) (Unit Infinite) (vec [ 3, -1]) 0    0    0.4
-                          , Player   $ Physics (vec [1, 2])        1        (vec [-3,  0]) 0 gravity 1
+initState = stateFromObjs [ Platform $ Physics (vec [4, 1]) (positive $ Unit Infinite) (vec [-3, -1]) 0    0    2
+                          , Platform $ Physics (vec [4, 1]) (positive $ Unit Infinite) (vec [ 3, -1]) 0    0    0.4
+                          , Player   $ Physics (vec [1, 2])              1             (vec [-3,  0]) 0 gravity 1
                           ]
     where
         stateFromObjs = foldr addObject $ emptyState border
@@ -50,15 +51,15 @@ border = vector undefined
          ]
 
 -- | Speed boost for a jump
-jumpSpeed :: Speed
+jumpSpeed :: Positive Speed
 jumpSpeed = 12
 
 -- | Speed boost for movement
-moveSpeed :: Speed
+moveSpeed :: Positive Speed
 moveSpeed = 0.3
 
 -- | Fastest you can walk
-speedCap :: Speed
+speedCap :: Positive Speed
 speedCap = 8
 
 -- | Acceleration due to gravity
@@ -70,7 +71,7 @@ title :: Text
 title = "Game"
 
 -- | Dimensions of the game window
-windowSize :: Integral a => (a, a)
+windowSize :: Integral a => (Positive a, Positive a)
 windowSize = (800, 600)
 
 -- | Background color

@@ -8,6 +8,7 @@ import Prelewd
 import Impure
 
 import Num.Indeterminate
+import Num.Positive
 import Storage.Map hiding (difference)
 import Storage.Member
 import Storage.Pair
@@ -49,8 +50,8 @@ collideBoth t (i1, i2) dims g = object' (collide o2) i1
         collideSet = liftA3 (iff . (`elem` dims)) dimensions
 
 inelastic :: GameObject -> GameObject -> Velocity
-inelastic o1 o2 = let m1 = mass $ phys o1
-                      m2 = mass $ phys o2
+inelastic o1 o2 = let m1 = num $ mass $ phys o1
+                      m2 = num $ mass $ phys o2
                   in term m1 m2 (vcty $ phys o1) + term m2 m1 (vcty $ phys o2)
     where
         term m1 m2 = map $ map toFinite . (/ Unit (unitless $ 1 + m2/m1)) . map Finite
@@ -68,7 +69,7 @@ applyFriction t dims collidee obj = let
                                         norm = setSeveral 0 moveDims $ accl $ phys obj
                                         a = Unit $ fromDouble $ magnitude $ toDouble <$> norm
                                         f = ((*) `on` mu.phys) collidee obj &* a
-                                    in phys' (vcty' $ friction $ t &* f) obj
+                                    in phys' (vcty' $ friction $ num t &* f) obj
 
 friction :: Speed -> Velocity -> Velocity
 friction s = liftA2 magSub <*> map ((&* s) . Unit . fromDouble) . normalize . map toDouble

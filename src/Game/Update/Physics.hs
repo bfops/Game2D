@@ -8,6 +8,7 @@ import Impure
 
 import Control.Arrow
 import Data.Tuple
+import Num.Positive
 import Storage.Pair
 import Storage.Map
 import Storage.Set
@@ -29,11 +30,12 @@ update1 :: Time -> GameState -> ID -> GameObject
                 -> (GameObject, Map ID (Set Dimension))    -- ^ (object, collisions)
 update1 t s id = updatePosn . phys' updateVcty
     where
-        updateVcty p = p { vcty = vcty p + ((t &*) <$> accl p) }
+        updateVcty p = p { vcty = vcty p + ((num t &*) <$> accl p) }
         updatePosn obj = foldr moveAndCollide (obj, mempty) $ isolate 0 $ vcty $ phys obj
 
         moveAndCollide mv (obj, allCollides) = let physLookup = phys <$> objects s
-                                                   (deltaP, collides) = move ((t &*) <$> mv) id (phys obj) $ physLookup
+                                                   shift = (num t &*) <$> mv
+                                                   (deltaP, collides) = move shift id (phys obj) $ physLookup
                                                in ( makeMove deltaP obj
                                                   , allCollides <> filter (not.null) collides
                                                   )

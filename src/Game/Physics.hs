@@ -22,8 +22,9 @@ import Prelewd
 
 import Data.Fixed
 import Num.Indeterminate
+import Num.Positive
 import Template.MemberTransformer
-import Test.QuickCheck
+import Test.QuickCheck (Arbitrary (..))
 import Text.Show
 
 import Game.Vector
@@ -49,7 +50,7 @@ type Scalar = Unit ScalarInternal PhysicsValue
 -- | Frictional coefficient
 type Mu = Scalar
 -- | Against which rates are measured
-type Time = Unit TimeInternal PhysicsValue
+type Time = Positive (Unit TimeInternal PhysicsValue)
 -- | Measure of space
 type Distance = Unit DistInternal PhysicsValue
 -- | Rate of space
@@ -57,10 +58,10 @@ type Speed = Unit SpeedInternal PhysicsValue
 -- | Rate of speed
 type Acceleration = Unit AccelInternal PhysicsValue
 -- | Resistance to acceleration
-type Mass = Unit MassInternal (Indeterminate PhysicsValue)
+type Mass = Positive (Unit MassInternal (Indeterminate PhysicsValue))
 
 -- | Dimensions of an object
-type Size = Vector Distance
+type Size = Vector (Positive Distance)
 -- | Location in space
 type Position = Vector Distance
 -- | Change in spatial location
@@ -80,10 +81,4 @@ data Physics = Physics
 $(memberTransformers ''Physics)
 
 instance Arbitrary Physics where
-    arbitrary = Physics
-              <$> sequence (pure $ abs <$> (arbitrary `suchThat` (/= 0)))
-              <*> (abs <$> arbitrary)
-              <*> arbitrary
-              <*> arbitrary
-              <*> arbitrary
-              <*> arbitrary
+    arbitrary = Physics <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary

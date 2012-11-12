@@ -7,6 +7,7 @@ import Prelewd
 import Impure
 
 import Num.Indeterminate
+import Num.Positive
 import Storage.Map
 import Storage.Member
 import Storage.Set
@@ -55,7 +56,7 @@ shift deltaP ph1 ph2 = let
         normalize (TaggedRange t r) = TaggedRange t $ range Infinite 1 <> r
 
         -- Range of time during which the line (x1, w1) moving at shift towards overlaps (x2, w2)
-        shift1 d v x1 w1 x2 w2 = TaggedRange (set [d]) $ pass1 v (x1 + w1) x2 <> pass1 (negate v) (x2 + w2) x1
+        shift1 d v x1 w1 x2 w2 = TaggedRange (set [d]) $ pass1 v (x1 + num w1) x2 <> pass1 (negate v) (x2 + num w2) x1
 
         -- Range of time during which the point `x0`, moving at velocity `v`, is on the right side of `x`
         pass1 :: Distance -> Distance -> Distance -> Range Scalar

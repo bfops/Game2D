@@ -7,6 +7,7 @@ import Prelewd
 import Impure
 
 import Control.Arrow
+import Num.Positive
 import Storage.Map as Map
 import Storage.List as List
 
@@ -46,8 +47,8 @@ actionUpdate t (Hold _ f) = f t
 
 actions :: [InputAction]
 actions = [ Push Jump $ player' $ addVcty $ jumpVcty
-          , Hold Left $ const $ player' $ walk $ negate moveSpeed
-          , Hold Right $ const $ player' $ walk moveSpeed
+          , Hold Left $ const $ player' $ walk $ negate $ num moveSpeed
+          , Hold Right $ const $ player' $ walk $ num moveSpeed
           , Push Reset $ const initState
           ]
 
@@ -71,7 +72,7 @@ pushActions, holdActions :: [InputAction]
 [pushActions, holdActions] = map puref [fromPush, fromHold 0] <&> (`mapMaybe` actions)
 
 jumpVcty :: Velocity
-jumpVcty = assert (jumpSpeed >= 0) $ singleV 0 Height jumpSpeed
+jumpVcty = assert (jumpSpeed >= 0) $ singleV 0 Height $ num jumpSpeed
 
 addVcty :: Velocity -> GameObject -> GameObject
 addVcty = phys' . vcty' . (+)
@@ -79,5 +80,5 @@ addVcty = phys' . vcty' . (+)
 walk :: Speed -> GameObject -> GameObject
 walk = phys' . vcty' . component' Width . (cap speedCap .$ (+))
 
-cap :: Speed -> Speed -> Speed
-cap c = Unit . unitless . signum <&> (&*) <*> (min `on` abs) c
+cap :: Positive Speed -> Speed -> Speed
+cap c = Unit . unitless . signum <&> (&*) <*> (min .^ abs) (num c)
