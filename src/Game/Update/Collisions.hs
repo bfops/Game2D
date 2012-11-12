@@ -46,6 +46,7 @@ collideBoth t (i1, i2) dims g = object' (collide o2) i1
         o2 = object i2 g
         collide = phys' (vcty' $ collideSet $ inelastic o1 o2) .$ applyFriction t dims
 
+        -- | Set velocity in the collision dimensions
         collideSet :: Velocity -> Velocity -> Velocity
         collideSet = liftA3 (iff . (`elem` dims)) dimensions
 

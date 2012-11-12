@@ -59,7 +59,6 @@ shift deltaP ph1 ph2 = let
         shift1 d v x1 w1 x2 w2 = TaggedRange (set [d]) $ pass1 v (x1 + num w1) x2 <> pass1 (negate v) (x2 + num w2) x1
 
         -- Range of time during which the point `x0`, moving at velocity `v`, is on the right side of `x`
-        pass1 :: Distance -> Distance -> Distance -> Range Scalar
         pass1 v x0 x = let t = Unit $ unitless $ (x - x0) / v
                        in case compare v 0 of
                         LT -> range Infinite (Finite t)

@@ -97,6 +97,7 @@ magnitude v = sqrt $ dot v v
 
 -- | Redcue a vector's magnitude to 1
 normalize :: (Eq a, Floating a) => Vector a -> Vector a
+normalize 0 = 0
 normalize v = v <&> (/ magnitude v)
 
 -- | Dot product

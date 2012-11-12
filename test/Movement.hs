@@ -4,7 +4,6 @@ import Prelewd hiding (Down)
 
 import Impure
 
-import Data.Fixed
 import Num.Positive
 import Storage.Map
 import Storage.Member
@@ -46,7 +45,7 @@ sign d = lookup d (fromList
 prop_emptyMove :: (Physics, Position) -> Bool
 prop_emptyMove (p, shift) = move shift 0 p mempty == (shift, mempty)
 
-prop_moveApart :: (Physics, Physics, Vector Milli, Direction) -> Bool
+prop_moveApart :: (Physics, Physics, Vector PhysicsValue, Direction) -> Bool
 prop_moveApart (p1, p2, shift, d) = move shift' 0 p1 (singleton 1 p2') == (shift', mempty)
     where
         p2' = placeBehind p1 p2 dim flag
@@ -55,7 +54,7 @@ prop_moveApart (p1, p2, shift, d) = move shift' 0 p1 (singleton 1 p2') == (shift
         dim = dirToDim d
         flag = sign d
 
-prop_moveTogether :: (Physics, Physics, Vector Milli, Direction) -> Property
+prop_moveTogether :: (Physics, Physics, Vector PhysicsValue, Direction) -> Property
 prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
                                      && all (< 1000) (abs $ shift <&> (/) <*> map (unitless.num) (size p1))
                                      && all (< 1000) (abs $ shift <&> (/) <*> map (unitless.num) (size p2))
@@ -74,5 +73,5 @@ placeBehind :: Physics -> Physics -> Dimension -> Bool -> Physics
 placeBehind p1 p2 dim pos = let diff = num $ component dim $ size $ iff pos p1 p2
                             in p2 { posn = posn p1 <&> iff pos (+) (-) <*> singleV 0 dim diff }
 
-directShift :: Dimension -> Bool -> Vector Milli -> Position
+directShift :: Dimension -> Bool -> Vector PhysicsValue -> Position
 directShift dim neg = map Unit . component' dim (if' neg negate . abs)

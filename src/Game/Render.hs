@@ -4,13 +4,14 @@ module Game.Render ( Drawable (..)
 
 import Prelewd
 
+import IO
+
 import Num.Positive
 
 import Game.Object
 import Game.Physics
 import Game.State
 import Game.Vector
-import IO
 
 import Wrappers.OpenGL hiding (Size, Position)
 
