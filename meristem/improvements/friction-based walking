@@ -1,1 +1,3 @@
 Walk speed/accel should be based on the friction of the current surface.
+
+When moving in the air, this should be based on the (yet-to-be-implemented) drag value.
