@@ -4,8 +4,6 @@ module Game.Update.Input ( update
 
 import Prelewd
 
-import Impure
-
 import Control.Arrow
 import Num.Positive
 import Storage.Map as Map
@@ -72,13 +70,13 @@ pushActions, holdActions :: [InputAction]
 [pushActions, holdActions] = map puref [fromPush, fromHold 0] <&> (`mapMaybe` actions)
 
 jumpVcty :: Velocity
-jumpVcty = assert (jumpSpeed >= 0) $ singleV 0 Height $ num jumpSpeed
+jumpVcty = singleV 0 Height $ num jumpSpeed
 
 addVcty :: Velocity -> GameObject -> GameObject
 addVcty = phys' . vcty' . (+)
 
 walk :: Speed -> GameObject -> GameObject
-walk = phys' . vcty' . component' Width . (cap speedCap .$ (+))
+walk v = phys' $ vcty' $ component' Width $ cap speedCap . (+ v)
 
 cap :: Positive Speed -> Speed -> Speed
-cap c = Unit . unitless . signum <&> (&*) <*> (min .^ abs) (num c)
+cap c v = Unit (unitless $ signum v) &* min (num c) (abs v)

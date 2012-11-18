@@ -3,9 +3,10 @@ module Game.Input ( Input (..)
                   , ButtonState
                   ) where
 
+import Prelewd
+
 import Text.Show
 
-import Prelewd
 import Wrappers.Events
 
 -- | Input events understood by the game
