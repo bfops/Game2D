@@ -9,7 +9,7 @@ import IO
 import Data.Tuple
 import Data.Tuple.Curry
 import Num.Positive
-import Storage.List
+import Storage.List (last)
 import Storage.Map
 import Template.MemberTransformer
 
@@ -32,6 +32,7 @@ import Config
 -- | Program state
 data State = State { game       :: GameState
                    , lastUpdate :: Double
+                   , inputs     :: Map Input Time
                    }
 
 $(memberTransformers ''State)
@@ -118,8 +119,8 @@ clearRefreshEvents :: EventPoller -> IO ()
 clearRefreshEvents poll = poll [RefreshEvents] $> ()
 
 -- | Receive all pending input events, and convert them to game input
-getInputs :: EventPoller -> IO [(Input, ButtonState)]
-getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, MouseMoveEvents ]
+getInputs :: EventPoller -> IO (Map Input ButtonState)
+getInputs poll = fromList . mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, MouseMoveEvents ]
     where
         -- Convert an input event to a game input
         rawToInput :: Event -> Maybe (Input, ButtonState)
@@ -127,17 +128,25 @@ getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, Mo
         rawToInput _ = Nothing
 
 -- | Update the program state with input and time elapsed
-newState :: State -> [(Input, ButtonState)] -> Double -> State
-newState s is t = let deltaT = Unit $ realToFrac $ t - lastUpdate s
-                  in if' (deltaT > 0) (game' (update is $ positive deltaT) . lastUpdate' (const t)) s
+newState :: State -> Double -> Map Input (Maybe Time) -> State
+newState s t is = let deltaT = Unit $ realToFrac $ t - lastUpdate s
+                  in if' (deltaT > 0)
+                         (game' ( update is $ positive deltaT)
+                                . lastUpdate' (const t)
+                                . inputs' (const $ map (<?> 0) is)
+                         ) s
+
+extendInput :: Input -> ButtonState -> Map Input (Maybe Time) -> Map Input (Maybe Time)
+extendInput i Press = insertWith (\_ _ -> error "Pressed already-pressed input") i Nothing
+extendInput i Release = (<?> error "Released unpressed input") . delete i
 
 mainLoop :: EventPoller -> State -> IO State
-mainLoop poll s0 =   isOpen poll
-                 >>= guard
-                 >>  visualize
-                 >>  updateState
+mainLoop poll s0 = (guard =<< isOpen poll)
+                >> visualize
+                >> io GLFW.getTime
+               >>= updateState
     where
-        updateState = newState s0 <$> getInputs poll <*> io GLFW.getTime
+        updateState t = newState s0 t . foldrWithKey extendInput (Just <$> inputs s0) <$> getInputs poll
 
         visualize = do
             -- Since we're drawing, all the window refresh events are taken care of
@@ -149,7 +158,7 @@ mainLoop poll s0 =   isOpen poll
 
 -- | Create initial program state
 getInitState :: IO State
-getInitState = State initState <$> io GLFW.getTime
+getInitState = State initState <$> io GLFW.getTime <&> ($ mempty)
 
 -- | Run the program
 main :: SystemIO ()

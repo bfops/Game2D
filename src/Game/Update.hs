@@ -5,6 +5,7 @@ module Game.Update ( Game.Update.update
 import Prelewd
 
 import Data.Tuple
+import Storage.Map
 
 import Game.Input
 import Game.Object
@@ -15,12 +16,13 @@ import Game.Update.Input as Input
 import Game.Update.Physics as Physics
 
 -- | Advance the game state
-update :: [(Input, ButtonState)] -- ^ List of input events, in order of ascending age
-       -> Time                   -- ^ Time elapsed for this step
+update :: Map Input (Maybe Time)    -- ^ Currently-pressed inputs. If Time is Nothing,
+                                    -- then the input has just been pushed. Otherwise, it's the hold time.
+       -> Time                      -- ^ Time elapsed for this update step
        -> GameState
        -> GameState
 update is t g = foldr ($) g
-        [ Input.update is t
+        [ Input.update is
         , uncurry (Collisions.update t)
         . Physics.update t
         -- Wraparound in every dimension, based on the world bounds

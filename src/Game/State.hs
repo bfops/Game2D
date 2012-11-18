@@ -8,8 +8,6 @@ module Game.State ( GameState
                   , object'
                   , player
                   , player'
-                  , inputs
-                  , inputs'
                   , addObject
                   , deleteObj
                   , emptyState
@@ -25,7 +23,6 @@ import Storage.Map
 import Template.MemberTransformer
 import Text.Show
 
-import Game.Input
 import Game.Physics
 import Game.Object
 import Game.Vector
@@ -37,7 +34,6 @@ type Bounds = Vector (Distance, Distance)
 data GameState = GameState { bounds :: Bounds
                            , ids    :: [ID]
                            , objs   :: ObjectGroup
-                           , inputs :: Map Input Time
                            }
 
 $(memberTransformers ''GameState)
@@ -80,4 +76,4 @@ deleteObj id s = maybe (error $ "Object " <> show id <> " doesn't exist") (\o ->
 
 -- | Game state with nothing in it
 emptyState :: Bounds -> GameState
-emptyState b = GameState b [0..] mempty mempty
+emptyState b = GameState b [0..] mempty
