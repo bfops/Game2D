@@ -130,11 +130,11 @@ getInputs poll = fromList . mapMaybe rawToInput <$> poll [ ButtonEvents Nothing 
 -- | Update the program state with input and time elapsed
 newState :: State -> Double -> Map Input (Maybe Time) -> State
 newState s t is = let deltaT = Unit $ realToFrac $ t - lastUpdate s
-                  in if' (deltaT > 0)
-                         (game' ( update is $ positive deltaT)
-                                . lastUpdate' (const t)
-                                . inputs' (const $ map (<?> 0) is)
-                         ) s
+                  in try (updateState <$> positive deltaT) s
+    where
+        updateState dt = game' ( update is dt )
+                       . lastUpdate' (const t)
+                       . inputs' (const $ map (<?> 0) is)
 
 extendInput :: Input -> ButtonState -> Map Input (Maybe Time) -> Map Input (Maybe Time)
 extendInput i Press = insertWith (\_ _ -> error "Pressed already-pressed input") i Nothing

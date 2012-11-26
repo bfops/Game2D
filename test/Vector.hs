@@ -16,10 +16,9 @@ prop_dimExists :: Dimension -> Bool
 prop_dimExists = (`elem` dimensions)
 
 prop_index :: Vector Integer -> Bool
-prop_index v = and $ fmap try $ indices v
+prop_index v = and $ fmap index $ indices v
     where
-        try :: Integer -> Bool
-        try i = (v ! fromIntegral i) == (toList v ! fromIntegral i)
+        index i = (v ! fromIntegral i) == (toList v ! fromIntegral i)
 
 prop_ordAssoc :: (Vector Integer, Vector Integer, Vector Integer) -> Bool
 prop_ordAssoc (x, y, z) = min (min x y) z == min x (min y z)

@@ -1,6 +1,6 @@
 module Math (test) where
 
-import Prelewd hiding (Down)
+import Prelewd
 
 import Game.Physics
 

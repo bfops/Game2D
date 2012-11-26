@@ -47,6 +47,3 @@ walk v = phys' $ vcty' $ component' Width $ cap speedCap . (+ v)
 
 cap :: Positive Speed -> Speed -> Speed
 cap c v = Unit (unitless $ signum v) &* min (num c) (abs v)
-
-try :: Maybe (a -> a) -> a -> a
-try f x = (f <&> ($ x)) <?> x
