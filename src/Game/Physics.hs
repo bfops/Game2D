@@ -6,6 +6,7 @@ module Game.Physics ( PhysicsValue
                     , Speed
                     , Acceleration
                     , Mass
+                    , Momentum
                     , Size
                     , Position
                     , Velocity
@@ -36,10 +37,12 @@ data TimeInternal = Time deriving (Show, Eq, Enum, Bounded, Ord)
 data SpeedInternal = Speed deriving (Show, Eq, Enum, Bounded, Ord)
 data AccelInternal = Accel deriving (Show, Eq, Enum, Bounded, Ord)
 data MassInternal = Mass deriving (Show, Eq, Enum, Bounded, Ord)
+data PInternal = MassV deriving (Show, Eq, Enum, Bounded, Ord)
 
 instance UnitMult ScalarInternal a a
 instance UnitMult TimeInternal SpeedInternal DistInternal
 instance UnitMult TimeInternal AccelInternal SpeedInternal
+instance UnitMult SpeedInternal MassInternal PInternal
 
 -- | Root value type
 type PhysicsValue = Milli
@@ -58,7 +61,8 @@ type Speed = Unit SpeedInternal PhysicsValue
 -- | Rate of speed
 type Acceleration = Unit AccelInternal PhysicsValue
 -- | Resistance to acceleration
-type Mass = Positive (Unit MassInternal (Nonfinite PhysicsValue))
+type Mass = Nonfinite (Positive (Unit MassInternal PhysicsValue))
+type Momentum = Unit PInternal PhysicsValue
 
 -- | Dimensions of an object
 type Size = Vector (Positive Distance)

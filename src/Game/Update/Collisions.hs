@@ -5,8 +5,6 @@ module Game.Update.Collisions ( update
 
 import Prelewd
 
-import Impure
-
 import Num.Nonfinite
 import Num.Positive
 import Storage.Map hiding (difference)
@@ -36,43 +34,82 @@ fromDouble d = let precision = 100 :: Integer
 setSeveral :: Foldable t => a -> t Dimension -> Vector a -> Vector a
 setSeveral x = flip $ foldr (`setV` x)
 
+divPosInf :: (Ord a, Fractional a) => Positive a -> Nonfinite (Positive a) -> a
+divPosInf x y = mapInfinite ((num x /) . num <$> y) 0
+
+divInfUnit :: (Ord a, Fractional a, UnitMult x y z) => Unit z a -> Nonfinite (Positive (Unit y a)) -> Unit x a
+divInfUnit z x = mapInfinite ((z /&) . num <$> x) 0
+
+-- | Apply a function to a pair of objects in a GameState
+object2' :: (Pair GameObject -> Pair GameObject) -> Pair ID -> GameState -> GameState
+object2' f ids g = foldr ($) g $ object' . const <$> f (ids <&> (`object` g)) <*> ids
+
+phys2' :: (Pair Physics -> Pair Physics) -> Pair GameObject -> Pair GameObject
+phys2' f gs =  phys' . const <$> f (phys <$> gs) <*> gs
+
+vcty2' :: (Pair Velocity -> Pair Velocity) -> Pair Physics -> Pair Physics
+vcty2' f ps = vcty' . const <$> f (vcty <$> ps) <*> ps
+
 -- | Run both objects' collision functions
-collideBoth :: Time -> (ID, ID) -> Set Dimension -> GameState -> GameState
-collideBoth t (i1, i2) dims g = object' (collide o2) i1
-                              $ object' (collide o1) i2
-                              $ g
+collideBoth :: Time -> Pair ID -> Set Dimension -> GameState -> GameState
+collideBoth t ids dims = object2' (applyFriction t dims . collideInelast) ids
     where
-        o1 = object i1 g
-        o2 = object i2 g
-        collide = phys' (vcty' $ collideSet $ inelastic o1 o2) .$ applyFriction t dims
+        collideInelast :: Pair GameObject -> Pair GameObject
+        collideInelast = map =<< phys' . vcty' . collideSet . inelastic
 
         -- | Set velocity in the collision dimensions
         collideSet :: Velocity -> Velocity -> Velocity
         collideSet = liftA3 (iff . (`elem` dims)) dimensions
 
-inelastic :: GameObject -> GameObject -> Velocity
-inelastic o1 o2 = let m1 = num $ mass $ phys o1
-                      m2 = num $ mass $ phys o2
-                  in term m1 m2 (vcty $ phys o1) + term m2 m1 (vcty $ phys o2)
+inelastic :: Pair GameObject -> Velocity
+inelastic objs = let Pair m1 m2 = map num . mass . phys <$> objs
+                     Pair v1 v2 = vcty . phys <$> objs
+                 in (term m2 m1 <$> v1) + (term m1 m2 <$> v2)
     where
-        term m1 m2 = map $ map toFinite . (/ Unit (unitless $ 1 + m2/m1)) . map Finite
-
-        toFinite Infinite = error "Infinite is not finite"
-        toFinite (Finite x) = x
+        term m2 m1 v1 = let (Finite x) = Finite v1 / (Unit . unitless <$> 1 + m2/m1)
+                        in x
 
 -- | Advance a game state based on collisions
 update :: Time -> Collisions -> GameState -> GameState
-update t cs g = foldrWithKey (collideBoth t . tuple) g cs
+update t cs g = foldrWithKey (collideBoth t) g cs
 
-applyFriction :: Time -> Set Dimension -> GameObject -> GameObject -> GameObject
-applyFriction t dims collidee obj = let 
-                                        moveDims = toSet dimensions `difference` dims
-                                        norm = setSeveral 0 moveDims $ accl $ phys obj
-                                        a = Unit $ fromDouble $ magnitude $ toDouble <$> norm
-                                        f = ((*) `on` mu.phys) collidee obj &* a
-                                    in phys' (vcty' $ friction $ num t &* f) obj
-
-friction :: Speed -> Velocity -> Velocity
-friction s = liftA2 magSub <*> map ((&* s) . Unit . fromDouble) . normalize . map toDouble
+applyFriction :: Time -> Set Dimension -> Pair GameObject -> Pair GameObject
+applyFriction t dims objs = let
+            fric = friction t dims $ phys <$> objs
+            equal = equilibrium $ phys <$> objs
+            toTransfer = transfer1 <$> fric <*> equal
+        in phys2' (vcty2' $ transfer (mass . phys <$> objs) toTransfer) objs
     where
-        magSub x y = Unit (unitless $ signum x) &* max 0 (abs x - abs y)
+        transfer1 :: Nonfinite Momentum -> Momentum -> Momentum
+        transfer1 x y = signum (mapInfinite x y) * mapInfinite (min (abs y) . abs <$> x) y
+
+-- | Momentum to transfer due to friction
+friction :: Time -> Set Dimension -> Pair Physics -> Vector (Nonfinite Momentum)
+friction t dims (Pair obj collidee) = let
+            norm = setSeveral 0 (toSet dimensions `difference` dims) $ accl obj
+            normMagnitude = Unit $ fromDouble $ magnitude $ toDouble <$> norm
+            transferSpeed = mu obj * mu collidee &* (num t &* normMagnitude)
+            maxTransfer :: Nonfinite Momentum
+            maxTransfer = (transferSpeed &*) . num <$> mass obj
+            direction = normalize $ setSeveral 0 dims $ toDouble <$> ((-) `on` vcty) obj collidee
+        in liftA2 (*&) maxTransfer . Finite . fromDouble <$> direction
+
+-- | Determine the momentum transfer required to reach velocity equilibrium
+equilibrium :: Pair Physics -> Vector Momentum
+equilibrium ps = let Pair v1 v2 = vcty <$> ps
+                 in equilibrium1 (mass <$> ps) <$> v1 <*> v2
+    where
+        equilibrium1 :: Pair Mass -> Speed -> Speed -> Momentum
+        -- if momentum transferred is t, at equilibrium:
+        --    => v1 - t/m1 = v2 + t/m2
+        --    => m1*m2*v1 - m2*t = m1*m2*v2 + m1*t
+        --    => m1 * m2 * (v1 - v2) = t * (m1 + m2)
+        --    => t = (v1 - v2) * m1 * m2 / (m1 + m2)
+        --    =>   = (v1 - v2) * 1 / (1/m2 + 1/m1)
+        equilibrium1 (Pair m1 m2) v1 v2 = (v1 - v2) &* (1 / ((+) `on` divPosInf 1) m1 m2)
+
+transfer :: Pair Mass -> Vector Momentum -> Pair Velocity -> Pair Velocity
+transfer ms = sequence .$ liftA2 transfer1 .^ sequence
+    where
+        transfer1 :: Momentum -> Pair Speed -> Pair Speed
+        transfer1 t vs = vs <&> (+) <*> (Pair (negate t) t <&> divInfUnit <*> ms)
