@@ -14,7 +14,7 @@ import Prelewd
 
 import Impure
 
-import Num.Indeterminate
+import Num.Nonfinite
 import Num.Positive
 import Storage.List
 import Storage.Map

@@ -21,7 +21,7 @@ module Game.Physics ( PhysicsValue
 import Prelewd
 
 import Data.Fixed
-import Num.Indeterminate
+import Num.Nonfinite
 import Num.Positive
 import Template.MemberTransformer
 import Test.QuickCheck (Arbitrary (..))
@@ -58,7 +58,7 @@ type Speed = Unit SpeedInternal PhysicsValue
 -- | Rate of speed
 type Acceleration = Unit AccelInternal PhysicsValue
 -- | Resistance to acceleration
-type Mass = Positive (Unit MassInternal (Indeterminate PhysicsValue))
+type Mass = Positive (Unit MassInternal (Nonfinite PhysicsValue))
 
 -- | Dimensions of an object
 type Size = Vector (Positive Distance)

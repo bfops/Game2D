@@ -7,7 +7,7 @@ import Prelewd
 
 import Impure
 
-import Num.Indeterminate
+import Num.Nonfinite
 import Num.Positive
 import Storage.Map hiding (difference)
 import Storage.Member

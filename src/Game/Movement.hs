@@ -6,7 +6,7 @@ import Prelewd
 
 import Impure
 
-import Num.Indeterminate
+import Num.Nonfinite
 import Num.Positive
 import Storage.Map
 import Storage.Member
@@ -22,7 +22,7 @@ import Util.Unit
 data TaggedRange a b = TaggedRange a (Range b)
     deriving Show
 
-indfToMaybe :: Indeterminate a -> Maybe a
+indfToMaybe :: Nonfinite a -> Maybe a
 indfToMaybe Infinite = Nothing
 indfToMaybe (Finite x) = Just x
 
@@ -44,8 +44,8 @@ overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
 
 -- Shift one object through a vector towards another object
 shift :: Position -> Physics -> Physics
-      -> (Set Dimension, Indeterminate Scalar)  -- ^ (Collision dimensions, fraction of distance to be travelled)
-                                                -- scalar is Infinite when no collisions take place
+      -> (Set Dimension, Nonfinite Scalar)  -- ^ (Collision dimensions, fraction of distance to be travelled)
+                                            -- scalar is Infinite when no collisions take place
 shift deltaP ph1 ph2 = let
                         -- Collisions individually in each dimension
                         collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2

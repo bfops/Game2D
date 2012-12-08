@@ -24,7 +24,7 @@ Executable Game2D
                     containers,
                     transformers,
                     QuickCheck >= 2,
-                    Step == 0.2.15,
+                    Step == 0.2.18,
                     base
 
 test-suite Tests
@@ -46,5 +46,5 @@ test-suite Tests
                     test-framework,
                     containers,
                     Cabal,
-                    Step >= 0.2.15,
+                    Step == 0.2.18,
                     base

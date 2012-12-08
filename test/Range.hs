@@ -2,7 +2,7 @@ module Range (test) where
 
 import Data.Maybe
 
-import Num.Indeterminate
+import Num.Nonfinite
 import Prelewd hiding (empty)
 import Util.Range
 
@@ -13,7 +13,7 @@ import Test.Framework.Providers.QuickCheck2
 test :: Test
 test = $(testGroupGenerator)
 
-prop_create :: (Indeterminate Integer, Indeterminate Integer) -> Bool
+prop_create :: (Nonfinite Integer, Nonfinite Integer) -> Bool
 prop_create (s, e) = let s' = min s e
                          e' = max s e
                          rng = range (min s e) (max s e)
