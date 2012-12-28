@@ -119,8 +119,8 @@ clearRefreshEvents :: EventPoller -> IO ()
 clearRefreshEvents poll = poll [RefreshEvents] $> ()
 
 -- | Receive all pending input events, and convert them to game input
-getInputs :: EventPoller -> IO (Map Input ButtonState)
-getInputs poll = fromList . mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, MouseMoveEvents ]
+getInputs :: EventPoller -> IO [(Input, ButtonState)]
+getInputs poll = mapMaybe rawToInput <$> poll [ ButtonEvents Nothing Nothing, MouseMoveEvents ]
     where
         -- Convert an input event to a game input
         rawToInput :: Event -> Maybe (Input, ButtonState)
@@ -136,9 +136,9 @@ newState s t is = let deltaT = Unit $ realToFrac $ t - lastUpdate s
                        . lastUpdate' (const t)
                        . inputs' (const $ map (<?> 0) is)
 
-extendInput :: Input -> ButtonState -> Map Input (Maybe Time) -> Map Input (Maybe Time)
-extendInput i Press = insertWith (\_ _ -> error "Pressed already-pressed input") i Nothing
-extendInput i Release = (<?> error "Released unpressed input") . delete i
+extendInput :: (Input, ButtonState) -> Map Input (Maybe Time) -> Map Input (Maybe Time)
+extendInput (i, Press) = insertWith (\_ _ -> error "Pressed already-pressed input") i Nothing
+extendInput (i, Release) = (<?> error "Released unpressed input") . delete i
 
 mainLoop :: EventPoller -> State -> IO State
 mainLoop poll s0 = (guard =<< isOpen poll)
@@ -146,7 +146,7 @@ mainLoop poll s0 = (guard =<< isOpen poll)
                 >> io GLFW.getTime
                >>= updateState
     where
-        updateState t = newState s0 t . foldrWithKey extendInput (Just <$> inputs s0) <$> getInputs poll
+        updateState t = newState s0 t . foldr extendInput (Just <$> inputs s0) <$> getInputs poll
 
         visualize = do
             -- Since we're drawing, all the window refresh events are taken care of
