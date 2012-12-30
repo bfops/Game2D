@@ -5,9 +5,9 @@ module Config ( viewDist
               , moveSpeed
               , speedCap
               , title
-              , windowSize
               , bgColor
               , keymap
+              , displayOpts
               ) where
 
 import Prelewd
@@ -15,16 +15,18 @@ import Prelewd
 import Impure
 
 import Num.Nonfinite
-import Num.Positive
 import Storage.List
 import Storage.Map
+import Subset.Num
 
 import Game.Input
 import Game.Object
 import Game.Physics
 import Game.State
 import Game.Vector
+import Physics.Types
 import Wrappers.Events
+import Wrappers.GLFW (DisplayOptions (..), defaultDisplayOptions)
 
 -- | Viewing distance of the camera
 viewDist :: Int
@@ -69,10 +71,6 @@ gravity = singleV 0 Height (-32)
 title :: Text
 title = "Game"
 
--- | Dimensions of the game window
-windowSize :: Integral a => (Positive a, Positive a)
-windowSize = (800, 600)
-
 -- | Background color
 bgColor :: Num a => (a, a, a, a)
 bgColor = (0, 175, 200, 0)
@@ -86,3 +84,11 @@ keymap = mapKeys CharKey $ fromList
        , ('D', Right)
        , ('R', Reset)
        ]
+
+-- | GLFW display options
+displayOpts :: DisplayOptions
+displayOpts = defaultDisplayOptions
+    { displayOptions_width = 800
+    , displayOptions_height = 600
+    , displayOptions_windowIsResizable = False
+    }

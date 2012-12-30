@@ -14,7 +14,7 @@ Executable Game2D
     ghc-options:       -Wall -Werror -threaded -rtsopts=all -fllvm -fno-warn-orphans
     extensions:        FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
                        ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies,
-                       DeriveFunctor
+                       DeriveFunctor, ScopedTypeVariables
 
     build-depends:
                     OpenGL,
@@ -24,7 +24,7 @@ Executable Game2D
                     containers,
                     transformers,
                     QuickCheck >= 2,
-                    Step == 0.2.18,
+                    Step == 0.2.21,
                     base
 
 test-suite Tests
@@ -35,7 +35,7 @@ test-suite Tests
     ghc-options:    -Wall -Werror -fno-warn-orphans
     extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
                     ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies,
-                    DeriveFunctor
+                    DeriveFunctor, ScopedTypeVariables
 
     build-depends: 
                     QuickCheck >= 2,
@@ -46,5 +46,5 @@ test-suite Tests
                     test-framework,
                     containers,
                     Cabal,
-                    Step == 0.2.18,
+                    Step == 0.2.21,
                     base

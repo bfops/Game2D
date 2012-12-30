@@ -1,5 +1,5 @@
 -- | Static size, homogenous Vector type
-module Game.Vector ( Vector
+module Game.Vector ( Vector (..)
                    , Dimension (..)
                    , dimensions
                    , component
@@ -32,7 +32,8 @@ instance Arbitrary Dimension where
 dimensions :: Vector Dimension
 dimensions = Vector Width Height
 
--- | Homogenous vector
+-- | Homogenous vector. When possible, use predefined functions, rather than the Vector data constructor.
+-- Code should strive to be generic with respect to the number of dimensions in a Vector.
 data Vector a = Vector a a
     deriving (Eq, Show)
 
@@ -49,7 +50,7 @@ instance Fractional a => Fractional (Vector a) where
     fromRational = pure . fromRational
 
 instance Real a => Ord (Vector a) where
-    compare = compare `on` (dot <*> identity)
+    compare = compare `on` (dot <*> \x->x)
 
 instance Functor Vector where
     fmap = liftA

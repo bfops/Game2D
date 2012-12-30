@@ -4,14 +4,15 @@ import Prelewd
 
 import Impure
 
-import Num.Positive
 import Storage.Map
 import Storage.Member
+import Subset.Num
 import Text.Show
 
 import Game.Movement
 import Game.Physics
 import Game.Vector
+import Physics.Types
 import Util.Unit
 
 import Test.QuickCheck
@@ -56,8 +57,8 @@ prop_moveApart (p1, p2, shift, d) = move shift' 0 p1 (singleton 1 p2') == (shift
 
 prop_moveTogether :: (Physics, Physics, Vector PhysicsValue, Direction) -> Property
 prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
-                                     && all (< 1000) (abs $ shift <&> (/) <*> map (unitless.num) (size p1))
-                                     && all (< 1000) (abs $ shift <&> (/) <*> map (unitless.num) (size p2))
+                                     && all (< 1000) (abs $ shift <&> (/) <*> map (unitless.fromPos) (size p1))
+                                     && all (< 1000) (abs $ shift <&> (/) <*> map (unitless.fromPos) (size p2))
                                      ==> let (s, cs) = move shift' 0 p1 (singleton 1 p2')
                                          in s == pure 0
                                          && keys cs == [1]
@@ -70,7 +71,7 @@ prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
         flag = sign d
 
 placeBehind :: Physics -> Physics -> Dimension -> Bool -> Physics
-placeBehind p1 p2 dim pos = let diff = num $ component dim $ size $ iff pos p1 p2
+placeBehind p1 p2 dim pos = let diff = fromPos $ component dim $ size $ iff pos p1 p2
                             in p2 { posn = posn p1 <&> iff pos (+) (-) <*> singleV 0 dim diff }
 
 directShift :: Dimension -> Bool -> Vector PhysicsValue -> Position

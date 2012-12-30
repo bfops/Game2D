@@ -2,7 +2,7 @@ module Math (test) where
 
 import Prelewd
 
-import Game.Physics
+import Physics.Types
 
 import Test.Framework
 import Test.Framework.TH

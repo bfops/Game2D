@@ -42,5 +42,5 @@ isPlayer _ = False
 
 -- | Unique identifier
 type ID = Integer
--- | World of objects
+-- | Uniquely identified group of GameObjects
 type ObjectGroup = Map ID GameObject

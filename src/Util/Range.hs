@@ -15,6 +15,9 @@ import Text.Show
 
 import Impure
 
+(>>==) :: Monad m => (m a, m b) -> (a -> b -> m c) -> m c
+(>>==) (x, y) f = x >>= \a -> f a =<< y
+
 -- | Continuous range
 -- Monoid instances selects the overlap of both ranges
 newtype Range a = Range (Maybe (Nonfinite a, Nonfinite a))
@@ -22,9 +25,7 @@ newtype Range a = Range (Maybe (Nonfinite a, Nonfinite a))
 
 instance Ord a => Monoid (Range a) where
     mempty = Range $ Just (Infinite, Infinite)
-    mappend (Range mr1) (Range mr2) = Range $ do r1 <- mr1
-                                                 r2 <- mr2
-                                                 overlapExtant r1 r2
+    mappend (Range mr1) (Range mr2) = Range $ (mr1, mr2) >>== overlapExtant
         where
             -- Overlap nonempty ranges
             overlapExtant r1 r2 = assert (validRange r1 && validRange r2)

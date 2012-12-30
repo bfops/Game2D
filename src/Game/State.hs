@@ -23,9 +23,9 @@ import Storage.Map
 import Template.MemberTransformer
 import Text.Show
 
-import Game.Physics
 import Game.Object
 import Game.Vector
+import Physics.Types
 
 -- | Edges of the game world
 type Bounds = Vector (Distance, Distance)
@@ -52,12 +52,14 @@ object id g = lookup id (objects g) <?> error ("Couldn't find object " <> show i
 
 -- | Update an object
 object' :: (GameObject -> GameObject) -> ID -> GameState -> GameState
-object' f id g = maybe (error $ "Couldn't update object " <> show id) ((`objs'` g) . const)
+object' f id g = maybe (error $ "Couldn't update object " <> show id) ((`objs'` g) . \x _->x)
                $ modify (Just . f) id $ objects g
 
+-- | Get the ID of the player
 player :: GameState -> ID
 player = (<?> error "No player!") . listToMaybe . keys . filter isPlayer . objects
 
+-- | Transform the player
 player' :: (GameObject -> GameObject) -> GameState -> GameState
 player' f = object' f =<< player
 
@@ -66,12 +68,12 @@ addObject :: GameObject -> GameState -> GameState
 addObject obj s = (do
         id <- head $ ids s
         rest <- tail $ ids s
-        return $ objs' (insert id obj) $ ids' (const rest) s)
+        return $ objs' (insert id obj) $ ids' (\_-> rest) s)
         <?> error "Ran out of ID's"
 
--- | Try to remove an object
+-- | Remove an object by ID
 deleteObj :: ID -> GameState -> GameState
-deleteObj id s = maybe (error $ "Object " <> show id <> " doesn't exist") (\o -> objs' (const o) $ ids' (id:) s)
+deleteObj id s = maybe (error $ "Object " <> show id <> " doesn't exist") (\o -> objs' (\_-> o) $ ids' (id:) s)
                $ delete id $ objects s
 
 -- | Game state with nothing in it

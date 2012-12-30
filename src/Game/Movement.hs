@@ -7,40 +7,45 @@ import Prelewd
 import Impure
 
 import Num.Nonfinite
-import Num.Positive
 import Storage.Map
 import Storage.Member
 import Storage.Set
+import Subset.Num
 import Text.Show
 import Util.Range as Range
 
 import Game.Object
 import Game.Physics
 import Game.Vector hiding (normalize)
+import Physics.Types
 import Util.Unit
-
-data TaggedRange a b = TaggedRange a (Range b)
-    deriving Show
-
-indfToMaybe :: Nonfinite a -> Maybe a
-indfToMaybe Infinite = Nothing
-indfToMaybe (Finite x) = Just x
 
 emptyRange :: Range a
 emptyRange = Range.empty
 
+-- | Choose between three options using an Ordering
+ordBy :: (a -> a -> Ordering) -> b -> b -> b -> a -> a -> b
+ordBy f l e g x y = case f x y of
+            LT -> l
+            EQ -> e
+            GT -> g
+
+ord :: Ord a => b -> b -> b -> a -> a -> b
+ord = ordBy compare
+
+-- | A Range with some accompanying data
+data TaggedRange a b = TaggedRange a (Range b)
+    deriving (Show)
+
 overlapTagged :: (Ord b, Monoid a) => TaggedRange a b -> TaggedRange a b -> TaggedRange a b
-overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let rng = r1 <> r2
-                                                          tag = if rng == emptyRange
-                                                                then mempty
-                                                                else overlapNonempty r1 r2
-                                                      in TaggedRange tag rng
+overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let
+                rng = r1 <> r2
+                tag = iff (rng == emptyRange) mempty $ overlapNonempty r1 r2
+            in TaggedRange tag rng
         where
-            overlapNonempty = overlap `on` (<?> error "Empty overlap produced non-empty range") . start
-            overlap s1 s2 = case (compare `on` indfToMaybe) s1 s2 of
-                                LT -> y
-                                EQ -> x <> y
-                                GT -> x
+            overlapNonempty = ord y (x <> y) x `on` nonfiniteToMaybe . startNonempty
+            startNonempty r = start r <?> error "Empty overlap produced non-empty range"
+            nonfiniteToMaybe n = mapInfinite (Just <$> n) Nothing
 
 -- Shift one object through a vector towards another object
 shift :: Position -> Physics -> Physics
@@ -56,7 +61,9 @@ shift deltaP ph1 ph2 = let
         normalize (TaggedRange t r) = TaggedRange t $ range Infinite 1 <> r
 
         -- Range of time during which the line (x1, w1) moving at shift towards overlaps (x2, w2)
-        shift1 d v x1 w1 x2 w2 = TaggedRange (set [d]) $ pass1 v (x1 + num w1) x2 <> pass1 (negate v) (x2 + num w2) x1
+        shift1 d v x1 w1 x2 w2 = TaggedRange (set [d])
+                               $  pass1 v (x1 + fromPos w1) x2
+                               <> pass1 (negate v) (x2 + fromPos w2) x1
 
         -- Range of time during which the point `x0`, moving at velocity `v`, is on the right side of `x`
         pass1 v x0 x = let t = Unit $ unitless $ (x - x0) / v
@@ -78,10 +85,6 @@ move deltaP id p = resolveT . foldrWithKey (\i -> if' (id /= i) . earliestBump i
         resolveT (Finite t, s) = ((t &*) <$> deltaP, s)
 
         -- Take an object, some bump information and produce update earliest bump information
-        earliestBump j q accum = keepEarlyColisns j accum $ shift deltaP p q
-
-        keepEarlyColisns j (c1, collides) (ds, c2) = assert (not $ elem j $ keys collides)
-                                                   $ case compare c1 c2 of
-                                                        LT -> (c1, collides)
-                                                        EQ -> (c2, insert j ds collides)
-                                                        GT -> (c2, singleton j ds)
+        earliestBump j q (c1, collides) = let (ds, c2) = shift deltaP p q
+                                          in assert (not $ elem j $ keys collides)
+                                           $ (min c1 c2, ord collides (insert j ds collides) (singleton j ds) c1 c2)

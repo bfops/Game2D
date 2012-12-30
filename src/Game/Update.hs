@@ -14,6 +14,7 @@ import Game.State
 import Game.Update.Collisions as Collisions
 import Game.Update.Input as Input
 import Game.Update.Physics as Physics
+import Physics.Types
 
 -- | Advance the game state
 update :: Map Input (Maybe Time)    -- ^ Currently-pressed inputs. If Time is Nothing,
