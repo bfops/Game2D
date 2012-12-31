@@ -1,3 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude
+           , FlexibleInstances
+           , MultiParamTypeClasses
+           #-}
 -- | Functions and data structures for dealing with physical game aspects
 module Physics.Types ( PhysicsValue
                      , Scalar

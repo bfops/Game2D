@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 -- | Input handling
 module Game.Input ( Input (..)
                   , ButtonState

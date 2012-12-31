@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 -- | Update game state's physical interactions
 module Game.Update.Collisions ( update
                               , Collisions

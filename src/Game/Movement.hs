@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 -- | Physical movement
 module Game.Movement ( move
                      ) where

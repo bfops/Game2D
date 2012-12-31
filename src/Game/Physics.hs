@@ -1,3 +1,6 @@
+{-# LANGUAGE NoImplicitPrelude
+           , TemplateHaskell
+           #-}
 module Game.Physics ( Physics (..)
                     , size'
                     , mass'

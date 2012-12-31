@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 -- | For dealing with continuous ranges
 module Util.Range ( Range
                   , empty

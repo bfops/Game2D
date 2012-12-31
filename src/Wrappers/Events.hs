@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 -- | Abstract event wrapper
 module Wrappers.Events ( Event (..)
                        , Button (..)

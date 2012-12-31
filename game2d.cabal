@@ -12,10 +12,6 @@ Executable Game2D
     hs-source-dirs:    src/
     main-is:           Main.hs
     ghc-options:       -Wall -Werror -threaded -rtsopts=all -fllvm -fno-warn-orphans
-    extensions:        FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
-                       ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies,
-                       DeriveFunctor, ScopedTypeVariables
-
     build-depends:
                     OpenGL,
                     GLFW-b,
@@ -34,9 +30,7 @@ test-suite Tests
     main-is:        Test.hs
     ghc-options:    -Wall -Werror -fno-warn-orphans
     extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
-                    ExistentialQuantification, MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies,
-                    DeriveFunctor, ScopedTypeVariables
-
+                    MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies, DeriveFunctor, ScopedTypeVariables
     build-depends: 
                     QuickCheck >= 2,
                     HUnit,

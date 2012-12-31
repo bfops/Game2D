@@ -1,3 +1,6 @@
+{-# LANGUAGE NoImplicitPrelude
+           , FlexibleInstances
+           #-}
 -- | OpenGL with some extensions for color
 module Wrappers.OpenGL ( module OGL
                        , ColorDef (..)

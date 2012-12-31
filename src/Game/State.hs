@@ -1,3 +1,6 @@
+{-# LANGUAGE NoImplicitPrelude
+           , TemplateHaskell
+           #-}
 -- | Functions for dealing with game state
 module Game.State ( GameState
                   , Bounds

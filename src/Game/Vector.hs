@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude, FlexibleInstances, MultiParamTypeClasses #-}
 -- | Static size, homogenous Vector type
 module Game.Vector ( Vector (..)
                    , Dimension (..)

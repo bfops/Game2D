@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 module Wrappers.GLFW ( DisplayOptions (..)
                      , DisplayMode (..)
                      , VideoMode (..)

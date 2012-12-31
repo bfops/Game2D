@@ -1,3 +1,10 @@
+{-# LANGUAGE NoImplicitPrelude
+           , MultiParamTypeClasses
+           , FunctionalDependencies
+           , FlexibleInstances
+           , GeneralizedNewtypeDeriving
+           , DeriveFunctor
+           #-}
 -- | Adds type-checking units for calculations
 module Util.Unit ( Unit (..)
                  , UnitMult

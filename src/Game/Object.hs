@@ -1,3 +1,6 @@
+{-# LANGUAGE NoImplicitPrelude
+           , TemplateHaskell
+           #-}
 -- | Basic game object type, and associated functions
 module Game.Object ( GameObject (..)
                    , ID

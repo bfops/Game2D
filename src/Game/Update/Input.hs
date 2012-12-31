@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 -- | Update game state to respond to input
 module Game.Update.Input ( update
                          ) where

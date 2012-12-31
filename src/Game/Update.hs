@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 -- | Transform game from one state to the next
 module Game.Update ( Game.Update.update
                    ) where

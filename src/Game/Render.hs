@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 -- | Render the game state
 module Game.Render ( Drawable (..)
                    ) where

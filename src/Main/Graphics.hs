@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 module Main.Graphics ( initOpenGL
                      , updateGraphics
                      ) where

@@ -1,3 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude
+           , TemplateHaskell
+           , TupleSections
+           #-}
 -- | Main module, entry point
 module Main (main) where
 

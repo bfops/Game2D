@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 -- | Settings are stored in this module
 module Config ( viewDist
               , initState

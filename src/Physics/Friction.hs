@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude
+           #-}
 module Physics.Friction ( applyFriction
                         ) where
 
