@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cabal build $@ | grep -v "^Loading package"
+cabal build $@ 2>&1 | grep -v "^\(Loading package\|You are using a new version of LLVM that hasn't been tested yet!$\|We will try though...$\)"
 exit $PIPESTATUS
