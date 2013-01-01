@@ -14,7 +14,7 @@ import Prelewd
 
 import Num.Nonfinite
 import Template.MemberTransformer
-import Test.QuickCheck (Arbitrary (..), suchThat)
+import Test.QuickCheck (Arbitrary (..))
 import Text.Show
 
 import Game.Vector
@@ -34,6 +34,9 @@ data Physics = Physics
 $(memberTransformers ''Physics)
 
 instance Arbitrary Physics where
-    -- Anything with Infinite mass is _NOT_ allowed to accelerate.
-    arbitrary = inner `suchThat` (\p -> mass p < Infinite || accl p == 0)
-        where inner = Physics <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+    -- Anything with Infinite mass isn't allowed to accelerate
+    arbitrary = do m <- arbitrary
+                   Physics <$> arbitrary <*> pure m <*> arbitrary <*> arbitrary <*> inner m <*> arbitrary
+        where
+            inner Infinite = pure 0
+            inner _ = arbitrary
