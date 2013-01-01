@@ -71,8 +71,8 @@ prop_moveTogether (p1, p2, shift, d) = component dim shift /= 0
         flag = sign d
 
 placeBehind :: Physics -> Physics -> Dimension -> Bool -> Physics
-placeBehind p1 p2 dim pos = let diff = fromPos $ component dim $ size $ iff pos p1 p2
-                            in p2 { posn = posn p1 <&> iff pos (+) (-) <*> singleV 0 dim diff }
+placeBehind p1 p2 dim pos = let delta = fromPos $ component dim $ size $ iff pos p1 p2
+                            in p2 { posn = posn p1 <&> iff pos (+) (-) <*> singleV 0 dim delta }
 
 directShift :: Dimension -> Bool -> Vector PhysicsValue -> Position
 directShift dim neg = map Unit . component' dim (if' neg negate . abs)

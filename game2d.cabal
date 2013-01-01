@@ -8,7 +8,7 @@ Maintainer:          benjamin.foppa@gmail.com
 Build-Type:          Simple
 Cabal-Version:       >= 1.9.2
 
-Executable Game2D
+executable Game2D
     hs-source-dirs:    src/
     main-is:           Main.hs
     ghc-options:       -Wall -Werror -threaded -rtsopts=all -fllvm -fno-warn-orphans
@@ -20,7 +20,7 @@ Executable Game2D
                     containers,
                     transformers,
                     QuickCheck >= 2,
-                    Step == 0.2.21,
+                    Step == 0.2.23,
                     base
 
 test-suite Tests
@@ -28,9 +28,9 @@ test-suite Tests
     hs-source-dirs: test/
                     src/
     main-is:        Test.hs
-    ghc-options:    -Wall -Werror -fno-warn-orphans
     extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
                     MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies, DeriveFunctor, ScopedTypeVariables
+    ghc-options:    -Wall -Werror -fno-warn-orphans
     build-depends: 
                     QuickCheck >= 2,
                     HUnit,
@@ -40,5 +40,5 @@ test-suite Tests
                     test-framework,
                     containers,
                     Cabal,
-                    Step == 0.2.21,
+                    Step == 0.2.23,
                     base
