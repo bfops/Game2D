@@ -27,7 +27,10 @@ infixl 6 /&
 
 -- | `Unit t v` is a unit with a unit in `t`, and a value in `v`
 newtype Unit t v = Unit { unitless :: v }
-    deriving (Show, Eq, Ord, Enum, Num, Real, Fractional, Functor)
+    deriving (Eq, Ord, Enum, Num, Real, Fractional, Functor)
+
+instance Show v => Show (Unit t v) where
+    show = show . unitless
 
 instance Applicative f => Sequential (Unit t) f a where
     sequence (Unit v) = pure Unit <*> v
