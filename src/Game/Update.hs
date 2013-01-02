@@ -26,8 +26,7 @@ update :: Map Input (Maybe Time)    -- ^ Currently-pressed inputs. If Time is No
        -> GameState
 update is t g = foldr ($) g
         [ Input.update is
-        , uncurry (Collisions.update t)
-        . Physics.update t
+        , uncurry Collisions.update . Physics.update t
         -- Wraparound in every dimension, based on the world bounds
         , player' . phys' . posn' . liftA2 wraparound . bounds >>= ($)
         ]

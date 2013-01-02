@@ -29,7 +29,6 @@ import Util.Unit
 isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
 
-
 -- | Rotate a function's argument order
 rotateL :: (a -> b -> c -> d) -> b -> c -> a -> d
 rotateL f y z x = f x y z
@@ -48,18 +47,19 @@ updateWCollisions t id obj cs g = (rotateL $ object' . \x _->x) id g *** addColl
 
 -- | Update a single object's physics
 update1 :: Time -> GameState -> ID -> GameObject
-                -> (GameObject, Map ID (Set Dimension))    -- ^ (object, collisions)
+                -> (GameObject, Map ID (Set Dimension))    -- (object, collision dimensions)
 update1 t s id = updatePosn . phys' updateVcty
     where
         updateVcty p = p { vcty = vcty p + ((fromNat t &*) <$> accl p) }
         updatePosn obj = foldr moveAndCollide (obj, mempty) $ isolate 0 $ vcty $ phys obj
 
-        moveAndCollide mv (obj, allCollides) = let physLookup = phys <$> objects s
-                                                   shift = (fromNat t &*) <$> mv
-                                                   (deltaP, collides) = move shift id (phys obj) $ physLookup
-                                               in ( makeMove deltaP obj
-                                                  , allCollides <> filter (not.null) collides
-                                                  )
+        moveAndCollide mv (obj, allCollides) = let
+                    physLookup = phys <$> objects s
+                    shift = (fromNat t &*) <$> mv
+                    (deltaP, collides) = move shift id (phys obj) $ physLookup
+                in ( makeMove deltaP obj
+                   , allCollides <> filter (not.null) collides
+                   )
 
         makeMove :: Position -> GameObject -> GameObject
         makeMove = phys' . posn' . (+)
