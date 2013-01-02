@@ -1,0 +1,3 @@
+The Physics member should be a Force, not a Vector Acceleration.
+
+This would emergently account for the fact that Infinitely massive objects can't accelerate.
