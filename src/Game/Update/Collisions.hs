@@ -34,7 +34,7 @@ keepDims :: Set Dimension -> Vector a -> Vector (Maybe a)
 keepDims dims = liftA2 (mcond . (`elem` dims)) dimensions
 
 subDims :: Set Dimension -> Vector a -> Vector a -> Vector a
-subDims = liftA2 (<?>) .$ keepDims
+subDims = liftA2 (<?>) <$$> keepDims
 
 -- | The Velocity transferred in a collision
 type Collisions = Map (Pair ID) (Set Dimension)

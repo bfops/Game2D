@@ -13,24 +13,24 @@ executable Game2D
     main-is:           Main.hs
     ghc-options:       -Wall -Werror -threaded -rtsopts=all -fllvm -fno-warn-orphans
     build-depends:
-                    OpenGL,
-                    GLFW-b,
-                    stm,
                     tuple,
                     containers,
                     transformers,
                     QuickCheck >= 2,
-                    Step == 0.2.23,
-                    base
+                    Step == 0.10,
+                    Game-Wrappers >= 0.2,
+                    Game-Wrappers < 1.0,
+                    base >= 4.6,
+                    base < 5.0
 
 test-suite Tests
     type:           exitcode-stdio-1.0
     hs-source-dirs: test/
                     src/
     main-is:        Test.hs
-    extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
-                    MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies, DeriveFunctor, ScopedTypeVariables
     ghc-options:    -Wall -Werror -fno-warn-orphans
+    extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
+                    MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies, ScopedTypeVariables
     build-depends: 
                     QuickCheck >= 2,
                     HUnit,
@@ -39,6 +39,9 @@ test-suite Tests
                     test-framework-th,
                     test-framework,
                     containers,
+                    tuple,
+                    stm,
                     Cabal,
-                    Step == 0.2.23,
+                    Game-Wrappers,
+                    Step,
                     base

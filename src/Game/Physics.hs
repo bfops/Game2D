@@ -77,7 +77,7 @@ equilibrium ps = equilibrium1 (mass <$> ps) <$> sequence (vcty <$> ps)
         equilibrium1 ms vs = pair (-) vs &* fromPos (pair massFactor ms)
 
         massFactor = (`mapInfinite` error "Can't solve Infinite equilibrium")
-                   .$ onBoth (\m1 m2 -> m1 * m2 / (m1 + m2))
+                   <$$> onBoth (\m1 m2 -> m1 * m2 / (m1 + m2))
 
 inelastic :: Pair Physics -> Pair Physics
 inelastic = transfer =<< equilibrium

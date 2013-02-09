@@ -1,4 +1,9 @@
-{-# LANGUAGE NoImplicitPrelude, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude
+           , FlexibleInstances
+           , FlexibleContexts
+           , UndecidableInstances
+           , MultiParamTypeClasses
+           #-}
 -- | Static size, homogenous Vector type
 module Game.Vector ( Vector (..)
                    , Dimension (..)
@@ -13,11 +18,12 @@ module Game.Vector ( Vector (..)
                    , dot
                    ) where
 
+import Prelewd
+
 import Data.Maybe
 import Data.Tuple
 
 import Storage.Member
-import Prelewd
 
 import Test.QuickCheck hiding (vector)
 import Text.Show
@@ -53,12 +59,11 @@ instance Fractional a => Fractional (Vector a) where
 instance Real a => Ord (Vector a) where
     compare = compare `on` (dot <*> \x->x)
 
-instance Functor Vector where
-    fmap = liftA
-
 instance Applicative Vector where
     pure x = Vector x x 
     (Vector fx fy) <*> (Vector x y) = Vector (fx x) (fy y)
+
+instance Functor Vector where fmap = liftA
 
 instance Foldable Vector where
     foldr f b (Vector x y) = foldr f b [x, y]
@@ -104,4 +109,4 @@ normalize v = v <&> (/ magnitude v)
 
 -- | Dot product
 dot :: Num a => Vector a -> Vector a -> a
-dot = sum .$ (*)
+dot = sum <$$> (*)

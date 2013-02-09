@@ -2,21 +2,20 @@
            #-}
 module Main.Graphics ( initOpenGL
                      , updateGraphics
+                     , resize
                      ) where
 
 import Prelewd
 
 import IO
 
-import Impure
-
+import Control.Stream
 import Data.Tuple.All
-import Storage.List
 
 import Config
 
 import Game.Object
-import Game.Physics (posn)
+import Game.Physics
 import Game.Render
 import Game.State
 import Game.Vector
@@ -71,28 +70,6 @@ resize s@(Size w h) = io $ do
     where
         (//) = (/) `on` realToFrac
 
--- | Take care of all received resize events
-clearResizeEvents :: EventPoller -> IO ()
-clearResizeEvents poll = tryResize . last =<< poll [ResizeEvents]
-    where
-        tryResize = maybe (return ()) resizeEvent
-
-        resizeEvent :: Event -> IO ()
-        resizeEvent (ResizeEvent s) = resize s
-        resizeEvent _ = error "poll [ResizeEvents] returned an invalid list."
-
--- | Remove all refresh events from the event poller
-clearRefreshEvents :: EventPoller -> IO ()
-clearRefreshEvents poll = poll [RefreshEvents] $> ()
-
 -- | One iteration of graphics
-updateGraphics :: EventPoller -> GameState -> IO ()
-updateGraphics poll g = do
-    -- Since we're drawing, all the window refresh events are taken care of
-    clearRefreshEvents poll
-    clearResizeEvents poll
-
-    drawFrame g
-
-    -- Double buffering
-    io swapBuffers
+updateGraphics :: Stream IO GameState ()
+updateGraphics = lift $ arr $ \g -> drawFrame g >> io swapBuffers

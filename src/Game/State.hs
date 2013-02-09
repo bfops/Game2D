@@ -51,12 +51,12 @@ objects = objs
 
 -- | Fetch a specific object
 object :: ID -> GameState -> GameObject
-object id g = lookup id (objects g) <?> error ("Couldn't find object " <> show id)
+object i g = lookup i (objects g) <?> error ("Couldn't find object " <> show i)
 
 -- | Update an object
 object' :: (GameObject -> GameObject) -> ID -> GameState -> GameState
-object' f id g = maybe (error $ "Couldn't update object " <> show id) ((`objs'` g) . \x _->x)
-               $ modify (Just . f) id $ objects g
+object' f i g = maybe (error $ "Couldn't update object " <> show i) ((`objs'` g) . \x _->x)
+              $ modify (Just . f) i $ objects g
 
 -- | Get the ID of the player
 player :: GameState -> ID
@@ -69,15 +69,15 @@ player' f = object' f =<< player
 -- | Add an object into the game
 addObject :: GameObject -> GameState -> GameState
 addObject obj s = (do
-        id <- head $ ids s
+        i <- head $ ids s
         rest <- tail $ ids s
-        return $ objs' (insert id obj) $ ids' (\_-> rest) s)
+        return $ objs' (insert i obj) $ ids' (\_-> rest) s)
         <?> error "Ran out of ID's"
 
 -- | Remove an object by ID
 deleteObj :: ID -> GameState -> GameState
-deleteObj id s = maybe (error $ "Object " <> show id <> " doesn't exist") (\o -> objs' (\_-> o) $ ids' (id:) s)
-               $ delete id $ objects s
+deleteObj i s = maybe (error $ "Object " <> show i <> " doesn't exist") (\o -> objs' (\_-> o) $ ids' (i:) s)
+              $ delete i $ objects s
 
 -- | Game state with nothing in it
 emptyState :: Bounds -> GameState

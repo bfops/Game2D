@@ -28,7 +28,7 @@ class Drawable d where
     draw :: d -> IO ()
 
 instance Drawable GameState where
-    draw = mapM_ draw . objects
+    draw = traverse_ draw . objects
 
 instance Drawable GameObject where
     draw g = drawQuad objColor g

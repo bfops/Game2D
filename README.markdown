@@ -38,7 +38,6 @@ By default, the documentation is generated to `dist/docs/html/`
 
 # Tests
 
-To compile with tests, simply add the `--enable-test` flag when configuring.
 To run the tests after a successful build, run
 
     scripts/test.sh

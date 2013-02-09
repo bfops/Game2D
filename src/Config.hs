@@ -12,7 +12,7 @@ module Config ( viewDist
               , displayOpts
               ) where
 
-import Prelewd
+import Prelewd hiding (Either (..))
 
 import Impure
 
@@ -22,8 +22,8 @@ import Storage.Map
 import Subset.Num
 
 import Game.Input
-import Game.Object
 import Game.Physics
+import Game.Object
 import Game.State
 import Game.Vector
 import Physics.Types

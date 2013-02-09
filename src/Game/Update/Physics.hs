@@ -9,7 +9,6 @@ import Prelewd hiding (filter)
 
 import Impure
 
-import Control.Arrow
 import Data.Tuple
 import Storage.Pair
 import Storage.Map
@@ -17,8 +16,8 @@ import Storage.Set
 import Subset.Num
 
 import Game.Movement
-import Game.Object
 import Game.Physics
+import Game.Object
 import Game.State
 import Game.Vector
 import Game.Update.Collisions hiding (update)
@@ -37,18 +36,18 @@ rotateL f y z x = f x y z
 update :: Time -> GameState -> (Collisions, GameState)
 update t = foldr updateID <$> (mempty, ) <*> keys . objects
     where
-        updateID id (cs, g) = swap $ updateWCollisions t id (object id g) cs g
+        updateID i (cs, g) = swap $ updateWCollisions t i (object i g) cs g
 
 updateWCollisions :: Time -> ID -> GameObject -> Collisions -> GameState -> (GameState, Collisions)
-updateWCollisions t id obj cs g = (rotateL $ object' . \x _->x) id g *** addCollides $ update1 t g id obj
+updateWCollisions t i obj cs g = (rotateL $ object' . \x _->x) i g *** addCollides $ update1 t g i obj
     where
-        addCollides = unionWith checkEqual cs . mapKeys (Pair id)
+        addCollides = unionWith checkEqual cs . mapKeys (Pair i)
         checkEqual x = assert =<< (== x)
 
 -- | Update a single object's physics
 update1 :: Time -> GameState -> ID -> GameObject
                 -> (GameObject, Map ID (Set Dimension))    -- (object, collision dimensions)
-update1 t s id = updatePosn . phys' updateVcty
+update1 t s i = updatePosn . phys' updateVcty
     where
         updateVcty p = p { vcty = vcty p + ((fromNat t &*) <$> accl p) }
         updatePosn obj = foldr moveAndCollide (obj, mempty) $ isolate 0 $ vcty $ phys obj
@@ -56,7 +55,7 @@ update1 t s id = updatePosn . phys' updateVcty
         moveAndCollide mv (obj, allCollides) = let
                     physLookup = phys <$> objects s
                     shift = (fromNat t &*) <$> mv
-                    (deltaP, collides) = move shift id (phys obj) $ physLookup
+                    (deltaP, collides) = move shift i (phys obj) $ physLookup
                 in ( makeMove deltaP obj
                    , allCollides <> filter (not.null) collides
                    )

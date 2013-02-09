@@ -1,13 +1,14 @@
 {-# LANGUAGE NoImplicitPrelude
            #-}
 -- | Transform game from one state to the next
-module Game.Update ( Game.Update.update
+module Game.Update ( game
                    ) where
 
 import Prelewd
 
+import Control.Stream
 import Data.Tuple
-import Storage.Map
+import Storage.Id
 
 import Game.Input
 import Game.Object
@@ -18,18 +19,18 @@ import Game.Update.Input as Input
 import Game.Update.Physics as Physics
 import Physics.Types
 
+import Config
+
 -- | Advance the game state
-update :: Map Input (Maybe Time)    -- ^ Currently-pressed inputs. If Time is Nothing,
-                                    -- then the input has just been pushed. Otherwise, it's the hold time.
-       -> Time                      -- ^ Time elapsed for this update step
-       -> GameState
-       -> GameState
-update is t g = foldr ($) g
-        [ Input.update is
-        , uncurry Collisions.update . Physics.update t
-        -- Wraparound in every dimension, based on the world bounds
-        , player' . phys' . posn' . liftA2 wraparound . bounds >>= ($)
-        ]
+game :: Stream Id (Inputs, Time) GameState   
+game = arr Just >>> updater updateStep (Id initState)
+    where
+        updateStep (is, t) g = Id $ foldr ($) g
+            [ Input.update is
+            , uncurry Collisions.update . Physics.update t
+            -- Wraparound in every dimension, based on the world bounds
+            , player' . phys' . posn' . liftA2 wraparound . bounds >>= ($)
+            ]
 
 wraparound :: (Distance, Distance) -> Distance -> Distance
 wraparound (start, end) s = start + ((s - start) `mod` (end - start))

@@ -1,6 +1,6 @@
 module Movement (test) where
 
-import Prelewd
+import Prelewd hiding (Either (..))
 
 import Impure
 

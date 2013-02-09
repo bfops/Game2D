@@ -4,9 +4,9 @@
 module Game.Update.Input ( update
                          ) where
 
-import Prelewd
+import Prelewd hiding (Either (..))
 
-import Storage.Map as Map
+import Storage.Map
 import Subset.Num
 
 import Game.Input
@@ -33,10 +33,10 @@ holdActions = fromList $
         , (Right, \_-> player' $ walk $ fromPos moveSpeed)
         ]
 
-update :: Map Input (Maybe Time) -- ^ Input to (Just holdTime | Nothing if newly-pressed)
+update :: Inputs
        -> GameState
        -> GameState
-update = flip $ foldrWithKey (try .$ inputUpdater)
+update = flip $ foldrWithKey (try <$$> inputUpdater)
 
 -- | Use one input to update
 inputUpdater :: Input -> Maybe Time -> Maybe (GameState -> GameState)
