@@ -11,7 +11,6 @@ import IO
 
 import Control.Stream
 import Data.Tuple
-import Storage.Id
 import Storage.Map
 import Subset.Num
 
@@ -26,21 +25,18 @@ import Wrappers.GLFW
 
 import Main.Graphics
 
-cycle :: Monad m => a -> Stream m a a -> m a
-cycle x s = (x >$ s) >>= uncurry cycle
-
 -- | Entry point
 main :: SystemIO ()
 main = runIO $ runGLFW displayOpts (0, 0 :: Integer) title $ do
         initOpenGL
         initEvents
-        cycle () $ elapsedTime &&& events
-                 >>> inputs &&& arr fst
-                 >>> identify game
-                 >>> updateGraphics
+        iterateM_ (map snd . ($< ())) $ elapsedTime &&& events
+                                    >>> inputs &&& arr fst
+                                    >>> identify game
+                                    >>> updateGraphics
 
 inputs :: Stream IO (Time, [Event]) (Map Input (Maybe Time))
-inputs = map convertEvents >>> identify (arr Just >>> updater (Id <$$> updatePushed) mempty) >>> arr (map snd)
+inputs = map convertEvents >>> identify (updater (barr updatePushed) mempty) >>> arr (map snd)
     where
         updatePushed (t, ins) pushed = foldr input (Just . (t +) . (<?> 0) <$$> pushed) ins
 
@@ -53,7 +49,7 @@ convertEvents = lift $ arr $ map (mapMaybe id) . sequence . map convertEvent
         convertEvent _ = return Nothing
 
 elapsedTime :: Stream IO () Time
-elapsedTime = lift (arr $ \_-> io getTime) >>> identify (blackBox diffT Nothing)
+elapsedTime = lift (arr $ \_-> io getTime) >>> identify (loop (barr diffT) Nothing)
     where
         diffT t (Just t') = (toNat (Unit $ realToFrac $ t - t') <?> error "Negative time elapsed", Just t)
         diffT t Nothing = (0, Just t)

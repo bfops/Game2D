@@ -23,9 +23,9 @@ import Config
 
 -- | Advance the game state
 game :: Stream Id (Inputs, Time) GameState   
-game = arr Just >>> updater updateStep (Id initState)
+game = updater (barr updateStep) initState
     where
-        updateStep (is, t) g = Id $ foldr ($) g
+        updateStep (is, t) g = foldr ($) g
             [ Input.update is
             , uncurry Collisions.update . Physics.update t
             -- Wraparound in every dimension, based on the world bounds

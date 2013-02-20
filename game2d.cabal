@@ -17,7 +17,7 @@ executable Game2D
                     containers,
                     transformers,
                     QuickCheck >= 2,
-                    Step == 0.10,
+                    Summit == 0.10,
                     Game-Wrappers >= 0.2,
                     Game-Wrappers < 1.0,
                     base >= 4.6,
@@ -43,5 +43,5 @@ test-suite Tests
                     stm,
                     Cabal,
                     Game-Wrappers,
-                    Step,
+                    Summit,
                     base
