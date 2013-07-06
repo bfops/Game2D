@@ -27,7 +27,7 @@ game = updater (barr updateStep) initState
     where
         updateStep (is, t) g = foldr ($) g
             [ Input.update is
-            , uncurry Collisions.update . Physics.update t
+            , Physics.update t >>> swap >>> barr Collisions.update
             -- Wraparound in every dimension, based on the world bounds
             , player' . phys' . posn' . liftA2 wraparound . bounds >>= ($)
             ]

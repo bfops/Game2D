@@ -11,7 +11,7 @@ import Impure
 import Num.Nonfinite
 import Storage.Map
 import Storage.Member
-import Storage.Set
+import Storage.Set as Set hiding (size, insert)
 import Subset.Num
 import Text.Show
 import Util.Range as Range

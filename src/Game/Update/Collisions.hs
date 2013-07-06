@@ -33,10 +33,13 @@ object2' f ids g = foldr ($) g $ object' . (\x _->x) <$> f (ids <&> (`object` g)
 keepDims :: Set Dimension -> Vector a -> Vector (Maybe a)
 keepDims dims = liftA2 (mcond . (`elem` dims)) dimensions
 
-subDims :: Set Dimension -> Vector a -> Vector a -> Vector a
+-- | Substitute some dimensions in a vector for those in another vector.
+subDims :: Set Dimension    -- ^ Which values to keep from the first vector
+        -> Vector a
+        -> Vector a
+        -> Vector a
 subDims = liftA2 (<?>) <$$> keepDims
 
--- | The Velocity transferred in a collision
 type Collisions = Map (Pair ID) (Set Dimension)
 
 -- | Run both objects' collision functions
@@ -44,7 +47,7 @@ collideBoth :: Pair ID -> Set Dimension -> GameState -> GameState
 collideBoth ids dims = object2' (phys2' $ collide <*> inelastic <*> equilibrium) ids
     where
         collide ps eqs t = let toTransfer = toNat . abs <$> t <&> (<?> error "abs returned negative value")
-                           in friction (keepDims dims $ toTransfer)
+                           in friction (keepDims dims toTransfer)
                             $ pair (vcty' . subDims dims . vcty) <$> sequence (Pair eqs ps)
 
 -- | Advance a game state based on collisions

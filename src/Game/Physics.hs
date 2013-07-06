@@ -44,26 +44,26 @@ data Physics = Physics
 
 $(memberTransformers ''Physics)
 
--- | Transform Velocities of two Physics objects
+-- | Transform Velocities of two Physics objects.
 vcty2' :: (Pair Velocity -> Pair Velocity) -> Pair Physics -> Pair Physics
 vcty2' f ps = vcty' . (\x _->x) <$> f (vcty <$> ps) <*> ps
 
 instance Arbitrary Physics where
-    -- Anything with Infinite mass isn't allowed to accelerate
+    -- Anything with Infinite mass isn't allowed to accelerate.
     arbitrary = do m <- arbitrary
                    Physics <$> arbitrary <*> pure m <*> arbitrary <*> arbitrary <*> inner m <*> arbitrary
         where
             inner Infinite = pure 0
             inner _ = arbitrary
 
--- | Transfer Momentum between two objects
+-- | Transfer Momentum between two objects.
 transfer :: Vector Momentum -> Pair Physics -> Pair Physics
 transfer toTransfer ps = vcty2' (sequence . liftA2 transfer1 toTransfer . sequence) ps
     where
         transfer1 :: Momentum -> Pair Speed -> Pair Speed
         transfer1 t = liftA2 (+) $ divIndfUnit <$> Pair (negate t) t <*> (mass <$> ps)
 
--- | Determine the momentum transfer required to reach velocity equilibrium
+-- | Determine the momentum transfer required to reach velocity equilibrium.
 equilibrium :: Pair Physics -> Vector Momentum
 equilibrium ps = equilibrium1 (mass <$> ps) <$> sequence (vcty <$> ps)
     where

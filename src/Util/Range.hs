@@ -33,7 +33,7 @@ instance Ord a => Monoid (Range a) where
                                 $ cast validRange ((onBoth max `on` fst) r1 r2, (onBoth min `on` snd) r1 r2)
 
 instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
-    arbitrary = maybe empty (\(x, y) -> range (min x y) (max x y)) <$> arbitrary
+    arbitrary = (\(x, y) -> range (min x y) (max x y)) <$$> arbitrary <&> (<?> empty)
 
 validRange :: Ord a => (Nonfinite a, Nonfinite a) -> Bool
 validRange (t1, t2) = liftA2 (>) t1 t2 /= pure True

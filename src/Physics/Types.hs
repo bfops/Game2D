@@ -1,3 +1,4 @@
+{-# OPTIONS -fno-warn-orphans #-}
 {-# LANGUAGE NoImplicitPrelude
            , FlexibleInstances
            , MultiParamTypeClasses

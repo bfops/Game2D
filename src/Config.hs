@@ -79,7 +79,7 @@ bgColor = (0, 175, 200, 0)
 
 -- | What controls what?
 keymap :: Map Key Input
-keymap = mapKeys CharKey $ fromList
+keymap = map2 CharKey $ fromList
        [ (' ', Jump)
        , ('W', Jump)
        , ('A', Left)

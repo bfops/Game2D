@@ -7,7 +7,7 @@ To build and run the game, you will need:
  * llvm
  * OpenGL
  * GLFW
- * Step (https://github.com/RobotGymnast/Step)
+ * Summit (https://github.com/RobotGymnast/Summit)
 
 You can set up the build environment by running
 

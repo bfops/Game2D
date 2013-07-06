@@ -36,7 +36,7 @@ holdActions = fromList $
 update :: Inputs
        -> GameState
        -> GameState
-update = flip $ foldrWithKey (try <$$> inputUpdater)
+update = flip $ foldrWithKey (\k v -> try ($) $ inputUpdater k v)
 
 -- | Use one input to update
 inputUpdater :: Input -> Maybe Time -> Maybe (GameState -> GameState)

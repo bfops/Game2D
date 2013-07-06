@@ -11,13 +11,13 @@ Cabal-Version:       >= 1.9.2
 executable Game2D
     hs-source-dirs:    src/
     main-is:           Main.hs
-    ghc-options:       -Wall -Werror -threaded -rtsopts=all -fllvm -fno-warn-orphans
+    ghc-options:       -Wall -Werror -threaded -rtsopts=all
     build-depends:
                     tuple,
                     containers,
                     transformers,
                     QuickCheck >= 2,
-                    Summit == 0.10,
+                    Summit == 0.13,
                     Game-Wrappers >= 0.2,
                     Game-Wrappers < 1.0,
                     base >= 4.6,
@@ -29,8 +29,7 @@ test-suite Tests
                     src/
     main-is:        Test.hs
     ghc-options:    -Wall -Werror -fno-warn-orphans
-    extensions:     FlexibleInstances, TupleSections, TemplateHaskell, GeneralizedNewtypeDeriving, NoImplicitPrelude,
-                    MultiParamTypeClasses, FlexibleContexts, FunctionalDependencies, ScopedTypeVariables
+    extensions:     TupleSections, TemplateHaskell, NoImplicitPrelude
     build-depends: 
                     QuickCheck >= 2,
                     HUnit,
