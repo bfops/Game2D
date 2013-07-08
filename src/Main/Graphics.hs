@@ -12,8 +12,6 @@ import IO
 import Control.Stream
 import Data.Tuple.All
 
-import Config
-
 import Game.Object
 import Game.Physics
 import Game.Render
@@ -23,6 +21,14 @@ import Util.Unit
 import Wrappers.Events
 import Wrappers.GLFW
 import Wrappers.OpenGL hiding (position)
+
+-- | Viewing distance of the camera
+viewDist :: Int
+viewDist = 16
+
+-- | Background color
+bgColor :: Num a => (a, a, a, a)
+bgColor = (0, 175, 200, 0)
 
 -- | Initialize the OpenGL context
 initOpenGL :: IO ()
@@ -52,7 +58,7 @@ drawFrame g = do
 
 -- | Shift the render location so that the player is focused
 focusPlayer :: GameState -> IO ()
-focusPlayer g = let position = negate $ map unitless $ posn $ phys $ object (player g) g
+focusPlayer g = let position = negate $ unitless <$> posn (phys $ object (player g) g)
                     Vector x y = realToFrac . (`component` position) <$> dimensions
                 in io $ translate $ Vector3 x y (negate $ fromIntegral viewDist :: GLdouble)
 

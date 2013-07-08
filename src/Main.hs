@@ -4,7 +4,7 @@
 -- | Main module, entry point
 module Main (main) where
 
-import Prelewd
+import Prelewd hiding (Either (..))
 
 import Impure
 import IO
@@ -14,8 +14,6 @@ import Data.Tuple
 import Storage.Map
 import Subset.Num
 
-import Config
-
 import Game.Input
 import Game.Update
 import Physics.Types
@@ -24,6 +22,28 @@ import Wrappers.Events
 import Wrappers.GLFW
 
 import Main.Graphics
+
+-- | Title of the game window
+title :: Text
+title = "Game"
+
+-- | What controls what?
+keymap :: Map Key Input
+keymap = map2 CharKey $ fromList
+       [ (' ', Jump)
+       , ('W', Jump)
+       , ('A', Left)
+       , ('D', Right)
+       , ('R', Reset)
+       ]
+
+-- | GLFW display options
+displayOpts :: DisplayOptions
+displayOpts = defaultDisplayOptions
+    { displayOptions_width = 800
+    , displayOptions_height = 600
+    , displayOptions_windowIsResizable = False
+    }
 
 -- | Entry point
 main :: SystemIO ()

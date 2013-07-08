@@ -14,12 +14,11 @@ import Game.Input
 import Game.Object
 import Game.Physics
 import Game.State
+import Game.State.Init
 import Game.Update.Collisions as Collisions
 import Game.Update.Input as Input
 import Game.Update.Physics as Physics
 import Physics.Types
-
-import Config
 
 -- | Advance the game state
 game :: Stream Id (Inputs, Time) GameState   
