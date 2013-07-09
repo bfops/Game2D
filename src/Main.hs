@@ -9,6 +9,7 @@ import Prelewd hiding (Either (..))
 import Impure
 import IO
 
+import Control.Concurrent (threadDelay)
 import Control.Stream
 import Data.Tuple
 import Storage.Map
@@ -54,6 +55,7 @@ main = runIO $ runGLFW displayOpts (0, 0 :: Integer) title $ do
                                     >>> inputs &&& arr fst
                                     >>> identify game
                                     >>> updateGraphics
+                                    >>> lift (arr $ \_-> io $ threadDelay 10000)
 
 inputs :: Stream IO (Time, [Event]) (Map Input (Maybe Time))
 inputs = map convertEvents >>> identify (updater (barr updatePushed) mempty) >>> arr (map snd)
