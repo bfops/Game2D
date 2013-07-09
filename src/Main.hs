@@ -60,7 +60,7 @@ main = runIO $ runGLFW displayOpts (0, 0 :: Integer) title $ do
 inputs :: Stream IO (Time, [Event]) (Map Input (Maybe Time))
 inputs = map convertEvents >>> identify (updater (barr updatePushed) mempty) >>> arr (map snd)
     where
-        updatePushed (t, ins) pushed = foldr input (Just . (t +) . (<?> 0) <$$> pushed) ins
+        updatePushed (t, ins) pushed = foldl (flip input) (Just . (t +) . (<?> 0) <$$> pushed) ins
 
 convertEvents :: Stream IO [Event] [(Input, ButtonState)]
 convertEvents = lift $ arr $ map (mapMaybe id) . sequence . map convertEvent
