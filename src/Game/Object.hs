@@ -4,7 +4,7 @@
 -- | Basic game object type, and associated functions
 module Game.Object ( GameObject (..)
                    , ID
-                   , ObjectGroup
+                   , Bounds
                    , phys'
                    , isPlatform
                    , isBlock
@@ -13,11 +13,12 @@ module Game.Object ( GameObject (..)
 
 import Prelewd
 
-import Storage.Map
 import Template.MemberTransformer
 import Text.Show
 
 import Game.Physics
+import Game.Vector
+import Physics.Types
 
 -- | An object in the game world
 data GameObject
@@ -25,6 +26,12 @@ data GameObject
         | Platform { phys :: Physics }
         | Player   { phys :: Physics }
     deriving Show
+
+-- | Unique identifier
+type ID = Integer
+
+-- | Edges of the game world
+type Bounds = Vector (Distance, Distance)
 
 $(memberTransformers ''GameObject)
 
@@ -42,8 +49,3 @@ isPlatform _ = False
 isPlayer :: GameObject -> Bool
 isPlayer (Player {}) = True
 isPlayer _ = False
-
--- | Unique identifier
-type ID = Integer
--- | Uniquely identified group of GameObjects
-type ObjectGroup = Map ID GameObject

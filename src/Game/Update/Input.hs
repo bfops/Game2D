@@ -29,33 +29,30 @@ jumpVcty = singleV 0 Height 12
 moveSpeed :: Positive Speed
 moveSpeed = 0.3
 
+playerV' :: (Velocity -> Velocity) -> GameState -> GameState
+playerV' f = player >>= object' (phys' $ vcty' f)
+
 pushActions :: Map Input (GameState -> GameState)
 pushActions = fromList $
-        [ (Jump, player' $ addVcty jumpVcty)
+        [ (Jump, playerV' $ (+ jumpVcty))
         , (Reset, \_-> initState)
         ]
 
 holdActions :: Map Input (Time -> GameState -> GameState)
 holdActions = fromList $
-        [ (Left, \_-> player' $ walk $ negate $ fromPos moveSpeed)
-        , (Right, \_-> player' $ walk $ fromPos moveSpeed)
+        [ (Left, \_-> playerV' $ walk $ negate $ fromPos moveSpeed)
+        , (Right, \_-> playerV' $ walk $ fromPos moveSpeed)
         ]
-
-update :: Inputs
-       -> GameState
-       -> GameState
-update = flip $ foldrWithKey (\k v -> try ($) $ inputUpdater k v)
-
--- | Use one input to update
-inputUpdater :: Input -> Maybe Time -> Maybe (GameState -> GameState)
-inputUpdater i Nothing = lookup i pushActions
-inputUpdater i (Just t) = lookup i holdActions <&> ($ t)
 
 cap :: (Num a, Ord a) => Positive a -> a -> a
 cap c v = signum v * min (fromPos c) (abs v)
 
-addVcty :: Velocity -> GameObject -> GameObject
-addVcty = phys' . vcty' . (+)
+update :: Inputs -> GameState -> GameState
+update = flip $ foldrWithKey (\k v -> try ($) $ inputUpdater k v)
+    where
+        inputUpdater :: Input -> Maybe Time -> Maybe (GameState -> GameState)
+        inputUpdater i Nothing = lookup i pushActions
+        inputUpdater i (Just t) = lookup i holdActions <&> ($ t)
 
-walk :: Speed -> GameObject -> GameObject
-walk v = phys' $ vcty' $ component' Width $ cap speedCap . (+ v)
+walk :: Speed -> Velocity -> Velocity
+walk v = component' Width $ cap speedCap . (+ v)

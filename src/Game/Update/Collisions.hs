@@ -13,43 +13,46 @@ import Storage.Map
 import Storage.Member
 import Storage.Pair
 import Storage.Set
-
 import Subset.Num
+import Text.Show
 
 import Game.Physics
 import Game.Object
-import Game.State
 import Game.Vector
 import Physics.Friction
-
--- | Transform Physics properties of two GameObjects
-phys2' :: (Pair Physics -> Pair Physics) -> Pair GameObject -> Pair GameObject
-phys2' f gs =  phys' . (\x _->x) <$> f (phys <$> gs) <*> gs
-
--- | Apply a function to a pair of objects in a GameState
-object2' :: (Pair GameObject -> Pair GameObject) -> Pair ID -> GameState -> GameState
-object2' f ids g = foldr ($) g $ object' . (\x _->x) <$> f (ids <&> (`object` g)) <*> ids
+import Physics.Types
 
 keepDims :: Set Dimension -> Vector a -> Vector (Maybe a)
 keepDims dims = liftA2 (mcond . (`elem` dims)) dimensions
 
--- | Substitute some dimensions in a vector for those in another vector.
-subDims :: Set Dimension    -- ^ Which values to keep from the first vector
-        -> Vector a
-        -> Vector a
-        -> Vector a
-subDims = liftA2 (<?>) <$$> keepDims
+-- | Transfer some values from one vector to another
+substitute :: Set Dimension       -- ^ Which values to substitute from the first vector
+         -> Vector a
+         -> Vector a
+         -> Vector a
+substitute dims from to = keepDims dims from <&> (<?>) <*> to
 
 type Collisions = Map (Pair ID) (Set Dimension)
 
 -- | Run both objects' collision functions
-collideBoth :: Pair ID -> Set Dimension -> GameState -> GameState
-collideBoth ids dims = object2' (phys2' $ collide <*> inelastic <*> equilibrium) ids
+collideBoth :: Set Dimension -> Pair Physics -> Pair Velocity
+collideBoth dims = collide <*> equilibrium
     where
-        collide ps eqs t = let toTransfer = toNat . abs <$> t <&> (<?> error "abs returned negative value")
-                           in friction (keepDims dims toTransfer)
-                            $ pair (vcty' . subDims dims . vcty) <$> sequence (Pair eqs ps)
+        collide ps eqTransfer = let toTransfer = eqTransfer
+                                             <&> abs
+                                             <&> toNat
+                                             <&> (<?> error "abs returned negative value")
+                                    collided = vcty' . substitute dims . vcty
+                                           <$> transfer eqTransfer ps <*> ps
+                        in vcty <$> friction (keepDims dims toTransfer) collided
 
 -- | Advance a game state based on collisions
-update :: Collisions -> GameState -> GameState
-update cs g = foldrWithKey collideBoth g cs
+update :: Collisions -> Map ID Physics -> Map ID Velocity
+update cs ps = concat $ mapWithKey resultantVPair cs
+    where
+        resultantVPair ids dims = pairToMap
+                                $ zipPair ids
+                                $ collideBoth dims (getEntry <$> ids)
+        pairToMap = toList >>> fromList
+        zipPair = liftA2 (,)
+        getEntry i = lookup i ps <?> error ("Could not find ID: " <> show i)

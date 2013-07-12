@@ -3,6 +3,7 @@
            #-}
 -- | Functions for dealing with game state
 module Game.State ( GameState
+                  , ObjectGroup
                   , Bounds
                   , bounds
                   , bounds'
@@ -11,7 +12,6 @@ module Game.State ( GameState
                   , object
                   , object'
                   , player
-                  , player'
                   , addObject
                   , deleteObj
                   , emptyState
@@ -27,11 +27,9 @@ import Template.MemberTransformer
 import Text.Show
 
 import Game.Object
-import Game.Vector
-import Physics.Types
 
--- | Edges of the game world
-type Bounds = Vector (Distance, Distance)
+-- | Uniquely identified group of GameObjects
+type ObjectGroup = Map ID GameObject
 
 -- | Game state structure
 data GameState = GameState { bounds :: Bounds
@@ -41,7 +39,7 @@ data GameState = GameState { bounds :: Bounds
 
 $(memberTransformers ''GameState)
 
--- Infinite lists of available IDs don't play nicely with derived Show
+-- Only display the objects.
 instance Show GameState where
     show g = "GameState {objects = " <> show (objects g) <> "}"
 
@@ -57,30 +55,29 @@ object :: ID -> GameState -> GameObject
 object i g = lookup i (objects g) <?> error ("Couldn't find object " <> show i)
 
 -- | Update an object
-object' :: (GameObject -> GameObject) -> ID -> GameState -> GameState
-object' f i = objs' $ modify (Just . f) i >>> (<?> error ("Couldn't update object " <> show i))
+object' :: (GameObject -> GameObject)
+        -> ID
+        -> GameState
+        -> GameState
+object' f i = objects' $ modify (Just . f) i >>> (<?> error ("Couldn't update object " <> show i))
 
 -- | Get the ID of the player
 player :: GameState -> ID
 player = (<?> error "No player!") . head . keys . filter isPlayer . objects
 
--- | Transform the player
-player' :: (GameObject -> GameObject) -> GameState -> GameState
-player' f = object' f =<< player
-
 -- | Add an object into the game
 addObject :: GameObject -> GameState -> GameState
 addObject obj s = (do
-                    i <- head $ ids s
-                    rest <- tail $ ids s
-                    return $ objs' (insert i obj) $ ids' (\_-> rest) s
-                  )
-                <?> error "Ran out of ID's"
+                        i <- head $ ids s
+                        rest <- tail $ ids s
+                        return $ objects' (insert i obj) $ ids' (\_-> rest) s
+                     )
+                   <?> error "Ran out of IDs"
 
 -- | Remove an object by ID
 deleteObj :: ID -> GameState -> GameState
 deleteObj i = ids' (i:)
-          >>> objs' (delete i >>> (<?> error ("Object " <> show i <> " doesn't exist")))
+          >>> objects' (delete i >>> (<?> error ("Object " <> show i <> " doesn't exist")))
 
 -- | Game state with nothing in it
 emptyState :: Bounds -> GameState

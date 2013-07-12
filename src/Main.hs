@@ -63,7 +63,7 @@ inputs = map convertEvents >>> identify (updater (barr updatePushed) mempty) >>>
         updatePushed (t, ins) pushed = foldl (flip input) (Just . (t +) . (<?> 0) <$$> pushed) ins
 
 convertEvents :: Stream IO [Event] [(Input, ButtonState)]
-convertEvents = lift $ arr $ map (mapMaybe id) . sequence . map convertEvent
+convertEvents = lift $ arr $ map (mapMaybe id) . traverse convertEvent
     where
         convertEvent CloseEvent = mzero
         convertEvent (ResizeEvent s) = resize s $> Nothing
