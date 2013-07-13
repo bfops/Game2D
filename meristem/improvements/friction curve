@@ -1,0 +1,5 @@
+Asymptotic curve from mu_s to mu_k
+
+Curve suggestions:
+mu = mu_k + (mu_s - mu_k) / b^v for some b in (1, infty)
+mu = mu_k + c*mu_s/(c + v*mu_s) for some c in (0, infty)

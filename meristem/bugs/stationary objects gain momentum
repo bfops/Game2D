@@ -1,0 +1,5 @@
+High-mass objects behave strangely when standing on low-mass ones.
+
+Every update cycle, the objects accelerate, but the bottom object loses its
+momentum to the Platform. The top object loses some. It ends the update cycle
+with more momentum than it had originally, and will continue to loop this way.
