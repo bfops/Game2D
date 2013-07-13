@@ -50,9 +50,11 @@ overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let
             nonfiniteToMaybe n = mapInfinite (Just <$> n) Nothing
 
 -- Shift one object through a vector towards another object
-shift :: Position -> Physics -> Physics
-      -> (Set Dimension, Nonfinite Scalar)  -- ^ (Collision dimensions, fraction of distance to be travelled)
-                                            -- scalar is Infinite when no collisions take place
+shift :: Position
+      -> Physics
+      -> Physics
+      -> (Collisions, Nonfinite Scalar) -- ^ (Collisions, fraction of distance to be travelled)
+                                        -- scalar is Infinite when no collisions take place
 shift deltaP ph1 ph2 = let
                         -- Collisions individually in each dimension
                         collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
@@ -79,7 +81,7 @@ move :: Position                            -- The movement to make (i.e. delta 
      -> ID
      -> Physics                             -- Object to move
      -> Map ID Physics                      -- All of the objects (this can include the object being moved)
-     -> (Position, Map ID (Set Dimension))  -- The amount the object can be moved,
+     -> (Position, Map ID Collisions)       -- The amount the object can be moved,
                                             -- and a map of collision object ID's to collision dimensions
 move deltaP i p = resolveT . foldrWithKey (\i' -> if' (i /= i') . earliestBump i') (Infinite, mempty)
     where

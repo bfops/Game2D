@@ -8,7 +8,6 @@ module Game.Update.Physics ( update
 import Prelewd hiding (filter)
 
 import Storage.Map
-import Storage.Set
 import Subset.Num
 
 import Game.Movement
@@ -27,10 +26,10 @@ isolate zero = liftA2 (singleV zero) dimensions
 
 -- | Update a single object's physics
 update :: Time
-       -> Map ID Physics
+       -> Map ID Physics            -- ^ Other objects
        -> ID
        -> GameObject
-       -> (Map ID (Set Dimension), GameObject)      -- ^ (collision dimensions, new object)
+       -> (Map ID Collisions, GameObject)
 update t others i = modPhys $ updateVcty >>> updatePosn
     where
         updateVcty p = p { vcty = vcty p + ((fromNat t &*) <$> accl p) }

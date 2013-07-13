@@ -2,6 +2,7 @@
            , TemplateHaskell
            #-}
 module Game.Physics ( Physics (..)
+                    , Collisions
                     , size'
                     , mass'
                     , posn'
@@ -19,6 +20,7 @@ import Impure
 
 import Num.Nonfinite
 import Storage.Pair
+import Storage.Set
 import Subset.Num
 import Template.MemberTransformer
 import Test.QuickCheck (Arbitrary (..))
@@ -41,6 +43,8 @@ data Physics = Physics
         , mu   :: Mu
         }
     deriving (Show, Eq)
+
+type Collisions = Set Dimension
 
 $(memberTransformers ''Physics)
 

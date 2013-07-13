@@ -2,7 +2,6 @@
            #-}
 -- | Update game state's physical interactions
 module Game.Update.Collisions ( update
-                              , Collisions
                               ) where
 
 import Prelewd
@@ -26,13 +25,11 @@ keepDims :: Set Dimension -> Vector a -> Vector (Maybe a)
 keepDims dims = liftA2 (mcond . (`elem` dims)) dimensions
 
 -- | Transfer some values from one vector to another
-substitute :: Set Dimension       -- ^ Which values to substitute from the first vector
-         -> Vector a
-         -> Vector a
-         -> Vector a
+substitute :: Set Dimension         -- ^ Which values to substitute from the first vector
+           -> Vector a
+           -> Vector a
+           -> Vector a
 substitute dims from to = keepDims dims from <&> (<?>) <*> to
-
-type Collisions = Map (Pair ID) (Set Dimension)
 
 -- | Run both objects' collision functions
 collideBoth :: Set Dimension -> Pair Physics -> Pair Velocity
@@ -47,7 +44,7 @@ collideBoth dims = collide <*> equilibrium
                         in vcty <$> friction (keepDims dims toTransfer) collided
 
 -- | Advance a game state based on collisions
-update :: Collisions -> Map ID Physics -> Map ID Velocity
+update :: Map (Pair ID) Collisions -> Map ID Physics -> Map ID Velocity
 update cs ps = concat $ mapWithKey resultantVPair cs
     where
         resultantVPair ids dims = pairToMap

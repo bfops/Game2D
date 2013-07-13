@@ -18,7 +18,6 @@ import Prelewd
 import Control.Stream
 import Storage.Id
 import Storage.Map
-import Storage.Set
 import Template.MemberTransformer
 import Text.Show
 
@@ -39,14 +38,15 @@ type ID = Integer
 -- | Edges of the game world
 type Bounds = Vector (Distance, Distance)
 
-data ObjectInputs = ObjectInputs { worldBounds    :: Bounds
-                                 , dt             :: Time
-                                 , allObjects     :: Map ID GameObject
-                                 , objId          :: ID
-                                 , setVcty        :: Velocity
-                                 } deriving (Show)
+data ObjectInputs = ObjectInputs
+        { worldBounds       :: Bounds
+        , dt                :: Time
+        , allObjects        :: Map ID GameObject
+        , objId             :: ID
+        , setVcty           :: Velocity                  -- ^ Set Velocity to this.
+        } deriving (Show)
 
-type ObjectBehavior = Stream Id ObjectInputs (Map ID (Set Dimension), GameObject)
+type ObjectBehavior = Stream Id ObjectInputs (Map ID Collisions, GameObject)
 
 $(memberTransformers ''GameObject)
 

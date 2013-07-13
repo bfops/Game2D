@@ -37,8 +37,8 @@ game = updater (barr updateStep) initState
 
 updateObject :: Time
              -> ID
-             -> (Collisions.Collisions, GameState)
-             -> (Collisions.Collisions, GameState)
+             -> (Map (Pair ID) Collisions, GameState)
+             -> (Map (Pair ID) Collisions, GameState)
 updateObject t i (colisns, g) = let
             obj = object i g
             Id ((colisns', obj'), s) = snd obj $< ObjectInputs
