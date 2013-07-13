@@ -8,6 +8,8 @@ import Prelewd hiding (filter)
 
 import Impure
 
+import Control.Stream
+import Data.Tuple
 import Num.Nonfinite
 import Storage.List (zip)
 
@@ -15,6 +17,7 @@ import Game.Object
 import Game.Physics
 import Game.State
 import Game.Vector
+import qualified Game.Update.Physics as Physics
 import Physics.Types
 
 -- | Acceleration due to gravity
@@ -27,6 +30,11 @@ border = vector undefined
        $ [ (Width , (-12, 22))
          , (Height, ( -8, 12))
          ]
+
+wraparound :: Bounds                -- ^ (lower, upper) dimensional bounds
+           -> Position              -- ^ Position to wrap
+           -> Position              -- ^ Position wrapped inside the bounds
+wraparound = liftA2 $ \(start, end) s -> start + ((s - start) `mod` (end - start))
 
 -- | Start state of the game world
 initState :: GameState
@@ -42,4 +50,10 @@ initState = stateFromObjs [ Platform $ Physics (vec [4, 1]) Infinite (vec [-3, -
         vec :: [a] -> Vector a
         vec = vector undefined . zip (toList dimensions)
 
-        stateFromObjs = foldr addObject $ emptyState border
+        stateFromObjs = foldr (addObject =<< objectBehavior) $ emptyState border
+
+objectBehavior :: GameObject -> ObjectBehavior
+objectBehavior = loop $ barr $ \ins -> phys' (vcty' $ \_-> setVcty ins)
+                                   >>> Physics.update (dt ins) (phys <$> allObjects ins) (objId ins)
+                                   >>> map (phys' (posn' $ wraparound $ worldBounds ins))
+                                   >>> id &&& snd

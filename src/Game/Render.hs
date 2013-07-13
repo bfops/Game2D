@@ -8,6 +8,7 @@ import Prelewd
 
 import IO
 
+import Data.Tuple
 import Subset.Num
 
 import Game.Physics
@@ -28,7 +29,7 @@ class Drawable d where
     draw :: d -> IO ()
 
 instance Drawable GameState where
-    draw = traverse_ draw . objects
+    draw = traverse_ (fst >>> draw) . objects
 
 instance Drawable GameObject where
     draw g = drawQuad objColor g

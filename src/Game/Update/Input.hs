@@ -30,7 +30,7 @@ moveSpeed :: Positive Speed
 moveSpeed = 0.3
 
 playerV' :: (Velocity -> Velocity) -> GameState -> GameState
-playerV' f = player >>= object' (phys' $ vcty' f)
+playerV' f = player >>= object' (map2 $ phys' $ vcty' f)
 
 pushActions :: Map Input (GameState -> GameState)
 pushActions = fromList $

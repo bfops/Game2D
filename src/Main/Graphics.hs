@@ -10,6 +10,7 @@ import Prelewd
 import IO
 
 import Control.Stream
+import Data.Tuple
 import Data.Tuple.All
 
 import Game.Object
@@ -58,7 +59,7 @@ drawFrame g = do
 
 -- | Shift the render location so that the player is focused
 focusPlayer :: GameState -> IO ()
-focusPlayer g = let position = negate $ unitless <$> posn (phys $ object (player g) g)
+focusPlayer g = let position = negate $ unitless <$> posn (phys $ fst $ object (player g) g)
                     Vector x y = realToFrac . (`component` position) <$> dimensions
                 in io $ translate $ Vector3 x y (negate $ fromIntegral viewDist :: GLdouble)
 

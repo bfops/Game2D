@@ -21,6 +21,7 @@ import Prelewd hiding (filter)
 
 import Impure
 
+import Data.Tuple
 import Storage.List (head, tail)
 import Storage.Map
 import Template.MemberTransformer
@@ -28,8 +29,8 @@ import Text.Show
 
 import Game.Object
 
--- | Uniquely identified group of GameObjects
-type ObjectGroup = Map ID GameObject
+-- | Uniquely identified group of GameObjects and updaters
+type ObjectGroup = Map ID (GameObject, ObjectBehavior)
 
 -- | Game state structure
 data GameState = GameState { bounds :: Bounds
@@ -41,7 +42,7 @@ $(memberTransformers ''GameState)
 
 -- Only display the objects.
 instance Show GameState where
-    show g = "GameState {objects = " <> show (objects g) <> "}"
+    show g = "GameState {objects = " <> show (fst <$> objects g) <> "}"
 
 -- | Get the objects in the game
 objects :: GameState -> ObjectGroup
@@ -51,11 +52,11 @@ objects' :: (ObjectGroup -> ObjectGroup) -> GameState -> GameState
 objects' = objs'
 
 -- | Fetch a specific object
-object :: ID -> GameState -> GameObject
+object :: ID -> GameState -> (GameObject, ObjectBehavior)
 object i g = lookup i (objects g) <?> error ("Couldn't find object " <> show i)
 
 -- | Update an object
-object' :: (GameObject -> GameObject)
+object' :: ((GameObject, ObjectBehavior) -> (GameObject, ObjectBehavior))
         -> ID
         -> GameState
         -> GameState
@@ -63,14 +64,14 @@ object' f i = objects' $ modify (Just . f) i >>> (<?> error ("Couldn't update ob
 
 -- | Get the ID of the player
 player :: GameState -> ID
-player = (<?> error "No player!") . head . keys . filter isPlayer . objects
+player = (<?> error "No player!") . head . keys . filter (isPlayer . fst) . objects
 
 -- | Add an object into the game
-addObject :: GameObject -> GameState -> GameState
-addObject obj s = (do
+addObject :: ObjectBehavior -> GameObject -> GameState -> GameState
+addObject b obj s = (do
                         i <- head $ ids s
                         rest <- tail $ ids s
-                        return $ objects' (insert i obj) $ ids' (\_-> rest) s
+                        return $ objects' (insert i (obj, b)) $ ids' (\_-> rest) s
                      )
                    <?> error "Ran out of IDs"
 
