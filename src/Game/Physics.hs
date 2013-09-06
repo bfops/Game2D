@@ -14,15 +14,14 @@ module Game.Physics ( Physics (..)
                     , inelastic
                     ) where
 
-import Prelewd
+import Summit.Impure
+import Summit.Data.Pair
+import Summit.Data.Set
+import Summit.Num.Nonfinite
+import Summit.Prelewd
+import Summit.Subset.Num
+import Summit.Template.MemberTransformer
 
-import Impure
-
-import Num.Nonfinite
-import Storage.Pair
-import Storage.Set
-import Subset.Num
-import Template.MemberTransformer
 import Test.QuickCheck (Arbitrary (..))
 import Text.Show
 

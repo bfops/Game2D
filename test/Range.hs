@@ -1,9 +1,9 @@
 module Range (test) where
 
-import Data.Maybe
+import Summit.Num.Nonfinite
+import Summit.Prelewd hiding (empty)
 
-import Num.Nonfinite
-import Prelewd hiding (empty)
+import Data.Maybe
 import Util.Range
 
 import Test.Framework

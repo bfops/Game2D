@@ -1,10 +1,10 @@
 module Friction (test) where
 
-import Prelewd
+import Summit.Data.Pair
+import Summit.Prelewd
+import Summit.Subset.Num
 
 import Data.Tuple
-import Storage.Pair
-import Subset.Num
 
 import Game.Physics
 import Game.Vector

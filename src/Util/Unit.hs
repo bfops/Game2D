@@ -14,7 +14,7 @@ module Util.Unit ( Unit (..)
                  , (/&)
                  ) where
 
-import Prelewd
+import Summit.Prelewd
 
 import Test.QuickCheck
 import Text.Show

@@ -4,12 +4,11 @@
 module Game.Render ( Drawable (..)
                    ) where
 
-import Prelewd
-
-import IO
+import Summit.IO
+import Summit.Prelewd
+import Summit.Subset.Num
 
 import Data.Tuple
-import Subset.Num
 
 import Game.Physics
 import Game.Object

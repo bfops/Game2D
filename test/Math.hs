@@ -1,6 +1,6 @@
 module Math (test) where
 
-import Prelewd
+import Summit.Prelewd
 
 import Physics.Types
 

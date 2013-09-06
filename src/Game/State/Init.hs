@@ -4,14 +4,13 @@
 module Game.State.Init ( initState
                        ) where
 
-import Prelewd hiding (filter)
+import Summit.Control.Stream
+import Summit.Impure
+import Summit.Num.Nonfinite
+import Summit.Prelewd hiding (filter)
+import Summit.Data.List (zip)
 
-import Impure
-
-import Control.Stream
 import Data.Tuple
-import Num.Nonfinite
-import Storage.List (zip)
 
 import Game.Object
 import Game.Physics

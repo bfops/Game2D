@@ -1,12 +1,11 @@
 module Movement (test) where
 
-import Prelewd hiding (Either (..))
+import Summit.Impure
+import Summit.Prelewd hiding (Either (..))
+import Summit.Data.Map
+import Summit.Data.Member
+import Summit.Subset.Num
 
-import Impure
-
-import Storage.Map
-import Storage.Member
-import Subset.Num
 import Text.Show
 
 import Game.Movement

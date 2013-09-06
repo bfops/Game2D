@@ -4,13 +4,13 @@
 module Game.Update ( game
                    ) where
 
-import Prelewd
+import Summit.Control.Stream
+import Summit.Prelewd
+import Summit.Data.Id
+import Summit.Data.Map
+import Summit.Data.Pair
 
-import Control.Stream
 import Data.Tuple
-import Storage.Id
-import Storage.Map
-import Storage.Pair
 
 import Game.Input
 import Game.Object
@@ -23,7 +23,7 @@ import Physics.Types
 
 -- | Advance the game state
 game :: Stream Id (Inputs, Time) GameState   
-game = updater (barr updateStep) initState
+game = folds (barr updateStep) initState
     where
         updateStep (ins, t) g = let (colisns, g') = foldr (updateObject t)
                                                           (mempty, g)

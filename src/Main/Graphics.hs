@@ -5,11 +5,10 @@ module Main.Graphics ( initOpenGL
                      , resize
                      ) where
 
-import Prelewd
+import Summit.Control.Stream
+import Summit.IO
+import Summit.Prelewd
 
-import IO
-
-import Control.Stream
 import Data.Tuple
 import Data.Tuple.All
 

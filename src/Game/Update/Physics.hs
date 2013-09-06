@@ -5,10 +5,9 @@
 module Game.Update.Physics ( update
                            ) where
 
-import Prelewd hiding (filter)
-
-import Storage.Map
-import Subset.Num
+import Summit.Data.Map
+import Summit.Prelewd hiding (filter)
+import Summit.Subset.Num
 
 import Game.Movement
 import Game.Physics

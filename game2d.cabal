@@ -17,7 +17,7 @@ executable Game2D
                     containers,
                     transformers,
                     QuickCheck >= 2,
-                    Summit == 0.13,
+                    Summit == 0.15,
                     Game-Wrappers >= 0.2,
                     Game-Wrappers < 1.0,
                     base >= 4.6,

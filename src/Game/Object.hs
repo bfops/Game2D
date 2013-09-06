@@ -13,12 +13,12 @@ module Game.Object ( GameObject (..)
                    , isPlayer
                    ) where
 
-import Prelewd
+import Summit.Control.Stream
+import Summit.Data.Id
+import Summit.Data.Map
+import Summit.Prelewd
+import Summit.Template.MemberTransformer
 
-import Control.Stream
-import Storage.Id
-import Storage.Map
-import Template.MemberTransformer
 import Text.Show
 
 import Game.Physics

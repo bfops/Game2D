@@ -4,10 +4,9 @@
 module Game.Update.Input ( update
                          ) where
 
-import Prelewd hiding (Either (..))
-
-import Storage.Map
-import Subset.Num
+import Summit.Prelewd hiding (Either (..))
+import Summit.Data.Map
+import Summit.Subset.Num
 
 import Game.Input
 import Game.Object

@@ -1,6 +1,6 @@
 module Main (main) where
 
-import IO
+import Summit.IO
 
 import Test.Framework
 

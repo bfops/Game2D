@@ -6,9 +6,9 @@ module Game.Input ( Input (..)
                   , ButtonState
                   ) where
 
-import Prelewd
+import Summit.Prelewd
+import Summit.Data.Map
 
-import Storage.Map
 import Text.Show
 
 import Physics.Types

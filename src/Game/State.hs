@@ -17,14 +17,13 @@ module Game.State ( GameState
                   , emptyState
                   ) where
 
-import Prelewd hiding (filter)
-
-import Impure
+import Summit.Impure
+import Summit.Prelewd hiding (filter)
+import Summit.Data.List (head, tail)
+import Summit.Data.Map
+import Summit.Template.MemberTransformer
 
 import Data.Tuple
-import Storage.List (head, tail)
-import Storage.Map
-import Template.MemberTransformer
 import Text.Show
 
 import Game.Object

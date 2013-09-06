@@ -4,15 +4,14 @@
 module Game.Update.Collisions ( update
                               ) where
 
-import Prelewd
+import Summit.Impure
+import Summit.Prelewd
+import Summit.Data.Map
+import Summit.Data.Member
+import Summit.Data.Pair
+import Summit.Data.Set
+import Summit.Subset.Num
 
-import Impure
-
-import Storage.Map
-import Storage.Member
-import Storage.Pair
-import Storage.Set
-import Subset.Num
 import Text.Show
 
 import Game.Physics

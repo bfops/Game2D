@@ -4,15 +4,14 @@
 module Game.Movement ( move
                      ) where
 
-import Prelewd
+import Summit.Impure
+import Summit.Num.Nonfinite
+import Summit.Prelewd
+import Summit.Data.Map
+import Summit.Data.Member
+import Summit.Data.Set as Set hiding (size, insert)
+import Summit.Subset.Num
 
-import Impure
-
-import Num.Nonfinite
-import Storage.Map
-import Storage.Member
-import Storage.Set as Set hiding (size, insert)
-import Subset.Num
 import Text.Show
 import Util.Range as Range
 

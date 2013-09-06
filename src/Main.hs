@@ -4,16 +4,15 @@
 -- | Main module, entry point
 module Main (main) where
 
-import Prelewd hiding (Either (..))
-
-import Impure
-import IO
+import Summit.Control.Stream
+import Summit.Impure
+import Summit.IO
+import Summit.Prelewd hiding (Either (..))
+import Summit.Data.Map
+import Summit.Subset.Num
 
 import Control.Concurrent (threadDelay)
-import Control.Stream
 import Data.Tuple
-import Storage.Map
-import Subset.Num
 
 import Game.Input
 import Game.Update
@@ -58,7 +57,7 @@ main = runIO $ runGLFW displayOpts (0, 0 :: Integer) title $ do
                                     >>> lift (arr $ \_-> io $ threadDelay 10000)
 
 inputs :: Stream IO (Time, [Event]) (Map Input (Maybe Time))
-inputs = map convertEvents >>> identify (updater (barr updatePushed) mempty) >>> arr (map snd)
+inputs = map convertEvents >>> identify (folds (barr updatePushed) mempty) >>> arr (map snd)
     where
         updatePushed (t, ins) pushed = foldl (flip input) (Just . (t +) . (<?> 0) <$$> pushed) ins
 

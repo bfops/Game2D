@@ -1,9 +1,9 @@
 module Vector (test) where
 
-import Prelewd
+import Summit.Prelewd
+import Summit.Data.Member
 
 import Game.Vector
-import Storage.Member
 
 import Test.Framework
 import Test.Framework.TH

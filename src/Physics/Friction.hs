@@ -3,10 +3,9 @@
 module Physics.Friction ( friction
                         ) where
 
-import Prelewd
-
-import Storage.Pair
-import Subset.Num
+import Summit.Data.Pair
+import Summit.Prelewd
+import Summit.Subset.Num
 
 import Game.Physics
 import Game.Vector

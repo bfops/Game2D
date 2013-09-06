@@ -18,11 +18,11 @@ module Physics.Types ( PhysicsValue
                      , Velocity
                      ) where
 
-import Prelewd
+import Summit.Num.Nonfinite
+import Summit.Prelewd
+import Summit.Subset.Num
 
 import Data.Fixed
-import Num.Nonfinite
-import Subset.Num
 import Text.Show
 
 import Game.Vector

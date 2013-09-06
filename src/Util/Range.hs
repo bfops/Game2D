@@ -7,14 +7,13 @@ module Util.Range ( Range
                   , end
                   ) where
 
-import Prelewd hiding (empty)
+import Summit.Impure
+import Summit.Num.Nonfinite
+import Summit.Prelewd hiding (empty)
 
 import Data.Tuple
-import Num.Nonfinite
 import Test.QuickCheck
 import Text.Show
-
-import Impure
 
 (>>==) :: Monad m => (m a, m b) -> (a -> b -> m c) -> m c
 (>>==) (x, y) f = x >>= \a -> f a =<< y
