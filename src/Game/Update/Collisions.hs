@@ -15,10 +15,10 @@ import Summit.Subset.Num
 import Text.Show
 
 import Game.Physics
-import Game.Object
 import Game.Vector
 import Physics.Friction
 import Physics.Types
+import Util.ID
 
 keepDims :: Set Dimension -> Vector a -> Vector (Maybe a)
 keepDims dims = liftA2 (mcond . (`elem` dims)) dimensions

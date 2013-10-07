@@ -15,7 +15,9 @@ import Control.Concurrent (threadDelay)
 import Data.Tuple
 
 import Game.Input
+import Game.Object
 import Game.Update
+import Game.Vector
 import Physics.Types
 import Util.Unit
 import Wrappers.Events
@@ -45,6 +47,13 @@ displayOpts = defaultDisplayOptions
     , displayOptions_windowIsResizable = False
     }
 
+-- | Edge for the game world
+bounds :: Bounds
+bounds = vector undefined
+       [ (Width , (-12, 22))
+       , (Height, ( -8, 12))
+       ]
+
 -- | Entry point
 main :: SystemIO ()
 main = runIO $ runGLFW displayOpts (0, 0 :: Integer) title $ do
@@ -52,7 +61,8 @@ main = runIO $ runGLFW displayOpts (0, 0 :: Integer) title $ do
         initEvents
         iterateM_ (map snd . ($< ())) $ elapsedTime &&& events
                                     >>> inputs &&& arr fst
-                                    >>> identify game
+                                    >>> identify (game bounds)
+                                    <&> map fst
                                     >>> updateGraphics
                                     >>> lift (arr $ \_-> io $ threadDelay 10000)
 

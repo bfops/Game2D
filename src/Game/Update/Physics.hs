@@ -14,6 +14,7 @@ import Game.Physics
 import Game.Object
 import Game.Vector
 import Physics.Types
+import Util.ID
 import Util.Unit
 
 modPhys :: (Physics -> (r, Physics)) -> GameObject -> (r, GameObject)
@@ -24,9 +25,9 @@ isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
 
 -- | Update a single object's physics
-update :: Time
-       -> Map ID Physics            -- ^ Other objects
-       -> ID
+update :: Time                      -- ^ Delta t
+       -> Map ID Physics            -- ^ All the objects
+       -> ID                        -- ^ ID of the object to update
        -> GameObject
        -> (Map ID Collisions, GameObject)
 update t others i = modPhys $ updateVcty >>> updatePosn

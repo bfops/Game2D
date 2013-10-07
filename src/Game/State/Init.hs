@@ -14,21 +14,14 @@ import Data.Tuple
 
 import Game.Object
 import Game.Physics
-import Game.State
 import Game.Vector
 import qualified Game.Update.Physics as Physics
 import Physics.Types
+import Util.ID
 
 -- | Acceleration due to gravity
 gravity :: Vector Acceleration
 gravity = singleV 0 Height (-32)
-
--- | Edge for the game world
-border :: Bounds
-border = vector undefined
-       $ [ (Width , (-12, 22))
-         , (Height, ( -8, 12))
-         ]
 
 wraparound :: Bounds                -- ^ (lower, upper) dimensional bounds
            -> Position              -- ^ Position to wrap
@@ -36,7 +29,7 @@ wraparound :: Bounds                -- ^ (lower, upper) dimensional bounds
 wraparound = liftA2 $ \(start, end) s -> start + ((s - start) `mod` (end - start))
 
 -- | Start state of the game world
-initState :: GameState
+initState :: Named (GameObject, ObjectBehavior)
 initState = stateFromObjs [ Platform $ Physics (vec [4, 1]) Infinite (vec [-3, -1]) 0    0    4
                           , Platform $ Physics (vec [4, 1]) Infinite (vec [ 3, -1]) 0    0    2
                           , Platform $ Physics (vec [1, 4]) Infinite (vec [ 9,  1]) 0    0    8
@@ -49,10 +42,10 @@ initState = stateFromObjs [ Platform $ Physics (vec [4, 1]) Infinite (vec [-3, -
         vec :: [a] -> Vector a
         vec = vector undefined . zip (toList dimensions)
 
-        stateFromObjs = foldr (addObject =<< objectBehavior) $ emptyState border
+        stateFromObjs = foldr (id &&& objectBehavior >>> name) mempty
 
 objectBehavior :: GameObject -> ObjectBehavior
 objectBehavior = loop $ barr $ \ins -> phys' (vcty' $ \_-> setVcty ins)
-                                   >>> Physics.update (dt ins) (phys <$> allObjects ins) (objId ins)
+                                   >>> Physics.update (dt ins) (phys <$> named (allObjects ins)) (objId ins)
                                    >>> map (phys' (posn' $ wraparound $ worldBounds ins))
                                    >>> id &&& snd

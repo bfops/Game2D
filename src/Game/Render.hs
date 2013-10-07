@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude
+           , FlexibleInstances
            #-}
 -- | Render the game state
 module Game.Render ( Drawable (..)
@@ -8,13 +9,11 @@ import Summit.IO
 import Summit.Prelewd
 import Summit.Subset.Num
 
-import Data.Tuple
-
 import Game.Physics
 import Game.Object
-import Game.State
 import Game.Vector
 import Physics.Types
+import Util.ID
 
 import Wrappers.OpenGL hiding (Size, Position)
 
@@ -27,8 +26,8 @@ class Drawable d where
     -- | Render the object to the screen
     draw :: d -> IO ()
 
-instance Drawable GameState where
-    draw = traverse_ (fst >>> draw) . objects
+instance Drawable (Named GameObject) where
+    draw = traverse_ draw
 
 instance Drawable GameObject where
     draw g = drawQuad objColor g
@@ -44,9 +43,12 @@ drawQuad c o = let
             p = posn $ phys o
             Vertex2 x y = toGLVertex p
             Vertex2 x' y' = toGLVertex p <&> (+) <*> toGLVertex (fromPos <$> size (phys o))
-        in io $ renderPrimitive Quads $ runIO $ drawColored c $
-                [ Vertex2 x  y
-                , Vertex2 x  y'
-                , Vertex2 x' y'
-                , Vertex2 x' y
-                ]
+        in io
+         $ renderPrimitive Quads
+         $ runIO
+         $ drawColored c
+          [ Vertex2 x  y
+          , Vertex2 x  y'
+          , Vertex2 x' y'
+          , Vertex2 x' y
+          ]

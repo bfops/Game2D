@@ -15,10 +15,10 @@ import Summit.Subset.Num
 import Text.Show
 import Util.Range as Range
 
-import Game.Object
 import Game.Physics
 import Game.Vector hiding (normalize)
 import Physics.Types
+import Util.ID
 import Util.Unit
 
 emptyRange :: Range a
