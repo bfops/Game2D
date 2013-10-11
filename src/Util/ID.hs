@@ -4,6 +4,7 @@
            , DeriveFoldable
            , DeriveFunctor
            , DeriveTraversable
+           , TemplateHaskell
            #-}
 module Util.ID ( ID
                , Named
@@ -17,14 +18,17 @@ module Util.ID ( ID
                , filterNamed
                , unionNamed
                , updateNamed
+               , test
                ) where
 
 import Summit.Impure
-import Summit.Prelewd hiding (Traversable)
+import Summit.Prelewd hiding (Traversable, foldr)
 import Summit.Data.Map
+import Summit.Data.Pair
 import Summit.Data.Set (set, (\\))
+import Summit.Test
 
-import Data.List (deleteFirstsBy)
+import Data.List (foldr, deleteFirstsBy)
 import Data.Traversable (Traversable)
 import Data.Typeable (Typeable)
 import Text.Show
@@ -36,7 +40,9 @@ diffKeys :: Ord k => Map k v1 -> Map k v2 -> [k]
 diffKeys m1 m2 = toList $ ((\\) `on` set) (keys m1) (keys m2)
 
 newtype ID = ID Integer
-  deriving (Show, Eq, Ord, Num, Integral, Real, Enum, Typeable)
+  deriving (Show, Eq, Ord, Num, Integral, Real, Enum, Typeable, Arbitrary)
+
+instance ResultEq ID
 
 -- | Namedly identified group of objects.
 data Named a = Named [ID] (Map ID a)
@@ -52,6 +58,14 @@ instance Applicative Named where
 instance Monoid (Named a) where
   mempty = Named [0..] mempty
   mappend = unionNamed (\x _-> x)
+
+instance Arbitrary a => Arbitrary (Named a) where
+  arbitrary = foldr name mempty <$> arbitrary
+
+instance Eq a => Eq (Named a) where
+  (==) = (==) `on` named
+
+instance ResultEq a => ResultEq (Named a)
 
 ensure :: ID -> Maybe a -> a
 ensure i m = m <?> error ("Couldn't find " <> show i)
@@ -94,3 +108,12 @@ unionNamed f (Named i1 m1) (Named _ m2) = Named (deleteFirsts (diffKeys m2 m1) i
 
 updateNamed :: (a -> b -> b) -> Named a -> Named b -> Named b
 updateNamed f a b = (f <$> a <*> b) <> b
+
+test :: Test
+test = $(testGroupGenerator)
+
+nameAll :: Map ID a -> Named a
+nameAll m = Named (deleteFirsts (keys m) [0..]) m
+
+prop_union :: Pair (Map ID Integer) -> Result
+prop_union ms = named (pair (<>) (nameAll <$> ms)) ==? pair (<>) ms

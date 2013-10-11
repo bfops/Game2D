@@ -1,18 +1,22 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude
+           , TemplateHaskell
+           #-}
 -- | For dealing with continuous ranges
 module Util.Range ( Range
                   , empty
                   , range
                   , start
                   , end
+                  , test
                   ) where
 
 import Summit.Impure
 import Summit.Num.Nonfinite
 import Summit.Prelewd hiding (empty)
+import Summit.Test hiding (assert)
 
+import Data.Maybe (isNothing)
 import Data.Tuple
-import Test.QuickCheck
 import Text.Show
 
 (>>==) :: Monad m => (m a, m b) -> (a -> b -> m c) -> m c
@@ -56,3 +60,30 @@ start (Range r) = fst <$> r
 -- and a return value of Just Infinite indicate the range begins at negative infinity
 end :: Range a -> Maybe (Nonfinite a)
 end (Range r) = snd <$> r
+
+test :: Test
+test = $(testGroupGenerator)
+
+prop_create :: (Nonfinite Integer, Nonfinite Integer) -> Bool
+prop_create (s, e) = let s' = min s e
+                         e' = max s e
+                         rng = range (min s e) (max s e)
+                     in (endsMatch s' e' <$> start rng <*> end rng) <?> (s == e && s /= Infinite)
+    where
+        endsMatch s1 e1 s2 e2 =  s1 == s2
+                              && e1 == e2
+
+prop_duality :: Range Integer -> Bool
+prop_duality = start <&> ((==) `on` isNothing) <*> end
+
+prop_emptynull :: Range Integer -> Bool
+prop_emptynull = (empty ==) . (empty <>)
+
+prop_memptyid :: Range Integer -> Bool
+prop_memptyid = (==) <*> (mempty <>)
+
+prop_massoc :: (Range Integer, Range Integer, Range Integer) -> Bool
+prop_massoc (x, y, z) = (x <> y) <> z == x <> (y <> z)
+
+prop_mcommute :: (Range Integer, Range Integer) -> Bool
+prop_mcommute (x, y) = x <> y == y <> x

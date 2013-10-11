@@ -1,16 +1,19 @@
 {-# LANGUAGE NoImplicitPrelude
+           , TemplateHaskell
            #-}
 -- | Physical movement
 module Game.Movement ( move
+                     , Game.Movement.test
                      ) where
 
-import Summit.Impure
-import Summit.Num.Nonfinite
-import Summit.Prelewd
 import Summit.Data.Map
 import Summit.Data.Member
 import Summit.Data.Set as Set hiding (size, insert)
+import Summit.Impure
+import Summit.Num.Nonfinite
+import Summit.Prelewd hiding (Left, Right)
 import Summit.Subset.Num
+import Summit.Test hiding (assert)
 
 import Text.Show
 import Util.Range as Range
@@ -91,3 +94,60 @@ move deltaP i p = resolveT . foldrWithKey (\i' -> if' (i /= i') . earliestBump i
         earliestBump j q (c1, collides) = let (ds, c2) = shift deltaP p q
                                           in assert (not $ elem j $ keys collides)
                                            $ (min c1 c2, ord collides (insert j ds collides) (singleton j ds) c1 c2)
+
+test :: Test
+test = $(testGroupGenerator)
+
+data Direction = Up | Down | Left | Right
+    deriving (Show, Eq, Enum, Bounded, Ord)
+
+instance Arbitrary Direction where
+    arbitrary = elements [ minBound .. maxBound ]
+
+dirToDim :: Direction -> Dimension
+dirToDim d = lookup d (fromList
+           $ [ (Left, Width), (Right, Width)
+             , (Down, Height), (Up, Height)
+             ])
+           <?> error "Couldn't map direction to dimension"
+
+sign :: Direction -> Bool
+sign d = lookup d (fromList
+       $ [ (Left, False), (Right, True)
+         , (Down, False), (   Up, True)
+         ])
+     <?> error "Couldn't map direction to sign"
+
+prop_emptyMove :: (Physics, Position) -> Bool
+prop_emptyMove (p, deltaP) = move deltaP 0 p mempty == (deltaP, mempty)
+
+prop_moveApart :: (Physics, Physics, Vector PhysicsValue, Direction) -> Bool
+prop_moveApart (p1, p2, deltaP, d) = move shift' 0 p1 (singleton 1 p2') == (shift', mempty)
+    where
+        p2' = placeBehind p1 p2 dim flag
+        shift' = directShift dim flag deltaP
+
+        dim = dirToDim d
+        flag = sign d
+
+prop_moveTogether :: (Physics, Physics, Vector PhysicsValue, Direction) -> Property
+prop_moveTogether (p1, p2, deltaP, d) = component dim deltaP /= 0
+                                     && all (< 1000) (abs $ deltaP <&> (/) <*> map (unitless.fromPos) (size p1))
+                                     && all (< 1000) (abs $ deltaP <&> (/) <*> map (unitless.fromPos) (size p2))
+                                     ==> let (s, cs) = move shift' 0 p1 (singleton 1 p2')
+                                         in s == pure 0
+                                         && keys cs == [1]
+                                         && (elem dim <$> lookup 1 cs) == Just True
+    where
+        p2' = placeBehind p1 p2 dim flag
+        shift' = directShift dim (not flag) deltaP
+
+        dim = dirToDim d
+        flag = sign d
+
+placeBehind :: Physics -> Physics -> Dimension -> Bool -> Physics
+placeBehind p1 p2 dim pos = let delta = fromPos $ component dim $ size $ iff pos p1 p2
+                            in p2 { posn = posn p1 <&> iff pos (+) (-) <*> singleV 0 dim delta }
+
+directShift :: Dimension -> Bool -> Vector PhysicsValue -> Position
+directShift dim neg = map Unit . component' dim (if' neg negate . abs)

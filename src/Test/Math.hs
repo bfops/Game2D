@@ -1,12 +1,12 @@
-module Math (test) where
+{-# LANGUAGE NoImplicitPrelude
+           , TemplateHaskell
+           #-}
+module Test.Math (test) where
 
 import Summit.Prelewd
+import Summit.Test
 
 import Physics.Types
-
-import Test.Framework
-import Test.Framework.TH
-import Test.Framework.Providers.QuickCheck2
 
 test :: Test
 test = $(testGroupGenerator)

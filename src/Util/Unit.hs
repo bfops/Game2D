@@ -15,8 +15,8 @@ module Util.Unit ( Unit (..)
                  ) where
 
 import Summit.Prelewd
+import Summit.Test (Arbitrary (..))
 
-import Test.QuickCheck
 import Text.Show
 
 infix 9 `Unit`

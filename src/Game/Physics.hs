@@ -21,8 +21,8 @@ import Summit.Num.Nonfinite
 import Summit.Prelewd
 import Summit.Subset.Num
 import Summit.Template.MemberTransformer
+import Summit.Test (Arbitrary (..))
 
-import Test.QuickCheck (Arbitrary (..))
 import Text.Show
 
 import Game.Vector

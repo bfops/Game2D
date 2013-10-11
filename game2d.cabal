@@ -16,7 +16,6 @@ executable Game2D
                     tuple,
                     containers,
                     transformers,
-                    QuickCheck >= 2,
                     Summit == 0.15,
                     Game-Wrappers >= 0.2,
                     Game-Wrappers < 1.0,
@@ -25,18 +24,10 @@ executable Game2D
 
 test-suite Tests
     type:           exitcode-stdio-1.0
-    hs-source-dirs: test/
-                    src/
+    hs-source-dirs: src/
     main-is:        Test.hs
-    ghc-options:    -Wall -Werror -fno-warn-orphans
-    extensions:     TupleSections, TemplateHaskell, NoImplicitPrelude
+    ghc-options:    -Wall -Werror
     build-depends: 
-                    QuickCheck >= 2,
-                    HUnit,
-                    test-framework-quickcheck2,
-                    test-framework-hunit,
-                    test-framework-th,
-                    test-framework,
                     containers,
                     tuple,
                     stm,
