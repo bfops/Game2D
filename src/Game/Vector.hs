@@ -8,6 +8,7 @@
 -- | Static size, homogenous Vector type
 module Game.Vector ( Vector (..)
                    , Dimension (..)
+                   , Direction
                    , dimensions
                    , component
                    , component'
@@ -32,6 +33,8 @@ import Text.Show
 -- | Physical dimensions in the game
 data Dimension = Width | Height
     deriving (Show, Eq, Ord, Enum, Bounded)
+
+type Direction = (Dimension, Bool)
 
 instance Arbitrary Dimension where
     arbitrary = elements [minBound..maxBound]

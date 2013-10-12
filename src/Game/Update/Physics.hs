@@ -37,7 +37,7 @@ update t others i = modPhys $ updateVcty >>> updatePosn
 
         moveAndCollide mv (allCollides, p) = let
                     shift = (fromNat t &*) <$> mv
-                    (deltaP, collides) = move shift i p others
+                    (deltaP, collides) = move shift p (delete i others <?> others)
                 in ( allCollides <> filter (not.null) collides
                    , makeMove deltaP p
                    )

@@ -68,8 +68,8 @@ instance Eq a => Eq (Named a) where
 
 instance ResultEq a => ResultEq (Named a)
 
-ensure :: ID -> Maybe a -> a
-ensure i m = m <?> error ("Couldn't find " <> show i)
+ensure :: (ID -> Map ID a -> Maybe b) -> ID -> Map ID a -> b
+ensure f i m = f i m <?> error ("Couldn't find " <> show i)
 
 -- | Add an object to be named.
 name :: a -> Named a -> Named a
@@ -78,15 +78,15 @@ name a (Named (i:is) m) = Named is $ insert i a m
 
 -- | Remove a specific ID.
 unname :: ID -> Named a -> Named a
-unname i (Named is m) = Named (i:is) $ ensure i $ delete i m
+unname i (Named is m) = Named (i:is) $ ensure delete i m
 
 -- | Find a specific ID.
 call :: ID -> Named a -> a
-call i = ensure i . lookup i . named
+call i = ensure lookup i . named
 
 -- | Modify a specific ID.
 call' :: (a -> a) -> ID -> Named a -> Named a
-call' f i (Named is m) = Named is $ ensure i $ modify (Just . f) i m
+call' f i (Named is m) = Named is $ ensure (modify $ Just . f) i m
 
 -- | Get all named objects.
 named :: Named a -> Map ID a
@@ -104,7 +104,7 @@ mapMaybeNamed f = map f
               >>> map (\(Just x) -> x)
 
 filterNamed :: (a -> Bool) -> Named a -> Named a
-filterNamed p = mapMaybeNamed $ cast p
+filterNamed = mapMaybeNamed . cast
 
 unionNamed :: (a -> a -> a) -> Named a -> Named a -> Named a
 unionNamed f (Named i1 m1) (Named _ m2) = Named (deleteFirsts (diffKeys m2 m1) i1)

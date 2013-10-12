@@ -30,13 +30,13 @@ wraparound = liftA2 $ \(start, end) s -> start + ((s - start) `mod` (end - start
 
 -- | Start state of the game world
 initState :: Named (GameObject, ObjectBehavior)
-initState = stateFromObjs [ Platform $ Physics (vec [4, 1]) Infinite (vec [-3, -1]) 0    0    4
+initState = stateFromObjs [ Player   $ Physics (vec [1, 2])     1    (vec [-3,  0]) 0 gravity 0.1
+                          , Platform $ Physics (vec [4, 1]) Infinite (vec [-3, -1]) 0    0    4
+                          , Block    $ Physics (vec [1, 1])    0.1   (vec [-3,  3]) 0 gravity 0.8
                           , Platform $ Physics (vec [4, 1]) Infinite (vec [ 3, -1]) 0    0    2
                           , Platform $ Physics (vec [1, 4]) Infinite (vec [ 9,  1]) 0    0    8
                           , Platform $ Physics (vec [2, 1]) Infinite (vec [10,  1]) 0    0    8
                           , Platform $ Physics (vec [1, 4]) Infinite (vec [12,  1]) 0    0    8
-                          , Player   $ Physics (vec [1, 2])     1    (vec [-3,  0]) 0 gravity 0.1
-                          , Block    $ Physics (vec [1, 1])    0.1   (vec [-3,  3]) 0 gravity 0.8
                           ]
     where
         vec :: [a] -> Vector a
