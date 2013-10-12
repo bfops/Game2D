@@ -42,7 +42,6 @@ data ObjectInputs = ObjectInputs
         { worldBounds       :: Bounds
         , dt                :: Time
         , allObjects        :: Named GameObject
-        , objId             :: ID
         , setVcty           :: Velocity                  -- ^ Set Velocity to this.
         } deriving (Show)
 

@@ -46,7 +46,6 @@ updateObject bounds t i (colisns, g) = let
                                     { worldBounds = bounds
                                     , dt          = t
                                     , allObjects  = fst <$> g
-                                    , objId       = i
                                     , setVcty     = lookup i (named g <&> fst <&> phys <&> vcty)
                                                 <?> vcty (phys $ fst obj)
                                     }

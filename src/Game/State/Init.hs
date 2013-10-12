@@ -42,10 +42,11 @@ initState = stateFromObjs [ Player   $ Physics (vec [1, 2])     1    (vec [-3,  
         vec :: [a] -> Vector a
         vec = vector undefined . zip (toList dimensions)
 
-        stateFromObjs = foldr (id &&& objectBehavior >>> name) mempty
+        stateFromObjs = foldr (\o -> name (o, \i -> objectBehavior i o)) mempty
+                    >>> mapWithID (\i -> map ($ i))
 
-objectBehavior :: GameObject -> ObjectBehavior
-objectBehavior = loop $ barr $ \ins -> phys' (vcty' $ \_-> setVcty ins)
-                                   >>> Physics.update (dt ins) (phys <$> named (allObjects ins)) (objId ins)
-                                   >>> map (phys' (posn' $ wraparound $ worldBounds ins))
-                                   >>> id &&& snd
+objectBehavior :: ID -> GameObject -> ObjectBehavior
+objectBehavior i = loop $ barr $ \ins -> phys' (vcty' $ \_-> setVcty ins)
+                                     >>> Physics.update (dt ins) (phys <$> named (allObjects ins)) i
+                                     >>> map (phys' (posn' $ wraparound $ worldBounds ins))
+                                     >>> id &&& snd
