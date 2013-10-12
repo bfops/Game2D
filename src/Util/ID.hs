@@ -14,6 +14,7 @@ module Util.ID ( ID
                , call'
                , named
                , foldrWithID
+               , mapWithID
                , alterNamed
                , mapMaybeNamed
                , filterNamed
@@ -91,6 +92,9 @@ call' f i (Named is m) = Named is $ ensure (modify $ Just . f) i m
 -- | Get all named objects.
 named :: Named a -> Map ID a
 named (Named _ m) = m
+
+mapWithID :: (ID -> a -> b) -> Named a -> Named b
+mapWithID f (Named is m) = Named is $ mapWithKey f m
 
 foldrWithID :: (ID -> a -> b -> b) -> b -> Named a -> b
 foldrWithID f b = foldrWithKey f b . named
