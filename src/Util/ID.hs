@@ -14,6 +14,7 @@ module Util.ID ( ID
                , call'
                , named
                , foldrWithID
+               , alterNamed
                , mapMaybeNamed
                , filterNamed
                , unionNamed
@@ -94,9 +95,12 @@ named (Named _ m) = m
 foldrWithID :: (ID -> a -> b -> b) -> b -> Named a -> b
 foldrWithID f b = foldrWithKey f b . named
 
+alterNamed :: (Maybe a -> a) -> ID -> Named a -> Named a
+alterNamed f i (Named is m) = Named is $ alter (Just . f) i m
+
 mapMaybeNamed :: (a -> Maybe b) -> Named a -> Named b
 mapMaybeNamed f = map f
-              >>> (\n -> foldrWithID (\i m -> m $> unname i <?> id) n n)
+              >>> (\n -> foldrWithID (\i m -> m $> id <?> unname i) n n)
               >>> map (\(Just x) -> x)
 
 filterNamed :: (a -> Bool) -> Named a -> Named a
