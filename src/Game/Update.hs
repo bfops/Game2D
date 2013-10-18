@@ -15,6 +15,7 @@ import Data.Tuple
 import Game.Input
 import Game.Object
 import Game.Physics
+import Game.State
 import Game.State.Init
 import Game.Update.Collisions as Collisions
 import Game.Update.Input as Input
@@ -22,7 +23,7 @@ import Physics.Types
 import Util.ID
 
 -- | Advance the game state
-game :: Bounds -> Stream Id (Inputs, Time) (Named (GameObject, ObjectBehavior))
+game :: Bounds -> Stream Id (Inputs, Time) GameState
 game bounds = folds (barr updateStep) initState
     where
         updateStep (ins, t) g = let (colisns, g') = foldr (updateObject bounds t)
@@ -38,8 +39,8 @@ game bounds = folds (barr updateStep) initState
 updateObject :: Bounds
              -> Time
              -> ID
-             -> (Map (Pair ID) Collisions, Named (GameObject, ObjectBehavior))
-             -> (Map (Pair ID) Collisions, Named (GameObject, ObjectBehavior))
+             -> (Map (Pair ID) Collisions, GameState)
+             -> (Map (Pair ID) Collisions, GameState)
 updateObject bounds t i (colisns, g) = let
             obj = call i g
             Id ((colisns', obj'), s) = snd obj $< ObjectInputs

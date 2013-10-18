@@ -15,6 +15,7 @@ import Data.Tuple
 import Game.Object
 import Game.Physics
 import Game.Vector
+import Game.State
 import qualified Game.Update.Physics as Physics
 import Physics.Types
 import Util.ID
@@ -29,7 +30,7 @@ wraparound :: Bounds                -- ^ (lower, upper) dimensional bounds
 wraparound = liftA2 $ \(start, end) s -> start + ((s - start) `mod` (end - start))
 
 -- | Start state of the game world
-initState :: Named (GameObject, ObjectBehavior)
+initState :: GameState
 initState = stateFromObjs [ Player   $ Physics (vec [1, 2])     1    (vec [-3,  0]) 0 gravity 0.1
                           , Platform $ Physics (vec [4, 1]) Infinite (vec [-3, -1]) 0    0    4
                           , Block    $ Physics (vec [1, 1])    0.1   (vec [-3,  3]) 0 gravity 0.8

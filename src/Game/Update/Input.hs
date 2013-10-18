@@ -13,6 +13,7 @@ import Data.Tuple
 import Game.Input
 import Game.Object
 import Game.Physics
+import Game.State
 import Game.State.Init
 import Game.Vector
 import Physics.Types
@@ -30,16 +31,16 @@ jumpVcty = singleV 0 Height 12
 moveSpeed :: Positive Speed
 moveSpeed = 0.3
 
-playerV' :: (Velocity -> Velocity) -> Named (GameObject, ObjectBehavior) -> Named (GameObject, ObjectBehavior)
+playerV' :: (Velocity -> Velocity) -> GameState -> GameState
 playerV' f n = call' (map2 $ phys' $ vcty' f) (player $ fst <$> n) n
 
-pushActions :: Map Input (Named (GameObject, ObjectBehavior) -> Named (GameObject, ObjectBehavior))
+pushActions :: Map Input (GameState -> GameState)
 pushActions = fromList
             [ (Jump, playerV' (+ jumpVcty))
             , (Reset, \_-> initState)
             ]
 
-holdActions :: Map Input (Time -> Named (GameObject, ObjectBehavior) -> Named (GameObject, ObjectBehavior))
+holdActions :: Map Input (Time -> GameState -> GameState)
 holdActions = fromList
             [ (Left, \_-> playerV' $ walk $ negate $ fromPos moveSpeed)
             , (Right, \_-> playerV' $ walk $ fromPos moveSpeed)
@@ -48,7 +49,7 @@ holdActions = fromList
 cap :: (Num a, Ord a) => Positive a -> a -> a
 cap c v = signum v * min (fromPos c) (abs v)
 
-update :: Inputs -> Named (GameObject, ObjectBehavior) -> Named (GameObject, ObjectBehavior)
+update :: Inputs -> GameState -> GameState
 update = flip $ foldrWithKey (\k v -> try ($) $ inputUpdater k v)
     where
         inputUpdater i Nothing = lookup i pushActions
