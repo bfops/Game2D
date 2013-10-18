@@ -7,7 +7,7 @@
            , TemplateHaskell
            #-}
 module Util.ID ( ID
-               , Named
+               , Named (..)
                , name
                , unname
                , call
@@ -16,10 +16,13 @@ module Util.ID ( ID
                , foldrWithID
                , mapWithID
                , alterNamed
+               , mapMaybeWithID
                , mapMaybeNamed
+               , filterWithID
                , filterNamed
                , unionNamed
                , updateNamed
+               , nameAll
                , test
                ) where
 
@@ -79,7 +82,7 @@ name a (Named (i:is) m) = Named is $ insert i a m
 
 -- | Remove a specific ID.
 unname :: ID -> Named a -> Named a
-unname i (Named is m) = Named (i:is) $ ensure delete i m
+unname i (Named is m) = Named (i:is) $ delete i m <?> m
 
 -- | Find a specific ID.
 call :: ID -> Named a -> a
@@ -103,9 +106,14 @@ alterNamed :: (Maybe a -> a) -> ID -> Named a -> Named a
 alterNamed f i (Named is m) = Named is $ alter (Just . f) i m
 
 mapMaybeNamed :: (a -> Maybe b) -> Named a -> Named b
-mapMaybeNamed f = map f
-              >>> (\n -> foldrWithID (\i m -> m $> id <?> unname i) n n)
-              >>> map (\(Just x) -> x)
+mapMaybeNamed f = mapMaybeWithID $ \_-> f
+
+mapMaybeWithID :: (ID -> a -> Maybe b) -> Named a -> Named b
+mapMaybeWithID f (Named is m) = let m' = mapMaybeWithKey f m
+                                in Named (diffKeys m m' <> is) m'
+
+filterWithID :: (ID -> a -> Bool) -> Named a -> Named a
+filterWithID f = mapMaybeWithID $ cast . f
 
 filterNamed :: (a -> Bool) -> Named a -> Named a
 filterNamed = mapMaybeNamed . cast
