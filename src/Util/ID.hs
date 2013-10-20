@@ -13,7 +13,8 @@ module Util.ID ( ID
                , call
                , call'
                , named
-               , foldrWithID
+               , foldWithID
+               , foldWithID'
                , mapWithID
                , alterNamed
                , mapMaybeWithID
@@ -27,13 +28,13 @@ module Util.ID ( ID
                ) where
 
 import Summit.Impure
-import Summit.Prelewd hiding (Traversable, foldr)
+import Summit.Prelewd hiding (Traversable)
 import Summit.Data.Map
 import Summit.Data.Pair
 import Summit.Data.Set (set, (\\))
 import Summit.Test
 
-import Data.List (foldr, deleteFirstsBy)
+import Data.List (deleteFirstsBy)
 import Data.Traversable (Traversable)
 import Data.Typeable (Typeable)
 import Text.Show
@@ -65,7 +66,8 @@ instance Monoid (Named a) where
   mappend = unionNamed (\x _-> x)
 
 instance Arbitrary a => Arbitrary (Named a) where
-  arbitrary = foldr name mempty <$> arbitrary
+  arbitrary = (arbitrary :: Arbitrary a => Gen [a])
+          <&> foldl' (flip name) mempty
 
 instance Eq a => Eq (Named a) where
   (==) = (==) `on` named
@@ -99,8 +101,11 @@ named (Named _ m) = m
 mapWithID :: (ID -> a -> b) -> Named a -> Named b
 mapWithID f (Named is m) = Named is $ mapWithKey f m
 
-foldrWithID :: (ID -> a -> b -> b) -> b -> Named a -> b
-foldrWithID f b = foldrWithKey f b . named
+foldWithID :: (ID -> a -> b -> b) -> b -> Named a -> b
+foldWithID f b = foldrWithKey f b . named
+
+foldWithID' :: (ID -> a -> b -> b) -> b -> Named a -> b
+foldWithID' f b = foldrWithKey' f b . named
 
 alterNamed :: (Maybe a -> a) -> ID -> Named a -> Named a
 alterNamed f i (Named is m) = Named is $ alter (Just . f) i m

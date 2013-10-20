@@ -50,8 +50,10 @@ cap :: (Num a, Ord a) => Positive a -> a -> a
 cap c v = signum v * min (fromPos c) (abs v)
 
 update :: Inputs -> GameState -> GameState
-update = flip $ foldrWithKey (\k v -> try ($) $ inputUpdater k v)
+update = forWithKey' $ \k v -> try ($) $ inputUpdater k v
     where
+        forWithKey' = flip . foldrWithKey'
+
         inputUpdater i Nothing = lookup i pushActions
         inputUpdater i (Just t) = lookup i holdActions <&> ($ t)
 

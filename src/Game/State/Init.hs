@@ -43,7 +43,7 @@ initState = stateFromObjs [ Player   $ Physics (vec [1, 2])     1    (vec [-3,  
         vec :: [a] -> Vector a
         vec = vector undefined . zip (toList dimensions)
 
-        stateFromObjs = foldr (\o -> name (o, \i -> objectBehavior i o)) mempty
+        stateFromObjs = foldl' (\s o -> name (o, \i -> objectBehavior i o) s) mempty
                     >>> mapWithID (\i -> map ($ i))
 
 objectBehavior :: ID -> GameObject -> ObjectBehavior

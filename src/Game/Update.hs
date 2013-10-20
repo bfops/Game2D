@@ -26,11 +26,11 @@ import Util.ID
 game :: Bounds -> Stream Id (Inputs, Time) GameState
 game bounds = folds (barr updateStep) initState
     where
-        updateStep (ins, t) g = let (colisns, g') = foldr (updateObject bounds t)
-                                                          (mempty, g)
-                                                          (keys $ named g)
+        updateStep (ins, t) g = let (colisns, g') = foldl' (flip $ updateObject bounds t)
+                                                           (mempty, g)
+                                                           (keys $ named g)
                                 in Input.update ins
-                                 $ foldrWithKey setIdVcty g'
+                                 $ foldrWithKey' setIdVcty g'
                                  $ Collisions.update colisns
                                  $ named g' <&> fst <&> phys
 

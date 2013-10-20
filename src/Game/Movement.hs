@@ -25,6 +25,10 @@ import Physics.Types
 import Util.ID
 import Util.Unit
 
+foldl1' :: Foldable t => (a -> a -> a) -> t a -> a
+foldl1' f t = foldl' (\a b -> f b <$> a <|> Just b) Nothing t
+          <?> error "Empty foldl1'"
+
 emptyRange :: Range a
 emptyRange = Range.empty
 
@@ -67,7 +71,7 @@ shift :: Position
 shift deltaP ph1 ph2 = let
                         -- Collisions individually in each dimension
                         collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
-                        TaggedRange dims rng = normalize $ foldr1 overlapTagged collides1
+                        TaggedRange dims rng = normalize $ foldl1' overlapTagged collides1
                      in (dims, iff (end rng <= Just 0) Infinite $ start rng <?> Infinite)
     where
         -- Chop time ranges to [-Infinity, 1]
@@ -92,7 +96,7 @@ move :: Position                            -- The movement to make (i.e. delta 
      -> (Position, Map ID Collisions)       -- The amount the object can be moved,
                                             -- and a map of collision object ID's to collision dimensions
 move deltaP p = map (shift deltaP p)
-            >>> \ps -> case foldr min Infinite (snd <$> ps) of
+            >>> \ps -> case foldl' min Infinite (snd <$> ps) of
                           Infinite -> (deltaP, mempty)
                           Finite moveTime -> ( (moveTime &*) <$> deltaP
                                              , fst <$> filter (snd >>> (== Finite moveTime)) ps

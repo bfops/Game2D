@@ -33,9 +33,9 @@ update :: Time                      -- ^ Delta t
 update t others i = modPhys $ updateVcty >>> updatePosn
     where
         updateVcty p = p { vcty = vcty p + ((fromNat t &*) <$> accl p) }
-        updatePosn p = foldr moveAndCollide (mempty, p) $ isolate 0 $ vcty p
+        updatePosn p = foldl' moveAndCollide (mempty, p) $ isolate 0 $ vcty p
 
-        moveAndCollide mv (allCollides, p) = let
+        moveAndCollide (allCollides, p) mv = let
                     shift = (fromNat t &*) <$> mv
                     (deltaP, collides) = move shift p (delete i others <?> others)
                 in ( allCollides <> filter (not.null) collides
