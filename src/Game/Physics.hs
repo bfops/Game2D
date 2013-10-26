@@ -35,7 +35,7 @@ divIndfUnit z x = mapInfinite ((z /&) . fromPos <$> x) 0
 -- | Collection of physical properties for an object
 data Physics = Physics
         { size :: Size
-        , mass :: Mass
+        , mass :: Nonfinite Mass
         , posn :: Position
         , vcty :: Velocity
         , accl :: Vector Acceleration
@@ -70,7 +70,7 @@ transfer toTransfer ps = vcty2' (sequence . liftA2 transfer1 toTransfer . sequen
 equilibrium :: Pair Physics -> Vector Momentum
 equilibrium ps = equilibrium1 (mass <$> ps) <$> sequence (vcty <$> ps)
     where
-        equilibrium1 :: Pair Mass -> Pair Speed -> Momentum
+        equilibrium1 :: Pair (Nonfinite Mass) -> Pair Speed -> Momentum
         -- if momentum transferred is t, at equilibrium:
         --    => v1 - t/m1 = v2 + t/m2
         --    => m1*m2*v1 - m2*t = m1*m2*v2 + m1*t

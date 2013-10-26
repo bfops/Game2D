@@ -18,7 +18,6 @@ module Physics.Types ( PhysicsValue
                      , Velocity
                      ) where
 
-import Summit.Num.Nonfinite
 import Summit.Prelewd
 import Summit.Subset.Num
 
@@ -58,7 +57,7 @@ type Speed = Unit SpeedInternal PhysicsValue
 -- | Rate of speed
 type Acceleration = Unit AccelInternal PhysicsValue
 -- | Resistance to acceleration
-type Mass = Nonfinite (Positive (Unit MassInternal PhysicsValue))
+type Mass = Positive (Unit MassInternal PhysicsValue)
 type Momentum = Unit PInternal PhysicsValue
 
 -- | Dimensions of an object
