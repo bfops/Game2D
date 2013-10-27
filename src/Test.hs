@@ -7,6 +7,7 @@ import qualified Util.Range as Range
 import qualified Test.Math as Math
 import qualified Physics.Friction as Friction
 import qualified Util.ID as ID
+import qualified Util.Graph as Graph
 
 main :: SystemIO ()
 main = defaultMain
@@ -16,4 +17,5 @@ main = defaultMain
         , Math.test
         , Friction.test
         , ID.test
+        , Graph.test
         ]
