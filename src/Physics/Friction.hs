@@ -19,7 +19,7 @@ import Util.Unit
 
 fromDouble :: Double -> Unit t PhysicsValue
 fromDouble d = let precision = 100
-               in Unit $ ((/) `on` fromInteger) (round $ fromInteger precision * d) precision
+               in point $ ((/) `on` fromInteger) (round $ fromInteger precision * d) precision
 
 friction :: Vector (Maybe (Nonnegative Momentum)) -> Pair Physics -> Pair Physics
 friction collides objs = let

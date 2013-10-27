@@ -19,7 +19,6 @@ import Game.Object
 import Game.Update
 import Game.Vector
 import Physics.Types
-import Util.Unit
 import Wrappers.Events
 import Wrappers.GLFW
 
@@ -82,7 +81,7 @@ convertEvents = lift $ arr $ map (mapMaybe id) . traverse convertEvent
 elapsedTime :: Stream IO () Time
 elapsedTime = lift (arr $ \_-> io getTime) >>> identify (loop (barr diffT) Nothing)
     where
-        diffT t (Just t') = (toNat (Unit $ realToFrac $ t - t') <?> error "Negative time elapsed", Just t)
+        diffT t (Just t') = (toNat (point $ realToFrac $ t - t') <?> error "Negative time elapsed", Just t)
         diffT t Nothing = (0, Just t)
 
 -- | Update the input state with a new input event

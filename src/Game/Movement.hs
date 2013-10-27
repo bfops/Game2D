@@ -83,7 +83,7 @@ shift deltaP ph1 ph2 = let
                                <> pass1 (negate v) (x2 + fromPos w2) x1
 
         -- Range of time during which the point `x0`, moving at velocity `v`, is on the right side of `x`
-        pass1 v x0 x = let t = Unit $ unitless $ (x - x0) / v
+        pass1 v x0 x = let t = point $ unitless $ (x - x0) / v
                        in case compare v 0 of
                         LT -> range Infinite (Finite t)
                         EQ -> iff (x0 <= x) emptyRange mempty
@@ -115,7 +115,6 @@ prop_moveApart (p1, p2, deltaP, d) = move shift' p1 (singleton 1 p2') == (shift'
         p2' = placeBehind p1 p2 dim flag
         shift' = directShift dim flag deltaP
 
-
 prop_moveTogether :: (Physics, Physics, Vector PhysicsValue, Direction) -> Property
 prop_moveTogether (p1, p2, deltaP, d) = component dim deltaP /= 0
                                      && all (< 1000) (abs $ deltaP <&> (/) <*> map (unitless.fromPos) (size p1))
@@ -134,4 +133,4 @@ placeBehind p1 p2 dim pos = let delta = fromPos $ component dim $ size $ iff pos
                             in p2 { posn = posn p1 <&> iff pos (+) (-) <*> singleV 0 dim delta }
 
 directShift :: Dimension -> Bool -> Vector PhysicsValue -> Position
-directShift dim neg = map Unit . component' dim (if' neg negate . abs)
+directShift dim neg = map point . component' dim (if' neg negate . abs)
