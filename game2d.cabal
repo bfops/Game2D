@@ -2,7 +2,7 @@ Name:                Game2D
 Version:             0.1
 Description:         2D fantasy sidescroller game
 Category:            Games
-License-file:        LICENSE
+License:             MIT
 Author:              Ben Foppa
 Maintainer:          benjamin.foppa@gmail.com
 Build-Type:          Simple
