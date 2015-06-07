@@ -11,14 +11,21 @@ Cabal-Version:       >= 1.9.2
 executable Game2D
     hs-source-dirs:    src/
     main-is:           Main.hs
-    ghc-options:       -Wall -Werror -threaded -rtsopts=all
+    ghc-options:       -Wall -Werror -threaded -rtsopts=all -ddump-minimal-imports
     build-depends:
                     tuple,
-                    containers,
                     transformers,
-                    Summit == 0.15,
-                    Game-Wrappers >= 0.2,
-                    Game-Wrappers < 1.0,
+                    basic-prelude,
+                    conduit,
+                    game-wrappers >= 0.2,
+                    game-wrappers < 1.0,
+                    hashable,
+                    lens,
+                    QuickCheck,
+                    test-framework,
+                    test-framework-quickcheck2,
+                    test-framework-th,
+                    unordered-containers,
                     base >= 4.6,
                     base < 5.0
 
@@ -32,6 +39,6 @@ test-suite Tests
                     tuple,
                     stm,
                     Cabal,
-                    Game-Wrappers,
-                    Summit,
+                    game-wrappers,
+                    basic-prelude,
                     base

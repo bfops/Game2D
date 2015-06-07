@@ -1,23 +1,24 @@
-{-# LANGUAGE NoImplicitPrelude
-           , TemplateHaskell
-           #-}
+{-# LANGUAGE TemplateHaskell #-}
 -- | For dealing with continuous ranges
 module Util.Range ( Range
-                  , empty
+                  , Util.Range.empty
                   , range
                   , start
                   , end
                   , test
                   ) where
 
-import Summit.Impure
-import Summit.Num.Nonfinite
-import Summit.Prelewd hiding (empty)
-import Summit.Test hiding (assert)
-
-import Data.Maybe (isNothing)
-import Data.Tuple
-import Text.Show
+import Control.Applicative
+import Control.Exception
+import Control.Monad
+import Data.Function
+import Data.Maybe
+import Data.Monoid
+import Data.Nonfinite
+import Test.Framework
+import Test.Framework.Providers.QuickCheck2
+import Test.Framework.TH
+import Test.QuickCheck
 
 (>>==) :: Monad m => (m a, m b) -> (a -> b -> m c) -> m c
 (>>==) (x, y) f = x >>= \a -> f a =<< y
@@ -33,10 +34,13 @@ instance Ord a => Monoid (Range a) where
         where
             -- Overlap nonempty ranges
             overlapExtant r1 r2 = assert (validRange r1 && validRange r2)
-                                $ cast validRange ((onBoth max `on` fst) r1 r2, (onBoth min `on` snd) r1 r2)
+                                $ mfilter validRange
+                                $ Just ((max `on` fst) r1 r2, (min `on` snd) r1 r2)
 
 instance (Arbitrary a, Ord a) => Arbitrary (Range a) where
-    arbitrary = (\(x, y) -> range (min x y) (max x y)) <$$> arbitrary <&> (<?> empty)
+    arbitrary = do
+        m <- arbitrary
+        return $ maybe Util.Range.empty (\(x, y) -> range (min x y) (max x y)) m
 
 validRange :: Ord a => (Nonfinite a, Nonfinite a) -> Bool
 validRange (t1, t2) = liftA2 (>) t1 t2 /= pure True
@@ -47,7 +51,7 @@ empty = Range Nothing
 
 -- | Create a range out of its endpoints
 range :: Ord a => Nonfinite a -> Nonfinite a -> Range a
-range x y = Range $ cast validRange (x, y)
+range x y = Range $ mfilter validRange $ Just (x, y)
 
 -- | Get the beginning of the range.
 -- A return value of Nothing indicates an empty range,
@@ -68,16 +72,18 @@ prop_create :: (Nonfinite Integer, Nonfinite Integer) -> Bool
 prop_create (s, e) = let s' = min s e
                          e' = max s e
                          rng = range (min s e) (max s e)
-                     in (endsMatch s' e' <$> start rng <*> end rng) <?> (s == e && s /= Infinite)
+                     in fromMaybe
+                          (s == e && s /= Infinite)
+                          (endsMatch s' e' <$> start rng <*> end rng) 
     where
         endsMatch s1 e1 s2 e2 =  s1 == s2
                               && e1 == e2
 
 prop_duality :: Range Integer -> Bool
-prop_duality = start <&> ((==) `on` isNothing) <*> end
+prop_duality = ((==) `on` isNothing) <$> start <*> end
 
 prop_emptynull :: Range Integer -> Bool
-prop_emptynull = (empty ==) . (empty <>)
+prop_emptynull = (Util.Range.empty ==) . (Util.Range.empty <>)
 
 prop_memptyid :: Range Integer -> Bool
 prop_memptyid = (==) <*> (mempty <>)

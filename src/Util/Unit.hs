@@ -1,11 +1,9 @@
-{-# LANGUAGE NoImplicitPrelude
-           , GeneralizedNewtypeDeriving
-           , DeriveFunctor
-           , ScopedTypeVariables
-           , MultiParamTypeClasses
-           , FunctionalDependencies
-           , FlexibleInstances
-           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE FlexibleInstances #-}
 -- | Adds type-checking units for calculations
 module Util.Unit ( Unit
                  , UnitMult
@@ -16,10 +14,10 @@ module Util.Unit ( Unit
                  , (/&)
                  ) where
 
-import Summit.Impure (undefined)
-import Summit.Prelewd
-import Summit.Test (Arbitrary (..))
-
+import Control.Applicative
+import Data.Function
+import Data.Traversable
+import Test.QuickCheck (Arbitrary (..))
 import Text.Show
 
 infix 9 `Unit`
@@ -29,11 +27,12 @@ infixl 6 &/
 infixl 6 /&
 
 -- | `Unit t v` is a value with a unit of type `t`, and a magnitude of type `v`.
-data Unit t v = Unit v t
+data Unit t v = Unit v
     deriving (Show, Functor)
 
-instance Pointed (Unit t) v where
-    point v = Unit v undefined
+instance Applicative (Unit t) where
+    pure = Unit
+    Unit f <*> Unit v = Unit (f v)
 
 instance Eq v => Eq (Unit t v) where
     (==) = (==) `on` unitless
@@ -42,35 +41,35 @@ instance Ord v => Ord (Unit t v) where
     compare = compare `on` unitless
 
 instance Num v => Num (Unit t v) where
-    fromInteger = point . fromInteger
-    (+) = point <$$> ((+) `on` unitless)
-    negate = point . negate . unitless
-    (*) = point <$$> ((*) `on` unitless)
-    signum = point . signum . unitless
-    abs = point . abs . unitless
+    fromInteger = pure . fromInteger
+    x + y = pure $ ((+) `on` unitless) x y
+    negate = pure . negate . unitless
+    (*) = pure <$$> ((*) `on` unitless)
+    signum = pure . signum . unitless
+    abs = pure . abs . unitless
 
 instance Real v => Real (Unit t v) where
     toRational = toRational . unitless
 
 instance Fractional v => Fractional (Unit t v) where
-    recip = point . recip . unitless
-    fromRational = point . fromRational
+    recip = pure . recip . unitless
+    fromRational = pure . fromRational
 
-instance Applicative f => Sequential (Unit t) f a where
-    sequence u = pure point <*> unitless u
+instance Traversable (Unit t) where
+    sequenceA u = pure pure <*> unitless u
 
 instance Arbitrary v => Arbitrary (Unit t v) where
-    arbitrary = point <$> arbitrary
+    arbitrary = pure <$> arbitrary
 
 unitless :: Unit t v -> v
-unitless (Unit v _) = v
+unitless (Unit v) = v
 
 -- | Unit multiplication: a x b = c
 class UnitMult a b c | a b -> c, a c -> b, b c -> a
 
 -- | Multiply with units
 (&*) :: (UnitMult a b c, Num v) => Unit a v -> Unit b v -> Unit c v
-(&*) a b = point $ unitless a * unitless b
+(&*) a b = pure $ unitless a * unitless b
 
 -- | `(&*)` with arguments reversed.
 (*&) :: (UnitMult a b c, Num v) => Unit b v -> Unit a v -> Unit c v
@@ -78,8 +77,8 @@ class UnitMult a b c | a b -> c, a c -> b, b c -> a
 
 -- | Inverse of (*&), (x *& y) &/ y = x
 (&/) :: (UnitMult a b c, Fractional v) => Unit c v -> Unit a v -> Unit b v
-(&/) c a = point $ unitless c / unitless a
+(&/) c a = pure $ unitless c / unitless a
 
 -- | Inverse of (&*), (x &* y) /& y = x
 (/&) :: (UnitMult a b c, Fractional v) => Unit c v -> Unit b v -> Unit a v
-(/&) c b = point $ unitless c / unitless b
+(/&) c b = pure $ unitless c / unitless b

@@ -5,10 +5,7 @@ module Main.Graphics ( initOpenGL
                      , resize
                      ) where
 
-import Summit.Control.Stream
-import Summit.IO
-import Summit.Prelewd
-
+import Data.Conduit
 import Data.Tuple.All
 
 import Game.Object

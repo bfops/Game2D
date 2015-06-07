@@ -5,42 +5,50 @@
 module Game.Update.Physics ( update
                            ) where
 
-import Summit.Data.Map
-import Summit.Prelewd hiding (filter)
-import Summit.Subset.Num
+import Data.HashSet
+import Text.Show
 
 import Game.Movement
 import Game.Physics
-import Game.Object
 import Game.Vector
 import Physics.Types
+import Util.Graph
 import Util.ID
 import Util.Unit
 
-modPhys :: (Physics -> (r, Physics)) -> GameObject -> (r, GameObject)
-modPhys f obj = f (phys obj) <&> (\p -> phys' (\_-> p) obj)
+for' :: Foldable t => (a -> b -> b) -> t a -> b -> b
+for' = flip . foldl' . flip
+
+addNeighbors :: Ord a => ID -> Named (Set (Pair a)) -> Graph a ID
+addNeighbors i = foldWithID' (for' . addEdges) mempty
+  where
+    addEdges i' (Pair to from) = addEdge i i' to >>> addEdge i' i from
 
 -- | Put each component in its own vector, in the correct location
 isolate :: a -> Vector a -> Vector (Vector a)
 isolate zero = liftA2 (singleV zero) dimensions
 
 -- | Update a single object's physics
-update :: Time                      -- ^ Delta t
-       -> Map ID Physics            -- ^ All the objects
-       -> ID                        -- ^ ID of the object to update
-       -> GameObject
-       -> (Map ID Collisions, GameObject)
-update t others i = modPhys $ updateVcty >>> updatePosn
+update :: ID
+       -> Time                      -- ^ Delta t
+       -> Named Physics             -- ^ All the objects
+       -> (Collisions, Physics)
+update i t objs = (call i >>> updateVcty >>> updatePosn) objs
     where
-        updateVcty p = p { vcty = vcty p + ((fromNat t &*) <$> accl p) }
-        updatePosn p = foldl' moveAndCollide (mempty, p) $ isolate 0 $ vcty p
+        updateVcty p = p { vcty = vcty p + ((fromNat t &*) <$> accl p)
+                         }
+        updatePosn p = traceShow ("vcty p: " <> show (vcty p))
+                     $ foldl' moveAndCollide (mempty, p) $ (fromNat t &*) <$$> isolate 0 (vcty p)
 
         moveAndCollide (allCollides, p) mv = let
-                    shift = (fromNat t &*) <$> mv
-                    (deltaP, collides) = move shift p (delete i others <?> others)
-                in ( allCollides <> filter (not.null) collides
+                    (deltaP, collides) = move mv p (unname i objs)
+                in traceShow ("mv: " <> show mv)
+                 $ traceShow ("collides: " <> show collides)
+                 $ ( allCollides <> addNeighbors i (toEdges <$$> collides)
                    , makeMove deltaP p
                    )
+
+        toEdges (d, b) = (d,) <$> Pair b (not b)
 
         makeMove :: Position -> Physics -> Physics
         makeMove = posn' . (+)

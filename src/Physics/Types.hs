@@ -18,27 +18,45 @@ module Physics.Types ( PhysicsValue
                      , Velocity
                      ) where
 
-import Summit.Prelewd
-import Summit.Subset.Num
-
 import Data.Fixed
 import Text.Show
 
 import Game.Vector
 import Util.Unit
 
-data ScalarInternal = Scalar deriving (Show, Eq, Enum, Bounded, Ord)
-data DistInternal = Dist deriving (Show, Eq, Enum, Bounded, Ord)
-data TimeInternal = Time deriving (Show, Eq, Enum, Bounded, Ord)
-data SpeedInternal = Speed deriving (Show, Eq, Enum, Bounded, Ord)
-data AccelInternal = Accel deriving (Show, Eq, Enum, Bounded, Ord)
-data MassInternal = Mass deriving (Show, Eq, Enum, Bounded, Ord)
-data PInternal = MassV deriving (Show, Eq, Enum, Bounded, Ord)
+data ScalarInternal = Scalar deriving (Eq, Enum, Bounded, Ord)
+data DistInternal = Dist deriving (Eq, Enum, Bounded, Ord)
+data TimeInternal = Time deriving (Eq, Enum, Bounded, Ord)
+data SpeedInternal = Speed deriving (Eq, Enum, Bounded, Ord)
+data AccelInternal = Accel deriving (Eq, Enum, Bounded, Ord)
+data MassInternal = Mass deriving (Eq, Enum, Bounded, Ord)
+data PInternal = MassV deriving (Eq, Enum, Bounded, Ord)
 
 instance UnitMult ScalarInternal a a
 instance UnitMult TimeInternal SpeedInternal DistInternal
 instance UnitMult TimeInternal AccelInternal SpeedInternal
 instance UnitMult SpeedInternal MassInternal PInternal
+
+instance Show ScalarInternal where
+  show _ = "_"
+
+instance Show DistInternal where
+  show _ = "d"
+
+instance Show TimeInternal where
+  show _ = "t"
+
+instance Show SpeedInternal where
+  show _ = "d/t"
+
+instance Show AccelInternal where
+  show _ = "d/t^2"
+
+instance Show MassInternal where
+  show _ = "m"
+
+instance Show PInternal where
+  show _ = "md/t"
 
 -- | Root value type
 type PhysicsValue = Milli

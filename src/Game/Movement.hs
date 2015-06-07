@@ -6,16 +6,9 @@ module Game.Movement ( move
                      , Game.Movement.test
                      ) where
 
-import Summit.Data.Map
-import Summit.Data.Member
-import Summit.Data.Set as Set hiding (size, insert)
-import Summit.Impure
-import Summit.Num.Nonfinite
-import Summit.Prelewd hiding (Left, Right, filter)
-import Summit.Subset.Num
-import Summit.Test hiding (assert)
-
+import Data.HashSet as HashSet
 import Data.Tuple
+import Test.QuickCheck (Arbitrary (..))
 import Text.Show
 import Util.Range as Range
 
@@ -24,6 +17,11 @@ import Game.Vector hiding (normalize)
 import Physics.Types
 import Util.ID
 import Util.Unit
+
+infix 5 ->?
+
+(->?) :: Bool -> Result -> Result
+(->?) b r = iff b r rejected
 
 foldl1' :: Foldable t => (a -> a -> a) -> t a -> a
 foldl1' f t = foldl' (\a b -> f b <$> a <|> Just b) Nothing t
@@ -66,13 +64,14 @@ overlapTagged (TaggedRange x r1) (TaggedRange y r2) = let
 shift :: Position
       -> Physics
       -> Physics
-      -> (Collisions, Nonfinite Scalar) -- ^ (Collisions, fraction of distance to be travelled)
-                                        -- scalar is Infinite when no collisions take place
+      -> (Set Direction, Nonfinite Scalar) -- ^ (Collisions, fraction of distance to be travelled)
+                                           -- scalar is Infinite when no collisions take place
 shift deltaP ph1 ph2 = let
                         -- Collisions individually in each dimension
                         collides1 = shift1 <$> dimensions <*> deltaP <*> posn ph1 <*> size ph1 <*> posn ph2 <*> size ph2
                         TaggedRange dims rng = normalize $ foldl1' overlapTagged collides1
-                     in (dims, iff (end rng <= Just 0) Infinite $ start rng <?> Infinite)
+                        dirs = dims <&> \d -> (d, signum (component d deltaP) > 0)
+                     in (dirs, iff (end rng <= Just 0) Infinite $ start rng <?> Infinite)
     where
         -- Chop time ranges to [-Infinity, 1]
         normalize (TaggedRange t r) = TaggedRange t $ range Infinite 1 <> r
@@ -92,41 +91,47 @@ shift deltaP ph1 ph2 = let
 -- | Retrieve information about a potential object movement
 move :: Position                            -- The movement to make (i.e. delta P)
      -> Physics                             -- Object to move
-     -> Map ID Physics                      -- Objects to be checked for collisions
-     -> (Position, Map ID Collisions)       -- The amount the object can be moved,
-                                            -- and a map of collision object ID's to collision dimensions
+     -> Named Physics                       -- Objects to be checked for collisions
+     -> (Position, Named (Set Direction))   -- The amount the object can be moved,
+                                            -- and the collision directions for each object
 move deltaP p = map (shift deltaP p)
             >>> \ps -> case foldl' min Infinite (snd <$> ps) of
                           Infinite -> (deltaP, mempty)
                           Finite moveTime -> ( (moveTime &*) <$> deltaP
-                                             , fst <$> filter (snd >>> (== Finite moveTime)) ps
+                                             , fst <$> filterNamed (snd >>> (== Finite moveTime)) ps
                                              )
 
 test :: Test
 test = $(testGroupGenerator)
 
 prop_emptyMove :: (Physics, Position) -> Bool
-prop_emptyMove (p, deltaP) = move deltaP p mempty == (deltaP, mempty)
+prop_emptyMove (p, deltaP) = (named <$> move deltaP p mempty) == (deltaP, mempty)
 
 prop_moveApart :: (Physics, Physics, Vector PhysicsValue, Direction) -> Bool
-prop_moveApart (p1, p2, deltaP, d) = move shift' p1 (singleton 1 p2') == (shift', mempty)
+prop_moveApart (p1, p2, deltaP, d) = (named <$> move shift' p1 (pure p2')) == (shift', mempty)
     where
         (dim, flag) = d
         p2' = placeBehind p1 p2 dim flag
         shift' = directShift dim flag deltaP
 
-prop_moveTogether :: (Physics, Physics, Vector PhysicsValue, Direction) -> Property
-prop_moveTogether (p1, p2, deltaP, d) = component dim deltaP /= 0
-                                     && all (< 1000) (abs $ deltaP <&> (/) <*> map (unitless.fromPos) (size p1))
-                                     && all (< 1000) (abs $ deltaP <&> (/) <*> map (unitless.fromPos) (size p2))
-                                     ==> let (s, cs) = move shift' p1 (singleton 1 p2')
-                                         in s == pure 0
-                                         && length cs == (1 :: Int)
-                                         && (elem dim <$> lookup 1 cs) == Just True
+head :: Foldable t => t a -> Maybe a
+head = foldr (\a _-> Just a) Nothing
+
+prop_moveTogether :: (Physics, Physics, Vector PhysicsValue, Direction) -> Result
+prop_moveTogether (p1, p2, deltaP, d) = (component dim deltaP /= 0
+                                      && smallEnough p1
+                                      && smallEnough p2
+                                        )
+                                    ->? let (s, cs) = traceShow p2' $ withTrace $ move shift' p1 (pure p2')
+                                        in (s ==? pure 0)
+                                       &&? (length cs ==? (1 :: Int))
+                                       &&? (head cs ==? Just (set [d]))
     where
         (dim, flag) = d
         p2' = placeBehind p1 p2 dim flag
         shift' = directShift dim (not flag) deltaP
+
+        smallEnough p = all (< 1000) $ abs $ deltaP <&> (/) <*> (unitless . fromPos <$> size p)
 
 placeBehind :: Physics -> Physics -> Dimension -> Bool -> Physics
 placeBehind p1 p2 dim pos = let delta = fromPos $ component dim $ size $ iff pos p1 p2

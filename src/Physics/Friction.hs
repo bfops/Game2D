@@ -1,14 +1,10 @@
-{-# LANGUAGE NoImplicitPrelude
-           , TemplateHaskell
-           #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Physics.Friction ( friction
+                        , muTransfer
                         , test
                         ) where
 
-import Summit.Data.Pair
-import Summit.Prelewd
-import Summit.Subset.Num
-import Summit.Test
+import Test.QuickCheck (Arbitrary (..))
 
 import Data.Tuple
 
@@ -21,16 +17,14 @@ fromDouble :: Double -> Unit t PhysicsValue
 fromDouble d = let precision = 100
                in point $ ((/) `on` fromInteger) (round $ fromInteger precision * d) precision
 
-friction :: Vector (Maybe (Nonnegative Momentum)) -> Pair Physics -> Pair Physics
+friction :: Vector (Maybe (Nonnegative Momentum)) -> Pair Physics -> Pair Velocity
 friction collides objs = let
             fric = muTransfer collides objs
             equal = equilibrium objs
-        in transfer (transfer1 <$> fric <*> equal) objs
+        in vcty <$> transfer (transfer1 <$> fric <*> equal) objs
     where
         transfer1 :: Momentum -> Momentum -> Momentum
-        transfer1 0 _ = 0
-        transfer1 _ 0 = 0
-        transfer1 x y = if' (signum x == signum y) (minBy (compare `on` abs) y) x
+        transfer1 x y = if' (signum x /= (- signum y)) (minBy (compare `on` abs) y) x
 
 -- | Momentum to transfer due to friction
 muTransfer :: Vector (Maybe (Nonnegative Momentum)) -> Pair Physics -> Vector Momentum
@@ -62,7 +56,7 @@ checkFriction check t params = ((<= 1000) . mass . snd) `any` params
                              $ inner <*> friction (singleV Nothing Width $ Just t)
                              $ uncurry setMu <$> params
     where
-        inner = liftA2 check `on` (liftA2 diff `pair`) . map vcty
+        inner = (liftA2 check `on` (liftA2 diff `pair`)) . map vcty
 
 prop_frictionless :: (Nonnegative Momentum, Pair (Mu, Physics), Bool) -> Property
 prop_frictionless (t, (Pair (_, p1) p2),  True) = checkFriction (==) t $ Pair (0, p1) p2

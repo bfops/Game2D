@@ -13,13 +13,10 @@ module Game.Object ( GameObject (..)
                    , player
                    ) where
 
-import Summit.Control.Stream
-import Summit.Data.Id
-import Summit.Data.Map
-import Summit.Impure
-import Summit.Prelewd
-import Summit.Template.MemberTransformer
+import Prelude ()
+import BasicPrelude
 
+import Data.HashMap.Strict
 import Data.Tuple
 import Text.Show
 
@@ -42,10 +39,10 @@ data ObjectInputs = ObjectInputs
         { worldBounds       :: Bounds
         , dt                :: Time
         , allObjects        :: Named GameObject
-        , setVcty           :: Velocity                  -- ^ Set Velocity to this.
+        , collisions        :: Collisions
         } deriving (Show)
 
-type ObjectBehavior = Stream Id ObjectInputs (Map ID Collisions, GameObject)
+type ObjectBehavior = Stream Id ObjectInputs (Named GameObject, Collisions)
 
 $(memberTransformers ''GameObject)
 

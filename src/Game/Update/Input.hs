@@ -1,13 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude
-           #-}
 -- | Update game state to respond to input
 module Game.Update.Input ( update
                          ) where
 
-import Summit.Prelewd hiding (Either (..))
-import Summit.Data.Map
-import Summit.Subset.Num
-
+import Data.HashMap.Strict
 import Data.Tuple
 
 import Game.Input

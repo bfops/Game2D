@@ -1,54 +1,89 @@
 {-# LANGUAGE NoImplicitPrelude
+           , TupleSections
            #-}
--- | Update game state's physical interactions
+-- | Update the game state using collisions info.
 module Game.Update.Collisions ( update
                               ) where
 
-import Summit.Impure
-import Summit.Prelewd
-import Summit.Data.Map
-import Summit.Data.Member
-import Summit.Data.Pair
-import Summit.Data.Set
-import Summit.Subset.Num
-
+import Data.HashMap.Strict as HashMap
+import Data.Tuple
 import Text.Show
 
 import Game.Physics
-import Game.Vector
+import Game.Vector hiding (component)
 import Physics.Friction
 import Physics.Types
+import Util.Graph
 import Util.ID
+import Util.Unit
 
-keepDims :: Set Dimension -> Vector a -> Vector (Maybe a)
-keepDims dims = liftA2 (mcond . (`elem` dims)) dimensions
+-- Variables with a prefix "i" represent Impulse values
+-- (i.e. some variation on Momentum).
 
--- | Transfer some values from one vector to another
-substitute :: Set Dimension         -- ^ Which values to substitute from the first vector
-           -> Vector a
-           -> Vector a
-           -> Vector a
-substitute dims from to = keepDims dims from <&> (<?>) <*> to
+partitionNamed :: (a -> Either b c) -> Named a -> (Named b, Named c)
+partitionNamed f = named
+               >>> mapEither f
+               >>> nameAll *** nameAll
 
--- | Run both objects' collision functions
-collideBoth :: Set Dimension -> Pair Physics -> Pair Velocity
-collideBoth dims = collide <*> equilibrium
-    where
-        collide ps eqTransfer = let toTransfer = eqTransfer
-                                             <&> abs
-                                             <&> toNat
-                                             <&> (<?> error "abs returned negative value")
-                                    collided = vcty' . substitute dims . vcty
-                                           <$> transfer eqTransfer ps <*> ps
-                        in vcty <$> friction (keepDims dims toTransfer) collided
+keepMaybe :: Dimension -> Vector a -> Vector (Maybe a)
+keepMaybe dim = liftA2 (mcond . (== dim)) dimensions
 
--- | Advance a game state based on collisions
-update :: Map (Pair ID) Collisions -> Map ID Physics -> Map ID Velocity
-update cs ps = concat $ mapWithKey resultantVPair cs
-    where
-        resultantVPair ids dims = pairToMap
-                                $ zipPair ids
-                                $ collideBoth dims (getEntry <$> ids)
-        pairToMap = toList >>> fromList
-        zipPair = liftA2 (,)
-        getEntry i = lookup i ps <?> error ("Could not find ID: " <> show i)
+absorb :: Named Physics -> (Velocity, Named (Vector Momentum))
+absorb objs = let (infs, fins) = partitionNamed finiteMass $ (mass &&& vcty) <$> objs
+              in case toList $ named infs of
+                  vF:_ -> if all (== vF) infs
+                          then
+                            let iFins = relativeP vF fins
+                                iInfs = infs $> negate (sum iFins) / fromInteger (length infs)
+                            in (vF, iFins <> iInfs)
+                          else error "Infinite masses with different speeds in a collision"
+                  [] -> let mT = sum $ fromPos . fst <$> fins
+                            vF = negate (sum $ relativeP 0 fins) <&> (/& mT)
+                        in (vF, relativeP vF fins)
+  where
+    finiteMass (Infinite, v) = Left v
+    finiteMass (Finite m, v) = Right (m, v)
+
+    relativeP :: Velocity -> Named (Mass, Velocity) -> Named (Vector Momentum)
+    relativeP vF = map $ \(m, v) -> (vF - v) <&> (&* fromPos m)
+
+-- | Advance a game state based on collisions.
+update :: ID -> Collisions -> Named Physics -> Named Velocity
+update i cs ps = if elem i cs
+                 then allDirections
+                  <&> (\d -> let (vF, vs) = cs
+                                        $>> filterEdges (== d)
+                                        >>> tree i
+                                        >>> \g -> collisionsIn (filterWithID (\i' _-> elem i' $ toList g) ps) (fst d) g
+                             in (fst d, unionNamed (+) (nameAll $ fromList [(i, subtractOrZero (fst d) (vcty $ call i ps) vF)]) vs)
+                      )
+                  $>> fromList
+                  >>> foldl' (unionNamed (+)) mempty
+                  >>> \vs -> traceShow ("i, vs: " <> show (i, vs))
+                           $ mapWithID (\i' -> (vcty (call i' ps) +)) vs
+                 else mempty
+  where
+    allDirections = toList dimensions <&> (,) <*> [False, True]
+
+    -- Subtract v2 from v1 in dimension d, setting to 0 otherwise.
+    subtractOrZero d v2 v1 = keepMaybe d v1 <&> (\x y -> x <&> subtract y) <*> v2 <&> (<?> 0)
+
+collisionsIn :: Named Physics -> Dimension -> Graph Direction ID -> (Velocity, Named Velocity)
+collisionsIn ps d g = let (vF, ts) = ps
+                                 $>> absorb
+                                 >>> map (map $ keepMaybe d)
+                      in traceShow ("d: " <> show d)
+                       $ traceShow ("vF, ts: " <> show (vF, ts))
+                       $ ( vF
+                         , g
+                       $>> mapWithParents (iFriction ts)
+                       >>> foldl' (unionNamed (+)) ((<?> 0) <$$> ts)
+                       >>> mapWithID (\i p -> mapInfinite (mass (call i ps) <&> fromPos <&> flip (/&) <%> p) 0)
+                         )
+  where
+    iFriction :: Named (Vector (Maybe Momentum)) -> ID -> [ID] -> Named (Vector Momentum)
+    iFriction ts i rents = let t = call i ts / fromInteger (length rents)
+                               m = fromList
+                                 $ rents
+                                 <&> \p -> (p, muTransfer (diff 0 <$$> t) (Pair i p <&> (`call` ps)))
+                           in nameAll $ insert i ((t <&> (<?> 0)) - sum m) m

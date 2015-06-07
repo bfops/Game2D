@@ -14,19 +14,14 @@ module Game.Physics ( Physics (..)
                     , inelastic
                     ) where
 
-import Summit.Impure
-import Summit.Data.Pair
-import Summit.Data.Set
-import Summit.Num.Nonfinite
-import Summit.Prelewd
-import Summit.Subset.Num
-import Summit.Template.MemberTransformer
-import Summit.Test (Arbitrary (..))
-
+import Control.Lens
+import Test.QuickCheck (Arbitrary (..))
 import Text.Show
 
 import Game.Vector
 import Physics.Types
+import Util.Graph
+import Util.ID
 import Util.Unit
 
 divIndfUnit :: (Ord a, Fractional a, UnitMult x y z) => Unit z a -> Nonfinite (Positive (Unit y a)) -> Unit x a
@@ -43,7 +38,7 @@ data Physics = Physics
         }
     deriving (Show, Eq)
 
-type Collisions = Set Dimension
+type Collisions = Graph Direction ID
 
 $(memberTransformers ''Physics)
 

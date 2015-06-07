@@ -27,16 +27,12 @@ module Util.ID ( ID
                , test
                ) where
 
-import Summit.Impure
-import Summit.Prelewd hiding (Traversable)
-import Summit.Data.Map
-import Summit.Data.Pair
-import Summit.Data.Set (set, (\\))
-import Summit.Test
-
+import Data.HashMap.Strict
+import Data.HashSet
 import Data.List (deleteFirstsBy)
 import Data.Traversable (Traversable)
 import Data.Typeable (Typeable)
+import Test.QuickCheck (Arbitrary (..))
 import Text.Show
 
 deleteFirsts :: Eq a => [a] -> [a] -> [a]
@@ -71,6 +67,9 @@ instance Arbitrary a => Arbitrary (Named a) where
 
 instance Eq a => Eq (Named a) where
   (==) = (==) `on` named
+
+instance Ord a => Ord (Named a) where
+  compare = compare `on` named
 
 instance ResultEq a => ResultEq (Named a)
 
@@ -130,11 +129,11 @@ unionNamed f (Named i1 m1) (Named _ m2) = Named (deleteFirsts (diffKeys m2 m1) i
 updateNamed :: (a -> b -> b) -> Named a -> Named b -> Named b
 updateNamed f a b = (f <$> a <*> b) <> b
 
-test :: Test
-test = $(testGroupGenerator)
-
 nameAll :: Map ID a -> Named a
 nameAll m = Named (deleteFirsts (keys m) [0..]) m
+
+test :: Test
+test = $(testGroupGenerator)
 
 prop_union :: Pair (Map ID Integer) -> Result
 prop_union ms = named (pair (<>) (nameAll <$> ms)) ==? pair (<>) ms

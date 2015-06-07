@@ -2,14 +2,15 @@
 
 cd meristem
 
-if [ -d bugs ]; then
-    for bug in bugs/*; do
-        echo "$bug": `head -1 "$bug"`
-    done
-fi
+find -type f | while read file; do
+  pre="$file:"
 
-if [ -d improvements ]; then
-    for i in improvements/*; do
-        echo "$i": `head -1 "$i"`
-    done
-fi
+  cat "$file" | while read line; do
+    if [ -z "$line" ]; then
+      exit
+    fi
+    echo -n "$pre "
+    echo "$line"
+    pre=$(echo "$pre" | tr [:graph:] " ")
+  done
+done

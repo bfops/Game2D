@@ -21,23 +21,21 @@ module Game.Vector ( Vector (..)
                    , test
                    ) where
 
-import Summit.Prelewd
-import Summit.Data.Member
-import Summit.Test
-
 import Data.Maybe
 import Data.Tuple
-
+import Test.QuickCheck (Arbitrary (..))
 import Text.Show
 
 -- | Physical dimensions in the game
 data Dimension = Width | Height
     deriving (Show, Eq, Ord, Enum, Bounded)
 
-type Direction = (Dimension, Bool)
+instance ResultEq Dimension
 
 instance Arbitrary Dimension where
     arbitrary = elements [minBound..maxBound]
+
+type Direction = (Dimension, Bool)
 
 -- | Vector associating each dimension to a vector component
 dimensions :: Vector Dimension
@@ -61,7 +59,7 @@ instance Fractional a => Fractional (Vector a) where
     fromRational = pure . fromRational
 
 instance Real a => Ord (Vector a) where
-    compare = compare `on` (dot <*> \x->x)
+    compare = compare `on` (dot <*> \x-> x)
 
 instance Applicative Vector where
     pure x = Vector x x 
@@ -81,6 +79,9 @@ instance Applicative f => Traversable Vector f a b
 
 instance Arbitrary a => Arbitrary (Vector a) where
     arbitrary = sequence $ pure arbitrary
+
+instance ResultEq a => ResultEq (Vector a) where
+    (==?) = (==?) `on` toList
 
 -- | Get a single component from a vector
 component :: Dimension -> Vector a -> a

@@ -5,10 +5,6 @@
 module Game.Render ( Drawable (..)
                    ) where
 
-import Summit.IO
-import Summit.Prelewd
-import Summit.Subset.Num
-
 import Game.Physics
 import Game.Object
 import Game.Vector

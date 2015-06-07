@@ -1,14 +1,10 @@
-{-# LANGUAGE NoImplicitPrelude
-           #-}
 -- | Input handling
 module Game.Input ( Input (..)
                   , Inputs
                   , ButtonState
                   ) where
 
-import Summit.Prelewd
-import Summit.Data.Map
-
+import Data.HashMap.Strict
 import Text.Show
 
 import Physics.Types

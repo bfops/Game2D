@@ -1,17 +1,10 @@
-{-# LANGUAGE NoImplicitPrelude
-           , TupleSections
-           #-}
+{-# LANGUAGE TupleSections #-}
 -- | Main module, entry point
 module Main (main) where
 
-import Summit.Control.Stream
-import Summit.Impure
-import Summit.IO
-import Summit.Prelewd hiding (Either (..))
-import Summit.Data.Map
-import Summit.Subset.Num
-
 import Control.Concurrent (threadDelay)
+import Data.Conduit
+import Data.HashMap.Strict
 import Data.Tuple
 
 import Game.Input
